@@ -9,10 +9,10 @@ import { OpenAPIV2 } from 'openapi-types';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import ApiGroupPanel from '@/components/ApiGroupPanel';
-import FileSystemSelect from '@/components/FileSystemSelect';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import AddApiDocModal from '@/components/AddApiDocModal';
+import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -162,7 +162,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 <Row gutter={24}>
                   <Col span={24}>
                     <FormItem name="outputPath" label="输出至当前项目 ts 文件：">
-                      <FileSystemSelect placeholder="请选择" />
+                      <DirectoryTreeSelect placeholder="请选择" />
                     </FormItem>
                   </Col>
                 </Row>
