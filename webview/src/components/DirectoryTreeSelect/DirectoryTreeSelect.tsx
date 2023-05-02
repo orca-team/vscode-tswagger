@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import styles from './DirectoryTreeSelect.less';
 import { useMount } from 'ahooks';
-import { postMessage } from '@/utils/vscode';
 import useMessageListener from '@/hooks/useMessageListener';
 import directoryTree from 'directory-tree';
 import { TreeSelect, TreeSelectProps } from 'antd';
 import { DefaultOptionType } from 'rc-tree-select/lib/TreeSelect';
 import { FileOutlined, FolderFilled } from '@ant-design/icons';
+import webviewService from '@/services';
 
 export interface DirectoryTreeSelectProps extends TreeSelectProps {}
 
@@ -16,25 +16,22 @@ const DirectoryTreeSelect: React.FC<DirectoryTreeSelectProps> = (props) => {
   const [dirTree, setDirTree] = useState<directoryTree.DirectoryTree[]>();
 
   useMount(() => {
-    postMessage({
-      method: 'webview-getCurrentDir',
-      params: {},
-    });
+    webviewService.queryCWD();
   });
 
   useMessageListener((vscodeMsg) => {
-    if (vscodeMsg.method === 'vscode-currentDir') {
-      setDirTree([vscodeMsg.data as directoryTree.DirectoryTree]);
+    if (vscodeMsg.method === 'vscode-CWD') {
+      setDirTree(vscodeMsg.data as directoryTree.DirectoryTree[]);
     }
   });
 
   const handleDir2TreeData = (children: directoryTree.DirectoryTree[]): DefaultOptionType[] => {
-    return children.map((dir) => ({
-      icon: dir.type === 'directory' ? <FolderFilled /> : <FileOutlined />,
-      title: dir.name,
-      value: dir.path,
-      path: dir.path,
-      children: handleDir2TreeData(dir.children ?? []),
+    return children.map(({ type, name, path, children }) => ({
+      path,
+      icon: type === 'directory' ? <FolderFilled /> : <FileOutlined />,
+      title: name,
+      value: path,
+      children: handleDir2TreeData(children ?? []),
     }));
   };
 

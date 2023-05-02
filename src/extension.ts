@@ -4,7 +4,6 @@ import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
 import extensionEvent from './utils/extensionEvent';
 import SwaggerParser from '@apidevtools/swagger-parser';
-import { compile as compileJSONSchema } from 'json-schema-to-typescript';
 import dirTree from 'directory-tree';
 import { getAllConfiguration, getConfiguration, getGlobalState, isDev, setConfiguration } from './utils/vscodeUtil';
 import { writeFileSync } from 'fs';
@@ -53,8 +52,8 @@ export function activate(context: vscode.ExtensionContext) {
         console.info('[Message from umi webview]: ', message);
         const { params } = message;
         switch (message.method) {
-          // webview 挂载完成
-          case 'webview-mounted': {
+          // 获取插件配置等相关信息
+          case 'webview-queryExtInfo': {
             const allSetting = getAllConfiguration(['remoteUrlList']);
             const globalState = getGlobalState(context);
             postMessage({
@@ -84,19 +83,19 @@ export function activate(context: vscode.ExtensionContext) {
             }
             break;
           }
-          // webview 读取 Swagger 接口返回内容
-          case 'webview-getSwaggerResponse': {
+          // webview 解析 Swagger 远程接口返回的 schema
+          case 'webview-querySwaggerSchema': {
             try {
               const apiResponse = await SwaggerParser.parse(params.url);
               console.log('API name: %s, Version: %s', apiResponse.info.title, apiResponse.info.version);
               postMessage({
-                method: 'vscode-swaggerResponse',
+                method: 'vscode-swaggerSchema',
                 data: apiResponse,
                 success: true,
               });
             } catch (err) {
               postMessage({
-                method: 'vscode-swaggerResponse',
+                method: 'vscode-swaggerSchema',
                 data: null,
                 success: false,
                 errMsg: 'Swagger 接口获取失败，请稍后再试',
@@ -105,32 +104,33 @@ export function activate(context: vscode.ExtensionContext) {
             }
           }
           // webview 读取当前工作目录
-          case 'webview-getCurrentDir': {
+          case 'webview-queryCWD': {
             try {
               const workspaceFolders = vscode.workspace.workspaceFolders;
-              const treeList = dirTree(workspaceFolders![0].uri.fsPath, {
-                attributes: ['type', 'size'],
-                exclude: [/node_modules/, /.git/],
-                extensions: /\.(ts|tsx)$/,
-              });
+              const treeList: dirTree.DirectoryTree[] = [];
+              if (!!workspaceFolders?.length) {
+                workspaceFolders.forEach((workspaceFolder) => {
+                  treeList.push(
+                    dirTree(workspaceFolder.uri.fsPath, {
+                      attributes: ['type', 'size'],
+                      exclude: [/node_modules/, /.git/],
+                      extensions: /\.(ts|tsx)$/,
+                    }),
+                  );
+                });
+              }
               postMessage({
-                method: 'vscode-currentDir',
+                method: 'vscode-CWD',
                 data: treeList,
                 success: true,
               });
             } catch (err) {
-              postMessage({
-                method: 'vscode-currentDir',
-                data: null,
-                success: false,
-                errMsg: '当前目录获取失败，请稍后再试',
-              });
               vscode.window.showErrorMessage(`当前目录获取失败: ${err}`);
             }
             break;
           }
-          // 将 swagger schema 转成 ts
-          case 'webview-swaggerPathInfo': {
+          // 将 swagger schema 2.0 转成 ts
+          case 'webview-generateAPIV2Ts': {
             const { outputPath, definitions, swaggerPathSchemaCollection = [] } = params;
             try {
               let tsDefs = '';
@@ -166,7 +166,7 @@ export function activate(context: vscode.ExtensionContext) {
               }
               writeFileSync(outputPath as string, tsDefs, { encoding: 'utf-8' });
               postMessage({
-                method: 'vscode-schema2Ts',
+                method: 'vscode-generateAPIV2Ts',
                 data: {},
                 success: true,
               });

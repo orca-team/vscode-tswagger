@@ -17,3 +17,8 @@ export type ApiGroupByTag = {
   tag: OpenAPIV2.TagObject;
   apiPathList: ApiPathType[];
 };
+
+export type SwaggerPathSchema = {
+  tag: string;
+  apiPathList: ApiPathType[];
+};

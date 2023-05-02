@@ -1,6 +1,6 @@
 export type WebviewMessage<P = any> = {
   method: `webview-${string}`;
-  params: Record<string, P>;
+  params?: Record<string, P>;
 };
 
 // @ts-ignore

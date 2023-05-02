@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
 import { Layout, Form, Select, Row, Col, message, Spin, Collapse, Typography, Checkbox, Space, Affix, Empty, Button, Tooltip, theme } from 'antd';
 import { useGlobalState } from '@/states/globalState';
-import { postMessage } from '@/utils/vscode';
 import useMessageListener from '@/hooks/useMessageListener';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import { OpenAPIV2 } from 'openapi-types';
@@ -13,6 +12,7 @@ import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import AddApiDocModal from '@/components/AddApiDocModal';
 import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
+import webviewService from '@/services';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -53,23 +53,18 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       return;
     }
     startParseLoading();
-    postMessage({
-      method: 'webview-getSwaggerResponse',
-      params: {
-        url: currentRemoteUrl,
-      },
-    });
+
+    webviewService.querySwaggerSchema(currentRemoteUrl);
   }, [currentRemoteUrl]);
 
   useMessageListener((vscodeMsg) => {
     const { method } = vscodeMsg;
     switch (method) {
       case 'vscode-extInfo': {
-        console.log('mounted', vscodeMsg.data);
         setExtSetting({ remoteUrlList: vscodeMsg.data.setting.remoteUrlList ?? [] });
         break;
       }
-      case 'vscode-swaggerResponse': {
+      case 'vscode-swaggerSchema': {
         stopParseLoading();
         if (!vscodeMsg.success) {
           message.error(vscodeMsg.errMsg);
@@ -82,7 +77,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
         _this.definitions = apiDocs.definitions ?? {};
         break;
       }
-      case 'vscode-schema2Ts': {
+      case 'vscode-generateAPIV2Ts': {
         message.success('转换成功');
         break;
       }
@@ -90,10 +85,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   });
 
   useMount(() => {
-    postMessage({
-      method: 'webview-mounted',
-      params: {},
-    });
+    webviewService.queryExtInfo();
     form.setFieldValue('outputConfig', ['responseBody', 'requestParams']);
   });
 
@@ -106,14 +98,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       });
     });
 
-    postMessage({
-      method: 'webview-swaggerPathInfo',
-      params: {
-        swaggerPathSchemaCollection,
-        definitions: _this.definitions,
-        outputPath: form.getFieldValue('outputPath'),
-      },
-    });
+    webviewService.generateAPIV2Ts(swaggerPathSchemaCollection, _this.definitions, form.getFieldValue('outputPath'));
   });
 
   return (
