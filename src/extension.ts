@@ -144,6 +144,7 @@ export function activate(context: vscode.ExtensionContext) {
                   const paramsSchemaName = camelCase(
                     [apiPath.method as string]
                       .concat(apiPath.path.split('/'))
+                      .concat('params')
                       .filter((it) => !!it)
                       .join('__'),
                   );
