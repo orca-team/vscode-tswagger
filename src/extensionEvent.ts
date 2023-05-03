@@ -116,6 +116,24 @@ const extensionEvent = (panel: vscode.WebviewPanel) => {
     },
   };
 
+  const tsFileWatcher = vscode.workspace.createFileSystemWatcher(
+    // new vscode.RelativePattern(vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor?.document.uri), '/.(ts|tsx)$/'),
+    '**/*.{ts,tsx}',
+    false,
+    false,
+    false,
+  );
+
+  tsFileWatcher.onDidCreate((uri) => {
+    console.info('[Typescript File Create]: ', uri.path);
+    extensionService.sendCwdTreeData();
+  });
+
+  tsFileWatcher.onDidDelete((uri) => {
+    console.info('[Typescript File Delete]: ', uri.path);
+    extensionService.sendCwdTreeData();
+  });
+
   return {
     extensionService,
     postMessage,
