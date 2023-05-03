@@ -1,5 +1,6 @@
 import { join } from 'path';
 import * as vscode from 'vscode';
+import { GlobalStateKey } from '../types';
 
 /**
  * 判断是否为开发环境
@@ -37,10 +38,18 @@ export const setConfiguration = (configName: string, configValue: any) => {
   settingsConfig.update(configName, configValue, true);
 };
 
-export const getGlobalState = (context: vscode.ExtensionContext, key: string = '') => {
-  return context.globalState.get(`SwaggerTypescriptGenerator${key ? `.${key}` : ''}`);
+export const allExtGlobalStateKeys = ['localTranslation'];
+
+export const getGlobalState = <Value = any>(context: vscode.ExtensionContext, key?: GlobalStateKey) => {
+  const globalState: Record<string, Value> = {};
+  if (!key) {
+    allExtGlobalStateKeys.forEach((key) => {
+      globalState[key] = context.globalState.get(`SwaggerTypescriptGenerator.${key}`) as Value;
+    });
+  }
+  return context.globalState.get(`SwaggerTypescriptGenerator.${key}`) as Value;
 };
 
-export const setGlobalState = (context: vscode.ExtensionContext, key: string = '', value: any) => {
+export const setGlobalState = <Value = any>(context: vscode.ExtensionContext, key?: GlobalStateKey, value?: Value) => {
   context.globalState.update(`SwaggerTypescriptGenerator${key ? `.${key}` : ''}`, value);
 };

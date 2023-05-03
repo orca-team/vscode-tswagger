@@ -1,15 +1,38 @@
 import { JSONSchema } from 'json-schema-to-typescript';
 import { OpenAPIV2 } from 'openapi-types';
 import { buildAnyTypeSchema, buildBasicTypeSchema } from './buildSchema';
+import { hasChinese, match$RefClassName, splitChineseAndEnglish } from './regexHelpers';
+import translate from './translate';
+import localTranslate from '../utils/localTranslate';
+
+export const filterDefinitionName = async (definitionName: string) => {
+  let definitionNames = splitChineseAndEnglish(definitionName) ?? [];
+
+  if (hasChinese(definitionName)) {
+    let result = '';
+    for (const name of definitionNames) {
+      if (hasChinese(name)) {
+        const translatedName = localTranslate(name) ?? (await translate(name));
+        result += translatedName;
+        continue;
+      }
+      result += name;
+    }
+    return result;
+  }
+
+  return definitionNames?.join('') ?? '';
+};
 
 export const swaggerSchemaBasicTypes = ['string', 'boolean', 'number', 'integer'];
 
-export const convertAPIV2Schema2JSONSchema = (swaggerSchema: OpenAPIV2.SchemaObject): JSONSchema => {
+export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
   const { $ref: $schemaRef, type: schemaType = '', title: schemaTitle, description, ...otherProps } = swaggerSchema;
 
   if ($schemaRef) {
+    const refClassName = match$RefClassName($schemaRef);
     return {
-      $ref: $schemaRef,
+      $ref: `#/definitions/${await filterDefinitionName(refClassName)}`,
     };
   }
 
@@ -34,7 +57,7 @@ export const convertAPIV2Schema2JSONSchema = (swaggerSchema: OpenAPIV2.SchemaObj
     return {
       title: schemaTitle,
       type: 'array',
-      items: convertAPIV2ToJSONSchema(arrayItems ?? {}),
+      items: await convertAPIV2ToJSONSchema(arrayItems ?? {}),
     };
   }
 
@@ -47,12 +70,12 @@ export const convertAPIV2Schema2JSONSchema = (swaggerSchema: OpenAPIV2.SchemaObj
         requiredSet.add(requiredField);
       });
     }
-    Object.entries(swaggerSchema.properties ?? {}).forEach(([key, value]) => {
-      properties[key] = convertAPIV2ToJSONSchema(value);
+    for (const [key, value] of Object.entries(swaggerSchema.properties ?? {})) {
+      properties[key] = await convertAPIV2ToJSONSchema(value);
       if (value.required) {
         requiredSet.add(key);
       }
-    });
+    }
 
     return {
       title: schemaTitle,
@@ -65,21 +88,23 @@ export const convertAPIV2Schema2JSONSchema = (swaggerSchema: OpenAPIV2.SchemaObj
   return buildAnyTypeSchema({ description });
 };
 
-export const convertAPIV2ToJSONSchema = (swaggerSchema: OpenAPIV2.SchemaObject): JSONSchema => {
-  let JSONSchema = convertAPIV2Schema2JSONSchema(swaggerSchema);
+export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
+  let JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
   if (swaggerSchema.definitions) {
-    JSONSchema.definitions = convertAPIV2Definitions(swaggerSchema.definitions as OpenAPIV2.DefinitionsObject);
+    JSONSchema.definitions = await convertAPIV2Definitions(swaggerSchema.definitions as OpenAPIV2.DefinitionsObject);
   }
 
   return JSONSchema;
 };
 
-export const convertAPIV2Definitions = (definitions: OpenAPIV2.DefinitionsObject): JSONSchema => {
+export const convertAPIV2Definitions = async (definitions: OpenAPIV2.DefinitionsObject): Promise<JSONSchema> => {
   const defs: JSONSchema = {};
-  Object.entries(definitions).forEach(([name, schema]) => {
-    defs[name] = convertAPIV2ToJSONSchema(schema);
-    defs[name].title = name;
-  });
+
+  for (const [name, schema] of Object.entries(definitions)) {
+    let currentName = await filterDefinitionName(name);
+    defs[currentName] = await convertAPIV2ToJSONSchema(schema);
+    defs[currentName].title = currentName;
+  }
 
   return defs;
 };

@@ -5,16 +5,19 @@ import hotReloadWebview from './utils/hotReloadWebview';
 import extensionEvent from './utils/extensionEvent';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import dirTree from 'directory-tree';
-import { getAllConfiguration, getConfiguration, getGlobalState, isDev, setConfiguration } from './utils/vscodeUtil';
+import { getAllConfiguration, getConfiguration, getGlobalState, isDev, setConfiguration, setGlobalState } from './utils/vscodeUtil';
 import { writeFileSync } from 'fs';
 import { generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
 import { camelCase } from 'lodash-es';
 import { OpenAPIV2 } from 'openapi-types';
+import { setGlobalContext } from './globalContext';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "swagger-typescript-generator" is now active!');
+
+  setGlobalContext(context);
 
   let umiPanel: vscode.WebviewPanel | undefined;
   let umiHTML: string = '';
@@ -133,6 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
           case 'webview-generateAPIV2Ts': {
             const { outputPath, definitions, swaggerPathSchemaCollection = [] } = params;
             try {
+              console.time();
               let tsDefs = '';
               const schemaCollection: OpenAPIV2.SchemaObject[] = [];
               // @ts-ignore
@@ -170,7 +174,9 @@ export function activate(context: vscode.ExtensionContext) {
                 data: {},
                 success: true,
               });
+              console.timeEnd();
             } catch (err) {
+              console.log('err', err);
               vscode.window.showErrorMessage(`Schema 转换 Typescript 失败: ${err}`);
             }
             break;
