@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
-import { Layout, Form, Select, Row, Col, message, Spin, Collapse, Typography, Checkbox, Space, Affix, Empty, Button, Tooltip, theme } from 'antd';
+import { Layout, Form, Select, message, Spin, Collapse, Typography, Checkbox, Space, Affix, Empty, Button, Tooltip, theme } from 'antd';
 import { useGlobalState } from '@/states/globalState';
 import useMessageListener from '@/hooks/useMessageListener';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
@@ -48,13 +48,17 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     }));
   }, [extSetting.remoteUrlList]);
 
-  useEffect(() => {
+  const refreshSwaggerSchema = useMemoizedFn(() => {
     if (!currentRemoteUrl) {
       return;
     }
     startParseLoading();
 
     webviewService.querySwaggerSchema(currentRemoteUrl);
+  });
+
+  useEffect(() => {
+    refreshSwaggerSchema();
   }, [currentRemoteUrl]);
 
   useMessageListener((vscodeMsg) => {
@@ -67,7 +71,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       case 'vscode-swaggerSchema': {
         stopParseLoading();
         if (!vscodeMsg.success) {
-          message.error(vscodeMsg.errMsg);
+          setApiGroup([]);
           return;
         }
         const currentApiName = options.find((option) => option.value === currentRemoteUrl)?.label;
@@ -110,24 +114,23 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
           <Affix>
             <Content className={styles.content} style={{ border: `1px solid ${token.colorBorder}`, backgroundColor: token.colorBgContainer }}>
               <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
-                <Row gutter={24}>
-                  <Col span={24}>
-                    <FormItem
-                      name="remoteUrl"
-                      labelCol={{ span: 24 }}
-                      label={
-                        <Space>
-                          <span>Swagger API：</span>
-                          <Button type="link" disabled={!currentRemoteUrl} style={{ display: 'inline-block' }}>
-                            刷新
-                          </Button>
-                        </Space>
-                      }
-                    >
-                      <Select placeholder="请选择一个 swagger 远程地址接口" showSearch optionFilterProp="label" options={options} />
-                    </FormItem>
-                  </Col>
-                </Row>
+                <FormItem
+                  name="remoteUrl"
+                  required
+                  rules={[{ required: true }]}
+                  label={
+                    <Space>
+                      <span>Swagger API：</span>
+                      <Tooltip title="刷新当前 swagger 接口的路径数据">
+                        <Button type="link" disabled={!currentRemoteUrl} style={{ display: 'inline-block' }} onClick={refreshSwaggerSchema}>
+                          刷新
+                        </Button>
+                      </Tooltip>
+                    </Space>
+                  }
+                >
+                  <Select placeholder="请选择一个 swagger 远程地址接口" showSearch optionFilterProp="label" options={options} />
+                </FormItem>
                 {/* <Row gutter={24}>
                   <Col span={24}>
                     <FormItem name="outputConfig" label="输出配置：">
@@ -144,13 +147,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     </FormItem>
                   </Col>
                 </Row> */}
-                <Row gutter={24}>
-                  <Col span={24}>
-                    <FormItem name="outputPath" label="输出至当前项目 ts 文件：">
-                      <DirectoryTreeSelect placeholder="请选择" />
-                    </FormItem>
-                  </Col>
-                </Row>
+                <FormItem required rules={[{ required: true }]} name="outputPath" label="输出至当前项目 ts 文件：">
+                  <DirectoryTreeSelect placeholder="请选择需要输出的 ts/tsx 文件" />
+                </FormItem>
               </Form>
               <div style={{ textAlign: 'right' }}>
                 <Space size="small">
