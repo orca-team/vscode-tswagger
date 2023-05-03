@@ -10,7 +10,7 @@ import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import ApiGroupPanel from '@/components/ApiGroupPanel';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
-import AddApiDocModal from '@/components/AddApiDocModal';
+import AddRemoteUrlModal from '@/components/AddRemoteUrlModal';
 import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
 import webviewService from '@/services';
 
@@ -108,7 +108,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
         <Header className={styles.header}>Swagger2.0 to Typescript</Header>
         <Layout className={styles.layout}>
           <Affix>
-            <Content className={styles.content} style={{ border: `1px solid ${token.colorBorder}`, backgroundColor: token.colorBgElevated }}>
+            <Content className={styles.content} style={{ border: `1px solid ${token.colorBorder}`, backgroundColor: token.colorBgContainer }}>
               <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
                 <Row gutter={24}>
                   <Col span={24}>
@@ -158,7 +158,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     icon={<PlusOutlined />}
                     type="default"
                     onClick={() => {
-                      modalController.show(<AddApiDocModal width="60%" />);
+                      modalController.show(<AddRemoteUrlModal width="60%" />);
                     }}
                   >
                     添加新的 Swagger 接口

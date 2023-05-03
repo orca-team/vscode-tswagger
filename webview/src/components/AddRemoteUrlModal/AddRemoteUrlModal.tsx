@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, ModalProps, Form, Input, Button, message } from 'antd';
+import { Modal, ModalProps, Form, Input, Button, message, theme, Space } from 'antd';
 import { postMessage } from '@/utils/vscode';
 import styles from './AddRemoteUrlModal.less';
 import useMessageListener from '@/hooks/useMessageListener';
@@ -18,10 +18,10 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
   const { className = '', onOk, onCancel = () => {}, ...otherProps } = props;
 
   const [form] = Form.useForm();
+  const { token } = theme.useToken();
 
   const handleOk = async () => {
     const values = await form.validateFields();
-    console.log('values', values);
     postMessage({
       method: 'webview-addRemoteUrl',
       params: {
@@ -52,7 +52,7 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
   return (
     <Modal
       title="添加 swagger 远程接口"
-      className={className}
+      className={`${styles.root} ${className}`}
       okText="确定增加"
       cancelText="取消"
       {...otherProps}
@@ -65,10 +65,11 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
     >
       <Form form={form} layout="vertical">
         <FormList name="list">
+          {/* TODO: 校验相同地址的接口 */}
           {(fields, { add, remove }) => (
             <>
               {fields.map(({ key, name }, index) => (
-                <div key={key} className={`${styles.fieldWrapper}`}>
+                <div key={key} className={`${styles.fieldWrapper}`} style={{ border: `1px solid ${token.colorBorder}` }}>
                   <FormItem label="名称" name={[name, 'name']} rules={[{ required: true, message: '请输入接口名称' }]}>
                     <Input placeholder="请输入接口名称" />
                   </FormItem>
@@ -76,20 +77,22 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
                     <Input placeholder="请输入 Swagger 远程接口地址" />
                   </FormItem>
                   {fields.length > 1 && (
-                    <Button
-                      type="link"
-                      onClick={() => {
-                        remove(name);
-                      }}
-                      className={`${styles.deleteButton}`}
-                    >
-                      删除本组接口
-                    </Button>
+                    <div style={{ display: 'flex' }}>
+                      <Button
+                        type="link"
+                        onClick={() => {
+                          remove(name);
+                        }}
+                        className={`${styles.deleteItemButton}`}
+                      >
+                        删除本组接口
+                      </Button>
+                    </div>
                   )}
                 </div>
               ))}
 
-              <Button type="dashed" icon={<PlusCircleOutlined />} onClick={add} style={{ width: '100%' }}>
+              <Button type="dashed" className={styles.addGroupBtn} icon={<PlusCircleOutlined />} onClick={add} style={{ width: '100%' }}>
                 添加新的一组远程接口
               </Button>
             </>
