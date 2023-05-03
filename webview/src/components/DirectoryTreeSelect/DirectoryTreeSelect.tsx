@@ -26,20 +26,33 @@ const DirectoryTreeSelect: React.FC<DirectoryTreeSelectProps> = (props) => {
   });
 
   const handleDir2TreeData = (children: directoryTree.DirectoryTree[]): DefaultOptionType[] => {
-    return children.map(({ type, name, path, children }) => ({
-      path,
-      icon: type === 'directory' ? <FolderFilled /> : <FileOutlined />,
-      title: name,
-      value: path,
-      children: handleDir2TreeData(children ?? []),
-    }));
+    return children.map(({ type, name, path, children }) => {
+      const isDirectory = type === 'directory';
+      return {
+        path,
+        icon: isDirectory ? <FolderFilled /> : <FileOutlined />,
+        title: name,
+        value: path,
+        disabled: isDirectory,
+        children: handleDir2TreeData(children ?? []),
+      };
+    });
   };
 
   const dirTreeData: DefaultOptionType[] = useMemo(() => {
     return dirTree ? handleDir2TreeData(dirTree) : [];
   }, [dirTree]);
 
-  return <TreeSelect treeIcon treeData={dirTreeData} treeNodeLabelProp="path" className={`${styles.root} ${className}`} {...otherProps} />;
+  return (
+    <TreeSelect
+      treeIcon
+      treeDefaultExpandAll
+      treeData={dirTreeData}
+      treeNodeLabelProp="path"
+      className={`${styles.root} ${className}`}
+      {...otherProps}
+    />
+  );
 };
 
 export default DirectoryTreeSelect;
