@@ -29,6 +29,8 @@ export const swaggerSchemaBasicTypes = ['string', 'boolean', 'number', 'integer'
 export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
   const { $ref: $schemaRef, type: schemaType = '', title: schemaTitle, description, ...otherProps } = swaggerSchema;
 
+  const mergeCommonJSONSchema = (additionalSchema: JSONSchema): JSONSchema => ({ title: schemaTitle, description, ...additionalSchema });
+
   if ($schemaRef) {
     const refClassName = match$RefClassName($schemaRef);
     return {
@@ -37,28 +39,25 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
   }
 
   if (Array.isArray(schemaType)) {
-    return {
-      title: schemaTitle,
+    return mergeCommonJSONSchema({
       type: schemaType,
-      description,
       ...otherProps,
-    } as JSONSchema;
+    } as JSONSchema);
   }
 
   // 基本类型
   if (swaggerSchemaBasicTypes.includes(schemaType)) {
     const { enum: swaggerEnum = [] } = swaggerSchema;
-    return !!swaggerEnum.length ? { description, enum: swaggerEnum } : buildBasicTypeSchema(schemaType, { description });
+    return mergeCommonJSONSchema(!!swaggerEnum.length ? { enum: swaggerEnum } : buildBasicTypeSchema(schemaType));
   }
 
   // 数组类型
   if (schemaType === 'array') {
     const { items: arrayItems } = swaggerSchema;
-    return {
-      title: schemaTitle,
+    return mergeCommonJSONSchema({
       type: 'array',
       items: await convertAPIV2ToJSONSchema(arrayItems ?? {}),
-    };
+    });
   }
 
   // 对象类型
@@ -77,15 +76,14 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
       }
     }
 
-    return {
-      title: schemaTitle,
+    return mergeCommonJSONSchema({
       type: 'object',
       properties,
       required: Array.from(requiredSet.values()),
-    };
+    });
   }
 
-  return buildAnyTypeSchema({ description });
+  return mergeCommonJSONSchema(buildAnyTypeSchema());
 };
 
 export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {

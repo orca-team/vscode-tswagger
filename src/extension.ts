@@ -136,7 +136,6 @@ export function activate(context: vscode.ExtensionContext) {
           case 'webview-generateAPIV2Ts': {
             const { outputPath, definitions, swaggerPathSchemaCollection = [] } = params;
             try {
-              console.time();
               let tsDefs = '';
               const schemaCollection: OpenAPIV2.SchemaObject[] = [];
               // @ts-ignore
@@ -174,7 +173,6 @@ export function activate(context: vscode.ExtensionContext) {
                 data: {},
                 success: true,
               });
-              console.timeEnd();
             } catch (err) {
               console.log('err', err);
               vscode.window.showErrorMessage(`Schema 转换 Typescript 失败: ${err}`);
