@@ -96,6 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
                   // @ts-ignore
                   apiPath.pathInfo.parameters?.forEach((parameter) => {
                     paramsSchema[parameter.name] = parameter.schema ? parameter.schema : parameter;
+                    paramsSchema[parameter.name].required = parameter.required ? [parameter.name] : [];
                   });
                   schemaCollection.push({
                     definitions,
