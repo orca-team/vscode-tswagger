@@ -38,13 +38,3 @@ export const parseOpenAPIV2 = (doc: OpenAPIV2.Document) => {
 
   return apiGroup;
 };
-
-export const paresSchema$Ref = ($ref: string) => {
-  const reg = new RegExp('#/definitions/(.*)$', 'ig');
-  let defName = '';
-  if (reg.test($ref)) {
-    defName = $ref.match(reg)?.[0] ?? '';
-  }
-
-  return defName;
-};

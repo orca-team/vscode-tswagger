@@ -8,11 +8,12 @@ import { OpenAPIV2 } from 'openapi-types';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import ApiGroupPanel from '@/components/ApiGroupPanel';
-import { DownOutlined, PlusOutlined } from '@ant-design/icons';
+import { CaretRightOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import AddRemoteUrlModal from '@/components/AddRemoteUrlModal';
 import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
 import webviewService from '@/services';
+import SwaggerInfo from '@/components/SwaggerInfo';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -35,6 +36,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
 
   const [apiGroup, setApiGroup] = useState<ApiGroupByTag[]>([]);
+  const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
   const modalController = usePromisifyModal();
   const [expand, { toggle: toggleExpand }] = useToggle(true);
   const [selectedApiMap, { set: setSelectedApiMap, remove: removeSelectedApiMap }] = useMap<OpenAPIV2.TagObject['name'], ApiPathType[]>();
@@ -53,7 +55,6 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       return;
     }
     startParseLoading();
-
     webviewService.querySwaggerSchema(currentRemoteUrl);
   });
 
@@ -71,12 +72,14 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       case 'vscode-swaggerSchema': {
         stopParseLoading();
         if (!vscodeMsg.success) {
+          setSwaggerDocs(undefined);
           setApiGroup([]);
           return;
         }
         const currentApiName = options.find((option) => option.value === currentRemoteUrl)?.label;
         message.success(`【${currentApiName}】 Swagger 接口地址解析成功`);
         const apiDocs = vscodeMsg.data as OpenAPIV2.Document;
+        setSwaggerDocs(apiDocs);
         setApiGroup(parseOpenAPIV2(apiDocs));
         _this.definitions = apiDocs.definitions ?? {};
         break;
@@ -173,6 +176,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
             </Content>
           </Affix>
           <Spin spinning={parseLoading}>
+            {!!swaggerDocs ? <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} /> : null}
             {!!apiGroup.length ? (
               <Collapse className={styles.apiList}>
                 {apiGroup.map((item, index) => (
