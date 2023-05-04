@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
-import { Layout, Form, Select, message, Spin, Collapse, Typography, Checkbox, Space, Affix, Empty, Button, Tooltip, theme } from 'antd';
+import { Layout, Form, Select, message, Spin, Collapse, Typography, Checkbox, Space, Affix, Empty, Button, Tooltip, theme, FloatButton } from 'antd';
 import { useGlobalState } from '@/states/globalState';
 import useMessageListener from '@/hooks/useMessageListener';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
@@ -199,6 +199,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
           </Spin>
         </Layout>
       </Layout>
+      <FloatButton.BackTop />
     </div>
   );
 };
