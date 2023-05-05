@@ -1,7 +1,7 @@
 import { JSONSchema } from 'json-schema-to-typescript';
 import { OpenAPIV2 } from 'openapi-types';
 import { buildAnyTypeSchema, buildBasicTypeSchema } from './buildSchema';
-import { hasChinese, match$RefClassName, splitChineseAndEnglish } from './regexHelpers';
+import { hasChinese, match$RefClassName, splitChineseAndEnglish } from '../utils/regexHelpers';
 import translate from './translate';
 import localTranslate from '../utils/localTranslate';
 
