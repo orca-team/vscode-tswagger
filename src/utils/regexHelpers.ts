@@ -17,4 +17,4 @@ export const splitChineseAndEnglish = (text: string) => text.match(/[\u4E00-\u9F
  * @param $ref 目标 $ref
  * @returns 实体类名称
  */
-export const match$RefClassName = ($ref: string) => $ref.match(new RegExp('#/definitions/(.*)$'))?.[1] ?? '';
+export const match$RefClassName = ($ref: string) => /\/(\w+)$/.exec($ref)?.[1] ?? '';
