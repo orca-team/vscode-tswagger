@@ -8,7 +8,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import ApiGroupPanel from '@/components/ApiGroupPanel';
-import { CaretRightOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
+import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import AddRemoteUrlModal from '@/components/AddRemoteUrlModal';
 import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
@@ -41,7 +41,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [expand, { toggle: toggleExpand }] = useToggle(true);
   const [selectedApiMap, { set: setSelectedApiMap, remove: removeSelectedApiMap }] = useMap<OpenAPIV2.TagObject['name'], ApiPathType[]>();
 
-  const _this = useRef<{ definitions: OpenAPIV2.DefinitionsObject }>({ definitions: {} }).current;
+  const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
 
   const options = useMemo(() => {
     return extSetting.remoteUrlList.map(({ name, url }) => ({
@@ -81,11 +81,13 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
         const apiDocs = vscodeMsg.data as OpenAPIV2.Document;
         setSwaggerDocs(apiDocs);
         setApiGroup(parseOpenAPIV2(apiDocs));
-        _this.definitions = apiDocs.definitions ?? {};
+        _this.V2Document = apiDocs;
         break;
       }
       case 'vscode-generateAPIV2Ts': {
-        message.success('转换成功');
+        if (vscodeMsg.success) {
+          message.success('转换成功');
+        }
         break;
       }
     }
@@ -93,19 +95,19 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   useMount(() => {
     webviewService.queryExtInfo();
-    form.setFieldValue('outputConfig', ['responseBody', 'requestParams']);
+    form.setFieldValue('outputOptions', ['responseBody', 'requestParams']);
   });
 
   const handleGenerateTs = useMemoizedFn(() => {
-    const swaggerPathSchemaCollection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
+    const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
     selectedApiMap.forEach((apiPathList, tagName) => {
-      swaggerPathSchemaCollection.push({
+      collection.push({
         tag: tagName,
         apiPathList,
       });
     });
 
-    webviewService.generateAPIV2Ts(swaggerPathSchemaCollection, _this.definitions, form.getFieldValue('outputPath'));
+    webviewService.generateAPIV2Ts(collection, form.getFieldValue('outputPath'), _this.V2Document);
   });
 
   return (
@@ -134,22 +136,17 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 >
                   <Select placeholder="请选择一个 swagger 远程地址接口" showSearch optionFilterProp="label" options={options} />
                 </FormItem>
-                {/* <Row gutter={24}>
-                  <Col span={24}>
-                    <FormItem name="outputConfig" label="输出配置：">
-                      <Checkbox.Group>
-                        <Checkbox value="requestParams">生成 RequestParams</Checkbox>
-
-                        <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
-                        <Tooltip title="敬请期待">
-                          <Checkbox value="service" disabled>
-                            生成 Service
-                          </Checkbox>
-                        </Tooltip>
-                      </Checkbox.Group>
-                    </FormItem>
-                  </Col>
-                </Row> */}
+                <FormItem name="outputOptions" label="输出配置：">
+                  <Checkbox.Group>
+                    <Checkbox value="requestParams">生成 RequestParams</Checkbox>
+                    <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
+                    <Tooltip title="敬请期待">
+                      <Checkbox value="service" disabled>
+                        生成 Service
+                      </Checkbox>
+                    </Tooltip>
+                  </Checkbox.Group>
+                </FormItem>
                 <FormItem required rules={[{ required: true }]} name="outputPath" label="输出至当前项目 ts 文件：">
                   <DirectoryTreeSelect placeholder="请选择需要输出的 ts/tsx 文件" />
                 </FormItem>

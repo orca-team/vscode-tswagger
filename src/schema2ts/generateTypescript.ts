@@ -19,8 +19,12 @@ export const generateTsFromJSONSchema = async (schema: JSONSchema, options: Gene
   return tsDef;
 };
 
-export const generateTypescriptFromAPIV2 = async (swaggerSchema: OpenAPIV2.SchemaObject, options?: GenerateOptions) => {
-  const JSONSchema = await convertAPIV2ToJSONSchema(swaggerSchema);
+export const generateTypescriptFromAPIV2 = async (
+  swaggerSchema: OpenAPIV2.SchemaObject,
+  V2Document: OpenAPIV2.Document,
+  options?: GenerateOptions,
+) => {
+  const JSONSchema = await convertAPIV2ToJSONSchema(swaggerSchema, V2Document);
   console.info('[JSONSchema Result]: ', JSONSchema);
   const tsDef = await generateTsFromJSONSchema(JSONSchema, options);
 

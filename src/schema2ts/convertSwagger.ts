@@ -1,40 +1,21 @@
 import { JSONSchema } from 'json-schema-to-typescript';
 import { OpenAPIV2 } from 'openapi-types';
 import { buildAnyTypeSchema, buildBasicTypeSchema } from './buildSchema';
-import { hasChinese, match$RefClassName, splitChineseAndEnglish } from '../utils/regexHelpers';
+import { hasChinese, splitChineseAndEnglish } from '../utils/regexHelpers';
 import translate from './translate';
 import localTranslate from '../utils/localTranslate';
-
-export const filterDefinitionName = async (definitionName: string) => {
-  let definitionNames = splitChineseAndEnglish(definitionName) ?? [];
-
-  if (hasChinese(definitionName)) {
-    let result = '';
-    for (const name of definitionNames) {
-      if (hasChinese(name)) {
-        const translatedName = localTranslate(name) ?? (await translate(name));
-        result += translatedName;
-        continue;
-      }
-      result += name;
-    }
-    return result;
-  }
-
-  return definitionNames?.join('') ?? '';
-};
+import { filterString, match$RefClassName } from '../utils/swaggerUtil';
 
 export const swaggerSchemaBasicTypes = ['string', 'boolean', 'number', 'integer'];
 
 export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
   const { $ref: $schemaRef, type: schemaType = '', title: schemaTitle, description, ...otherProps } = swaggerSchema;
-
   const mergeCommonJSONSchema = (additionalSchema: JSONSchema): JSONSchema => ({ title: schemaTitle, description, ...additionalSchema });
 
   if ($schemaRef) {
     const refClassName = match$RefClassName($schemaRef);
     return {
-      $ref: `#/definitions/${await filterDefinitionName(refClassName)}`,
+      $ref: `#/definitions/${await filterString(refClassName)}`,
     };
   }
 
@@ -86,8 +67,11 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
   return mergeCommonJSONSchema(buildAnyTypeSchema());
 };
 
-export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
-  let JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
+export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject, V2Document?: OpenAPIV2.Document): Promise<JSONSchema> => {
+  const JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
+  if (V2Document?.definitions) {
+    JSONSchema.definitions = await convertAPIV2Definitions(V2Document.definitions);
+  }
   if (swaggerSchema.definitions) {
     JSONSchema.definitions = await convertAPIV2Definitions(swaggerSchema.definitions as OpenAPIV2.DefinitionsObject);
   }
@@ -99,7 +83,7 @@ export const convertAPIV2Definitions = async (definitions: OpenAPIV2.Definitions
   const defs: JSONSchema = {};
 
   for (const [name, schema] of Object.entries(definitions)) {
-    let currentName = await filterDefinitionName(name);
+    let currentName = await filterString(name);
     defs[currentName] = await convertAPIV2ToJSONSchema(schema);
     defs[currentName].title = currentName;
   }

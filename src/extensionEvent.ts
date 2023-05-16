@@ -3,13 +3,18 @@ import { getAllConfiguration, getConfiguration, getGlobalState, setConfiguration
 import { getGlobalContext } from './globalContext';
 import dirTree from 'directory-tree';
 import SwaggerParser from '@apidevtools/swagger-parser';
+import handleSwaggerPathV2 from './swaggerPath/handleSwaggerPathV2';
+import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from './types';
+import { OpenAPIV2 } from 'openapi-types';
+import { generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
+import { writeFileSync } from 'fs';
 
 /**
  * vscode 发送消息类型，固定以 `vscode` 开头
  */
 export type ExtensionMessage<D = any> = {
   method: `vscode-${string}`;
-  data: Record<string, D> | null;
+  data: Record<string, D> | boolean | null;
   success: boolean;
   errMsg?: string;
 };
@@ -112,6 +117,38 @@ const extensionEvent = (panel: vscode.WebviewPanel) => {
         });
       } catch (err) {
         vscode.window.showErrorMessage(`当前目录获取失败: ${err}`);
+      }
+    },
+
+    /**
+     * OpenAPI2.0 转 ts
+     */
+    async generateAPIV2Ts(
+      collection: SwaggerPathSchemaV2[],
+      V2Document: OpenAPIV2.Document,
+      outputPath: string,
+      options: Partial<HandleSwaggerPathOptions>,
+    ) {
+      try {
+        let tsDefs = '';
+        const schemaCollection = await handleSwaggerPathV2(collection, V2Document, options);
+        for (const schema of schemaCollection) {
+          tsDefs += await generateTypescriptFromAPIV2(schema, V2Document);
+        }
+        writeFileSync(outputPath as string, tsDefs, { encoding: 'utf-8' });
+        postMessage({
+          method: 'vscode-generateAPIV2Ts',
+          data: true,
+          success: true,
+        });
+      } catch (err) {
+        postMessage({
+          method: 'vscode-generateAPIV2Ts',
+          data: null,
+          success: false,
+        });
+        console.error('err', err);
+        vscode.window.showErrorMessage(`Swagger2.0 Typescript 转换失败: ${err}`);
       }
     },
   };

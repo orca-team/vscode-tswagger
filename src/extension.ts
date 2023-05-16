@@ -4,10 +4,6 @@ import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
 import extensionEvent from './extensionEvent';
 import { isDev } from './utils/vscodeUtil';
-import { writeFileSync } from 'fs';
-import { generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
-import { camelCase } from 'lodash-es';
-import { OpenAPIV2 } from 'openapi-types';
 import { setGlobalContext } from './globalContext';
 
 // this method is called when your extension is activated
@@ -72,53 +68,10 @@ export function activate(context: vscode.ExtensionContext) {
             extensionService.sendCwdTreeData();
             break;
           }
-          // 将 swagger schema 2.0 转成 ts
+          // 将 swagger2.0 转成 ts
           case 'webview-generateAPIV2Ts': {
-            // TODO: 待封装
-            const { outputPath, definitions, swaggerPathSchemaCollection = [] } = params;
-            try {
-              let tsDefs = '';
-              const schemaCollection: OpenAPIV2.SchemaObject[] = [];
-              // @ts-ignore
-              swaggerPathSchemaCollection.forEach((swaggerPathSchema) => {
-                const { apiPathList } = swaggerPathSchema;
-                // @ts-ignore
-                apiPathList.forEach((apiPath) => {
-                  // 转换 params
-                  const paramsSchemaName = camelCase(
-                    [apiPath.method as string]
-                      .concat(apiPath.path.split('/'))
-                      .concat('params')
-                      .filter((it) => !!it)
-                      .join('__'),
-                  );
-                  const paramsSchema: Record<string, OpenAPIV2.SchemaObject> = {};
-                  // @ts-ignore
-                  apiPath.pathInfo.parameters?.forEach((parameter) => {
-                    paramsSchema[parameter.name] = parameter.schema ? parameter.schema : parameter;
-                    paramsSchema[parameter.name].required = parameter.required ? [parameter.name] : [];
-                  });
-                  schemaCollection.push({
-                    definitions,
-                    type: 'object',
-                    title: paramsSchemaName,
-                    properties: paramsSchema,
-                  });
-                });
-              });
-              for (const schema of schemaCollection) {
-                tsDefs += await generateTypescriptFromAPIV2(schema);
-              }
-              writeFileSync(outputPath as string, tsDefs, { encoding: 'utf-8' });
-              postMessage({
-                method: 'vscode-generateAPIV2Ts',
-                data: {},
-                success: true,
-              });
-            } catch (err) {
-              console.log('err', err);
-              vscode.window.showErrorMessage(`Schema 转换 Typescript 失败: ${err}`);
-            }
+            const { outputPath, outputOptions, V2Document, collection = [] } = params;
+            await extensionService.generateAPIV2Ts(collection, V2Document, outputPath, outputOptions);
             break;
           }
         }

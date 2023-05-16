@@ -38,12 +38,12 @@ const webviewService = {
   /**
    * 生成 OpenAPI2 的 ts 类型定义
    */
-  generateAPIV2Ts: (swaggerPathSchemaCollection: SwaggerPathSchema[], definitions: OpenAPIV2.DefinitionsObject, outputPath: string) => {
+  generateAPIV2Ts: (collection: SwaggerPathSchema[], outputPath: string, V2Document?: OpenAPIV2.Document) => {
     postMessage({
       method: 'webview-generateAPIV2Ts',
       params: {
-        swaggerPathSchemaCollection,
-        definitions,
+        collection,
+        V2Document,
         outputPath,
       },
     });
