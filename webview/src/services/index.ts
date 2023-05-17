@@ -1,6 +1,7 @@
 import { SwaggerPathSchema } from '@/utils/types';
 import { postMessage } from '@/utils/vscode';
 import { OpenAPIV2 } from 'openapi-types';
+import { HandleSwaggerPathOptions } from '../../../src/types';
 
 const webviewService = {
   /**
@@ -38,13 +39,19 @@ const webviewService = {
   /**
    * 生成 OpenAPI2 的 ts 类型定义
    */
-  generateAPIV2Ts: (collection: SwaggerPathSchema[], outputPath: string, V2Document?: OpenAPIV2.Document) => {
+  generateAPIV2Ts: (
+    collection: SwaggerPathSchema[],
+    outputPath: string,
+    V2Document?: OpenAPIV2.Document,
+    outputOptions?: Partial<HandleSwaggerPathOptions>,
+  ) => {
     postMessage({
       method: 'webview-generateAPIV2Ts',
       params: {
         collection,
         V2Document,
         outputPath,
+        outputOptions,
       },
     });
   },

@@ -48,6 +48,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const [form] = useForm();
   const currentRemoteUrl = useWatch('remoteUrl', form);
+  const currentOutputOptions = useWatch<string[]>('outputOptions', form);
 
   const { extSetting, setExtSetting } = useGlobalState();
   const { token } = theme.useToken();
@@ -133,7 +134,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       });
     });
 
-    webviewService.generateAPIV2Ts(collection, form.getFieldValue('outputPath'), _this.V2Document);
+    const outputOptions: Record<string, boolean> = {};
+    currentOutputOptions.forEach((option) => {
+      outputOptions[option] = true;
+    });
+
+    webviewService.generateAPIV2Ts(collection, form.getFieldValue('outputPath'), _this.V2Document, outputOptions);
   });
 
   return (
@@ -163,7 +169,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   >
                     <Select placeholder="请选择一个 swagger 远程地址接口" showSearch optionFilterProp="label" options={options} />
                   </FormItem>
-                  <FormItem name="outputOptions" label="输出配置：">
+                  <FormItem name="outputOptions" label="输出配置：" required rules={[{ required: true }]}>
                     <Checkbox.Group>
                       <Checkbox value="requestParams">生成 RequestParams</Checkbox>
                       <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
