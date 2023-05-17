@@ -155,7 +155,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   <FormItem
                     name="remoteUrl"
                     required
-                    rules={[{ required: true }]}
+                    rules={[{ required: true, message: '请选择一个 Swagger 地址' }]}
                     label={
                       <Space>
                         <span>Swagger API：</span>
@@ -169,7 +169,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   >
                     <Select placeholder="请选择一个 swagger 远程地址接口" showSearch optionFilterProp="label" options={options} />
                   </FormItem>
-                  <FormItem name="outputOptions" label="输出配置：" required rules={[{ required: true }]}>
+                  <FormItem name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
                     <Checkbox.Group>
                       <Checkbox value="requestParams">生成 RequestParams</Checkbox>
                       <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
@@ -180,7 +180,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                       </Tooltip>
                     </Checkbox.Group>
                   </FormItem>
-                  <FormItem required rules={[{ required: true }]} name="outputPath" label="输出至当前项目 ts 文件：">
+                  <FormItem
+                    required
+                    rules={[{ required: true, message: '请选择需要输出的目标文件' }]}
+                    name="outputPath"
+                    label="输出至当前项目 ts 文件："
+                  >
                     <DirectoryTreeSelect placeholder="请选择需要输出的 ts/tsx 文件" />
                   </FormItem>
                 </Form>
