@@ -124,8 +124,8 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   });
 
   const handleGenerateTs = useMemoizedFn(async () => {
-    startGenerateLoading();
     await form.validateFields();
+    startGenerateLoading();
     const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
     selectedApiMap.forEach((apiPathList, tagName) => {
       collection.push({
