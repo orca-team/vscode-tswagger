@@ -121,6 +121,20 @@ const extensionEvent = (panel: vscode.WebviewPanel) => {
     },
 
     /**
+     * 当前 ts 生成进度
+     */
+    sendCurrentTsProgress(total: number, current: number) {
+      postMessage({
+        method: 'vscode-currentTsProgress',
+        data: {
+          total,
+          current,
+        },
+        success: true,
+      });
+    },
+
+    /**
      * OpenAPI2.0 转 ts
      */
     async generateAPIV2Ts(
@@ -132,8 +146,9 @@ const extensionEvent = (panel: vscode.WebviewPanel) => {
       try {
         let tsDefs = '';
         const schemaCollection = await handleSwaggerPathV2(collection, V2Document, options);
-        for (const schema of schemaCollection) {
+        for (const [index, schema] of schemaCollection.entries()) {
           tsDefs += await generateTypescriptFromAPIV2(schema, V2Document);
+          this.sendCurrentTsProgress(schemaCollection.length, index);
         }
         writeFileSync(outputPath as string, tsDefs, { encoding: 'utf-8' });
         postMessage({
