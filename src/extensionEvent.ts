@@ -193,3 +193,22 @@ const extensionEvent = (panel: vscode.WebviewPanel) => {
 };
 
 export default extensionEvent;
+
+export const parseSwaggerJson = async (swaggerJsonStr: string) => {
+  const apiResponse = await SwaggerParser.parse(JSON.parse(swaggerJsonStr));
+  return apiResponse;
+};
+
+export const generateTypeScript = async (config: {
+  collection: SwaggerPathSchemaV2[];
+  V2Document: OpenAPIV2.Document;
+  options: Partial<HandleSwaggerPathOptions>;
+}) => {
+  const { V2Document, collection, options } = config;
+  let tsDefs = '';
+  const schemaCollection = await handleSwaggerPathV2(collection, V2Document, options);
+  for (const [index, schema] of schemaCollection.entries()) {
+    tsDefs += await generateTypescriptFromAPIV2(schema, V2Document);
+  }
+  return tsDefs;
+};

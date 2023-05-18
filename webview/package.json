@@ -11,15 +11,17 @@
     "postinstall": "umi setup",
     "setup": "umi setup",
     "prestart": "rimraf dist",
-    "start": "set HMR=none && set SOCKET_SERVER=http://localhost:8000/ && umi dev"
+    "start": "set SOCKET_SERVER=http://localhost:8000/ && umi dev"
   },
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
     "@apidevtools/swagger-parser": "^10.1.0",
     "@orca-fe/hooks": "^1.5.0",
+    "@orca-fe/pocket": "^2.3.5",
     "ahooks": "^3.7.6",
     "antd": "^5.4.0",
     "hox": "^2.1.0",
+    "moment": "^2.29.4",
     "umi": "^4.0.64"
   },
   "devDependencies": {

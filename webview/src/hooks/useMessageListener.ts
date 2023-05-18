@@ -1,6 +1,7 @@
 import { useEventListener } from "ahooks";
 
 export type VsCodeMessage<D = any> = {
+  token?: string;
   method: string;
   data: Record<string, D>;
   success: boolean;

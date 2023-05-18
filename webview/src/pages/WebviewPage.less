@@ -4,9 +4,9 @@
 
   .header {
     text-align: center;
-    font-size: 28px;
+    font-size: 2em;
     font-weight: bold;
-    font-family: monospace;
+    background-color: transparent;
   }
 
   .layout {
@@ -29,5 +29,11 @@
     .apiList {
       margin-top: 12px;
     }
+
+    
+  }
+
+  :global(.ant-layout) {
+    background-color: var(--vscode-editor-background, #1e1e1e);
   }
 }
