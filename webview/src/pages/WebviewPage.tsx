@@ -11,11 +11,26 @@ import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import { Affix, Button, Checkbox, Collapse, Empty, FloatButton, Form, Layout, Select, Space, Spin, Tooltip, Upload, message, theme } from 'antd';
+import {
+  Affix,
+  Button,
+  Checkbox,
+  Collapse,
+  Empty,
+  FloatButton,
+  Form,
+  Layout,
+  Select,
+  Space,
+  Spin,
+  Tooltip,
+  Upload,
+  message,
+  theme
+} from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
-import { callService } from '@/utils/vscode';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;

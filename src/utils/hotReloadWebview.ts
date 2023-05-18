@@ -37,12 +37,12 @@ const hotReloadWebview = (context: vscode.ExtensionContext, webviewPanel: vscode
     return;
   }
 
-  const umiDistPath = join(context.extensionPath, 'webview/dist');
-  const umiDistWatcher = watch(umiDistPath);
-  umiDistWatcher.on('change', () => {
-    console.info('Hot Reload Webview.');
-    reloadWebview(webviewPanel, webviewHTML);
-  });
+  // const umiDistPath = join(context.extensionPath, 'webview/dist');
+  // const umiDistWatcher = watch(umiDistPath);
+  // umiDistWatcher.on('change', () => {
+  //   console.info('Hot Reload Webview.');
+  //   reloadWebview(webviewPanel, webviewHTML);
+  // });
 };
 
 export default hotReloadWebview;
