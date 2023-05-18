@@ -1,9 +1,18 @@
 import { OpenAPIV2 } from 'openapi-types';
-import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from '../types';
+import { ApiPathTypeV2, HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from '../types';
 import { composeNameByAPIPath } from './helper';
-import { filterString, isLocal$ref, isV2RefObject, match$RefClassName } from '../utils/swaggerUtil';
+import { filterString, groupV2Parameters, isLocal$ref, isV2RefObject, match$RefClassName } from '../utils/swaggerUtil';
 
-const handleV2RequestParams = (parameters: OpenAPIV2.Parameters) => {
+const generateTsName = async (apiPath: ApiPathTypeV2, type: string) => {
+  const { method, pathInfo, path } = apiPath;
+  const { operationId } = pathInfo;
+  if (operationId) {
+    return composeNameByAPIPath('', await filterString(operationId), type);
+  }
+  return composeNameByAPIPath(method, path, type);
+};
+
+const handleV2RequestProperties = (parameters: OpenAPIV2.Parameters) => {
   let properties: Record<string, OpenAPIV2.SchemaObject> = {};
   parameters.forEach((parameter) => {
     const { schema = {}, name } = parameter as OpenAPIV2.Parameter;
@@ -13,8 +22,6 @@ const handleV2RequestParams = (parameters: OpenAPIV2.Parameters) => {
       // const className = match$RefClassName(schema.$ref);
       properties[name] = { $ref: schema.$ref };
     } else {
-      // in 类型: path | query | header | cookie
-      // 统一处理成 Object 作为入参 (TODO: body 处理)
       const { name, schema, description, required } = parameter as OpenAPIV2.Parameter;
       properties[name] = schema || parameter || {};
       properties[name].description = description ?? '';
@@ -23,6 +30,74 @@ const handleV2RequestParams = (parameters: OpenAPIV2.Parameters) => {
   });
 
   return properties;
+};
+
+export const handleV2Parameters = (parameters: OpenAPIV2.Parameter[]) => {
+  const result: OpenAPIV2.SchemaObject = {
+    type: 'object',
+  };
+  const properties = handleV2RequestProperties(parameters);
+  const requiredSet = new Set<string>();
+  parameters.forEach((param) => {
+    if (Array.isArray(param.required)) {
+      param.required.forEach((requiredField) => {
+        requiredSet.add(requiredField);
+      });
+    }
+  });
+
+  result.properties = properties;
+  result.required = Array.from(requiredSet.values());
+
+  return result;
+};
+
+export const handleV2Request = async (apiPath: ApiPathTypeV2, V2Document: OpenAPIV2.Document) => {
+  const { method, path, pathInfo } = apiPath;
+  const { parameters } = pathInfo;
+  if (!parameters) {
+    return [];
+  }
+  const { pathParameters, queryParameters, bodyParameter } = groupV2Parameters(parameters);
+  const collection: OpenAPIV2.SchemaObject[] = [];
+
+  // 请求 Body (有且仅有一个 body)
+  if (bodyParameter) {
+    const paramsSchemaName = await generateTsName(apiPath, 'RequestBody');
+    const { schema: bodySchema } = bodyParameter;
+    if (!isV2RefObject(bodySchema)) {
+      collection.push({
+        definitions: V2Document.definitions,
+        type: 'object',
+        title: paramsSchemaName,
+        description: `【${method}】${path} 请求体`,
+        properties: bodySchema.properties,
+        required: bodySchema.required,
+      });
+    }
+  }
+
+  // 请求路径参数
+  if (!!pathParameters.length) {
+    const paramsSchemaName = await generateTsName(apiPath, 'RequestPath');
+    const pathSchemaObject = handleV2Parameters(pathParameters);
+    pathSchemaObject.title = paramsSchemaName;
+    pathSchemaObject.description = `【${method}】${path} 路径参数`;
+    pathSchemaObject.definitions = V2Document.definitions;
+    collection.push(pathSchemaObject);
+  }
+
+  // 请求路径携带的参数
+  if (!!queryParameters.length) {
+    const paramsSchemaName = await generateTsName(apiPath, 'RequestQuery');
+    const querySchemaObject = handleV2Parameters(queryParameters);
+    querySchemaObject.title = paramsSchemaName;
+    querySchemaObject.description = `【${method}】${path} 路径携带参数`;
+    querySchemaObject.definitions = V2Document.definitions;
+    collection.push(querySchemaObject);
+  }
+
+  return collection;
 };
 
 export const handleV2ResponseBody = (responses: OpenAPIV2.ResponsesObject) => {
@@ -56,20 +131,8 @@ const handleSwaggerPathV2 = async (
       const { parameters, responses } = pathInfo;
       // 处理入参
       if (options.requestParams && parameters) {
-        const properties = handleV2RequestParams(parameters);
-        const paramsSchemaName = composeNameByAPIPath(
-          method,
-          // TODO: 若没有 operationId 则临时采用 path 作为主体名称
-          pathInfo.operationId ? await filterString(pathInfo.operationId) : path,
-          'RequestParams',
-        );
-        schemaCollection.push({
-          definitions: V2Document.definitions,
-          type: 'object',
-          title: paramsSchemaName,
-          description: `${path} 请求参数`,
-          properties,
-        });
+        const allParamsCollection = await handleV2Request(apiPath, V2Document);
+        schemaCollection.push(...allParamsCollection);
       }
       // 处理出参
       if (options.responseBody && responses) {
@@ -83,7 +146,7 @@ const handleSwaggerPathV2 = async (
         } else {
           responseSchema.title = composeNameByAPIPath(method, path, 'ResponseBody');
           responseSchema.type = 'object';
-          responseSchema.description = `${path} 返回数据`;
+          responseSchema.description = `【${method}】${path} 返回数据`;
           schemaCollection.push(responseSchema);
         }
       }

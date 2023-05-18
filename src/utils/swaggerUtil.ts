@@ -64,3 +64,23 @@ export const filterString = async (text: string) => {
 
   return newString?.join('') ?? '';
 };
+
+/**
+ * 根据 in 给 OpenAPI 2.0 分组
+ * @param parameters OpenAPI2.0 给 parameters 按照 in 类型分组
+ * @returns 分组结果
+ */
+export const groupV2Parameters = (parameters: OpenAPIV2.Parameters) => {
+  // TODO: 剩余 in 类型处理
+  const refParameters = parameters.filter((param) => isV2RefObject(param)) as OpenAPIV2.ReferenceObject[];
+  const pathParameters = parameters.filter((param) => !isV2RefObject(param) && param.in === 'path') as OpenAPIV2.Parameter[];
+  const queryParameters = parameters.filter((param) => !isV2RefObject(param) && param.in === 'query') as OpenAPIV2.Parameter[];
+  const bodyParameter = parameters.find((param) => !isV2RefObject(param) && param.in === 'body') as OpenAPIV2.InBodyParameterObject;
+
+  return {
+    refParameters,
+    pathParameters,
+    queryParameters,
+    bodyParameter,
+  };
+};
