@@ -147,7 +147,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       <div className={`${styles.root} ${className}`} {...otherProps}>
         {modalController.instance}
         <Layout style={{ height: '100%' }}>
-          <Header className={styles.header}>Swagger2.0 to1 Typescript</Header>
+          <Header className={styles.header}>Swagger2.0 to Typescript</Header>
           <Layout className={styles.layout}>
             <Affix>
               <Content className={styles.content} style={{ border: `1px solid ${token.colorBorder}`, backgroundColor: token.colorBgContainer }}>
