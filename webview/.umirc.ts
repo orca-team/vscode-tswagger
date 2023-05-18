@@ -3,7 +3,7 @@ import { defineConfig } from 'umi';
 const isProd = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
-  npmClient: 'yarn',
+  npmClient: 'pnpm',
   writeToDisk: true,
   history: {
     type: 'memory',

@@ -1,8 +1,7 @@
-import { Outlet, history } from 'umi';
 import { ConfigProvider, theme } from 'antd';
+import { HoxRoot } from 'hox';
+import { Outlet } from 'umi';
 import styles from './index.less';
-import { useMount } from 'ahooks';
-import { GlobalStateProvider } from '@/states/globalState';
 
 export default function Layout() {
   // useMount(() => {
@@ -11,11 +10,11 @@ export default function Layout() {
 
   return (
     <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-      <GlobalStateProvider>
+      <HoxRoot>
         <div className={styles.root}>
           <Outlet />
         </div>
-      </GlobalStateProvider>
+      </HoxRoot>
     </ConfigProvider>
   );
 }

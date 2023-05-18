@@ -2,9 +2,10 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
-import extensionEvent from './extensionEvent';
+import extensionEvent, { parseSwaggerJson } from './extensionEvent';
 import { isDev } from './utils/vscodeUtil';
 import { setGlobalContext } from './globalContext';
+import { manageServicesFromPanel } from './utils/manageServices';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -33,6 +34,11 @@ export function activate(context: vscode.ExtensionContext) {
       const { onDidDispose } = umiPanel;
       const { onDidReceiveMessage } = umiPanel.webview;
       const { extensionService, postMessage } = extensionEvent(umiPanel);
+
+      const registerService = manageServicesFromPanel(umiPanel.webview);
+
+      // 解析 Swagger Json 字符串
+      registerService('webview-parseSwaggerJson', parseSwaggerJson);
 
       // webview 销毁时
       onDidDispose(

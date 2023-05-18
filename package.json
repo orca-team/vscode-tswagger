@@ -49,13 +49,13 @@
     }
   },
   "scripts": {
-    "webview-build": "yarn workspace stg-webview run build",
-    "webview-watch": "yarn workspace stg-webview run start",
-    "vscode:prepublish": "yarn webview-build && yarn esbuild-build --minify",
+    "webview-build": "pnpm --filter stg-webview build",
+    "webview-watch": "pnpm --filter stg-webview start",
+    "vscode:prepublish": "npm run webview-build && npm run esbuild-build -- --minify",
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
-    "esbuild-watch": "yarn esbuild-build --sourcemap --watch --define:process.env.NODE_ENV='development'",
+    "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV='development'",
     "test-compile": "tsc -p ./",
-    "pretest": "yarn test-compile && yarn lint",
+    "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },

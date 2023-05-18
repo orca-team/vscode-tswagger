@@ -1,5 +1,5 @@
 import { SwaggerPathSchema } from '@/utils/types';
-import { postMessage } from '@/utils/vscode';
+import { FetchResult, callService, postMessage } from '@/utils/vscode';
 import { OpenAPIV2 } from 'openapi-types';
 import { HandleSwaggerPathOptions } from '../../../src/types';
 
@@ -58,3 +58,6 @@ const webviewService = {
 };
 
 export default webviewService;
+
+export const apiParseSwaggerJson = async (swaggerJson: string) =>
+  callService<FetchResult<OpenAPIV2.Document>>('webview-parseSwaggerJson', swaggerJson);

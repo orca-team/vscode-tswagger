@@ -193,3 +193,9 @@ const extensionEvent = (panel: vscode.WebviewPanel) => {
 };
 
 export default extensionEvent;
+
+
+export const parseSwaggerJson = async (swaggerJsonStr: string) => {
+  const apiResponse = await SwaggerParser.parse(JSON.parse(swaggerJsonStr));
+  return apiResponse;
+}
