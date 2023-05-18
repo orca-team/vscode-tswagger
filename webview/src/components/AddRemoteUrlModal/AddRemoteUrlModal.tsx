@@ -5,6 +5,7 @@ import styles from './AddRemoteUrlModal.less';
 import useMessageListener from '@/hooks/useMessageListener';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import { useMount } from 'ahooks';
+import { useGlobalState } from '@/states/globalState';
 
 const FormList = Form.List;
 const FormItem = Form.Item;
@@ -19,6 +20,7 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
 
   const [form] = Form.useForm();
   const { token } = theme.useToken();
+  const { extSetting, setExtSetting } = useGlobalState();
 
   const handleOk = async () => {
     const values = await form.validateFields();
@@ -40,6 +42,7 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
         message.error(vscodeMsg.errMsg ?? '远程接口增加失败');
         return;
       }
+      setExtSetting({ remoteUrlList: extSetting.remoteUrlList.concat(form.getFieldValue('list')) });
       message.success('远程接口更新成功');
       handleCancel();
     }
