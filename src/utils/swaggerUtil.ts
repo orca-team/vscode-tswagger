@@ -39,14 +39,17 @@ export const isV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject => '$r
  * @param $ref 目标 $ref
  * @returns 实体类名称
  */
-export const match$RefClassName = ($ref: string) => $ref.split('/').slice(-1)[0] ?? '';
+export const match$RefClassName = ($ref: string) => $ref.split('/').slice(2);
 
 /**
  * 过滤并翻译文本
  * @param text 目标文本
  * @returns 翻译过滤后的文本
  */
-export const filterString = async (text: string) => {
+export const filterString = async (text: string | string[]): Promise<string> => {
+  if (Array.isArray(text)) {
+    return Promise.all(text.map((item) => filterString(item))).then((r) => r.join(''));
+  }
   let newString = splitChineseAndEnglish(text) ?? [];
 
   if (hasChinese(text)) {

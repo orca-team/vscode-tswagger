@@ -4,33 +4,18 @@ import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
 import useMessageListener from '@/hooks/useMessageListener';
-import webviewService, { apiParseSwaggerJson } from '@/services';
+import webviewService, { apiGenerateTypeScript, apiParseSwaggerJson } from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import {
-  Affix,
-  Button,
-  Checkbox,
-  Collapse,
-  Empty,
-  FloatButton,
-  Form,
-  Layout,
-  Select,
-  Space,
-  Spin,
-  Tooltip,
-  Upload,
-  message,
-  theme
-} from 'antd';
+import { Affix, Button, Checkbox, Collapse, Empty, FloatButton, Form, Layout, Select, Space, Spin, Tooltip, Upload, message } from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
+import { copyToClipboard } from '@/utils/vscode';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -50,7 +35,6 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const currentOutputOptions = useWatch<string[]>('outputOptions', form);
 
   const { extSetting, setExtSetting } = useGlobalState();
-  const { token } = theme.useToken();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
 
@@ -141,6 +125,32 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     webviewService.generateAPIV2Ts(collection, form.getFieldValue('outputPath'), _this.V2Document, outputOptions);
   });
 
+  const generateTsCopy = useMemoizedFn(async () => {
+    startGenerateLoading();
+    const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
+    selectedApiMap.forEach((apiPathList, tagName) => {
+      collection.push({
+        tag: tagName,
+        apiPathList,
+      });
+    });
+
+    const outputOptions: Record<string, boolean> = {};
+    currentOutputOptions.forEach((option) => {
+      outputOptions[option] = true;
+    });
+    const result = await apiGenerateTypeScript({
+      collection,
+      options: outputOptions,
+      V2Document: _this.V2Document!,
+    });
+    if(result.success){
+      copyToClipboard(result.data);
+      message.success('复制成功');
+    }
+    stopGenerateLoading();
+  });
+
   return (
     <TsGenerateSpin spinning={generateLoading}>
       <div className={`${styles.root} ${className}`} {...otherProps}>
@@ -224,6 +234,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     </Button>
                     <Button type="primary" disabled={selectedApiMap.size === 0} onClick={handleGenerateTs}>
                       生成 Typescript
+                    </Button>
+                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsCopy}>
+                      複製 TypeScript
                     </Button>
                     <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
                       {expand ? '收起' : '展开'}

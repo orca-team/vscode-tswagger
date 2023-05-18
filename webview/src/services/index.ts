@@ -1,7 +1,7 @@
 import { SwaggerPathSchema } from '@/utils/types';
 import { FetchResult, callService, postMessage } from '@/utils/vscode';
 import { OpenAPIV2 } from 'openapi-types';
-import { HandleSwaggerPathOptions } from '../../../src/types';
+import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from '../../../src/types';
 
 const webviewService = {
   /**
@@ -61,3 +61,9 @@ export default webviewService;
 
 export const apiParseSwaggerJson = async (swaggerJson: string) =>
   callService<FetchResult<OpenAPIV2.Document>>('webview-parseSwaggerJson', swaggerJson);
+
+export const apiGenerateTypeScript = async (params: {
+  collection: SwaggerPathSchemaV2[];
+  V2Document: OpenAPIV2.Document;
+  options: Partial<HandleSwaggerPathOptions>;
+}) => callService<FetchResult<string>>('webview-generateTypeScript', params);

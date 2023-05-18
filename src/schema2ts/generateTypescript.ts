@@ -25,7 +25,8 @@ export const generateTypescriptFromAPIV2 = async (
   options?: GenerateOptions,
 ) => {
   const JSONSchema = await convertAPIV2ToJSONSchema(swaggerSchema, V2Document);
-  console.info('[JSONSchema Result]: ', JSONSchema);
+  console.info('[JSONSchema Result]: ');
+  console.info(JSONSchema);
   const tsDef = await generateTsFromJSONSchema(JSONSchema, options);
 
   return tsDef;

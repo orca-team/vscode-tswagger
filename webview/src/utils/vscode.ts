@@ -15,7 +15,6 @@ export type FetchResult<D = any> = {
   errMsg?: string;
 };
 
-
 // @ts-ignore
 const vscode = window['acquireVsCodeApi']?.();
 
@@ -50,8 +49,8 @@ export const callService = async <T>(method: string, params?: any): Promise<T> =
   let promiseResolve: (value: T) => void;
   const callback = (event: MessageEvent) => {
     const vscodeMsg: VsCodeMessage<T> = event.data;
-    console.log(vscodeMsg, token, vscodeMsg.token == token, promiseResolve);
     if (vscodeMsg.token == token) {
+      console.log(method, params, event.data);
       if (promiseResolve) {
         promiseResolve(event.data);
       }
@@ -80,3 +79,14 @@ export const callService = async <T>(method: string, params?: any): Promise<T> =
     window.removeEventListener('message', callback);
   });
 };
+
+// VSCode copy to clipboard
+export function copyToClipboard(text: string) {
+  const textArea = document.createElement('textarea');
+  textArea.style.cssText = 'position:absolute;left:-100%';
+  document.body.appendChild(textArea);
+  textArea.value = text;
+  textArea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textArea);
+}
