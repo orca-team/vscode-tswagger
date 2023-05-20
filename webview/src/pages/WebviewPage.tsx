@@ -3,19 +3,34 @@ import ApiGroupPanel from '@/components/ApiGroupPanel';
 import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
-import useMessageListener from '@/hooks/useMessageListener';
-import webviewService, { apiGenerateTypeScript, apiParseSwaggerJson } from '@/services';
+import { apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo, apiWriteTsFile } from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import { Affix, Button, Checkbox, Collapse, Empty, FloatButton, Form, Layout, Select, Space, Spin, Tooltip, Upload, message } from 'antd';
+import {
+  Affix,
+  Button,
+  Checkbox,
+  Collapse,
+  Empty,
+  FloatButton,
+  Form,
+  Layout,
+  Select,
+  Space,
+  Spin,
+  Tooltip,
+  Upload,
+  message,
+  notification,
+} from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
-import { copyToClipboard } from '@/utils/vscode';
+import { FetchResult, copyToClipboard } from '@/utils/vscode';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -56,57 +71,35 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     }));
   }, [extSetting.remoteUrlList]);
 
-  const refreshSwaggerSchema = useMemoizedFn(() => {
+  const handleExtInfo = useMemoizedFn(async () => {
+    const extInfoResp = await apiQueryExtInfo();
+    setExtSetting({ remoteUrlList: extInfoResp.data.setting.remoteUrlList ?? [] });
+  });
+
+  const refreshSwaggerSchema = useMemoizedFn(async () => {
     if (!currentRemoteUrl) {
       return;
     }
     startParseLoading();
     resetSelectedApiMap();
-    webviewService.querySwaggerSchema(currentRemoteUrl);
-  });
-
-  useEffect(() => {
-    refreshSwaggerSchema();
-  }, [currentRemoteUrl]);
-
-  useMessageListener((vscodeMsg) => {
-    const { method } = vscodeMsg;
-    switch (method) {
-      case 'vscode-extInfo': {
-        setExtSetting({ remoteUrlList: vscodeMsg.data.setting.remoteUrlList ?? [] });
-        break;
-      }
-      case 'vscode-swaggerSchema': {
-        stopParseLoading();
-        if (!vscodeMsg.success) {
-          setSwaggerDocs(undefined);
-          setApiGroup([]);
-          return;
-        }
-        const currentApiName = options.find((option) => option.value === currentRemoteUrl)?.label;
-        message.success(`【${currentApiName}】 Swagger 接口地址解析成功`);
-        const apiDocs = vscodeMsg.data as OpenAPIV2.Document;
-        setSwaggerDocs(apiDocs);
-        setApiGroup(parseOpenAPIV2(apiDocs));
-        _this.V2Document = apiDocs;
-        break;
-      }
-      case 'vscode-generateAPIV2Ts': {
-        stopGenerateLoading();
-        if (vscodeMsg.success) {
-          message.success('转换成功');
-        }
-        break;
-      }
+    const resp = await apiParseSwaggerUrl(currentRemoteUrl);
+    stopParseLoading();
+    // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
+    if (!resp.success) {
+      setSwaggerDocs(undefined);
+      setApiGroup([]);
+      notification.error({ message: resp.errMsg ?? 'Swagger 接口地址解析失败, 请稍后再试', duration: null });
+      return;
     }
+    const currentApiName = options.find((option) => option.value === currentRemoteUrl)?.label;
+    message.success(`【${currentApiName}】 Swagger 接口地址解析成功`);
+    const apiDocs = resp.data as OpenAPIV2.Document;
+    setSwaggerDocs(apiDocs);
+    setApiGroup(parseOpenAPIV2(apiDocs));
+    _this.V2Document = apiDocs;
   });
 
-  useMount(() => {
-    webviewService.queryExtInfo();
-    form.setFieldValue('outputOptions', ['responseBody', 'requestParams']);
-  });
-
-  const handleGenerateTs = useMemoizedFn(async () => {
+  const generateTypescript = useMemoizedFn(async (successCallback: (result: FetchResult<string>) => void) => {
     await form.validateFields();
     startGenerateLoading();
     const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
@@ -116,39 +109,50 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
         apiPathList,
       });
     });
-
     const outputOptions: Record<string, boolean> = {};
     currentOutputOptions.forEach((option) => {
       outputOptions[option] = true;
     });
 
-    webviewService.generateAPIV2Ts(collection, form.getFieldValue('outputPath'), _this.V2Document, outputOptions);
-  });
-
-  const generateTsCopy = useMemoizedFn(async () => {
-    startGenerateLoading();
-    const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
-    selectedApiMap.forEach((apiPathList, tagName) => {
-      collection.push({
-        tag: tagName,
-        apiPathList,
-      });
-    });
-
-    const outputOptions: Record<string, boolean> = {};
-    currentOutputOptions.forEach((option) => {
-      outputOptions[option] = true;
-    });
-    const result = await apiGenerateTypeScript({
+    const result = await apiGenerateV2TypeScript({
       collection,
       options: outputOptions,
       V2Document: _this.V2Document!,
     });
-    if(result.success){
-      copyToClipboard(result.data);
-      message.success('复制成功');
-    }
     stopGenerateLoading();
+    if (result.success) {
+      successCallback(result);
+    } else {
+      notification.error({ message: result.errMsg ?? 'Typescript 生成失败，请稍后再试', duration: null });
+    }
+  });
+
+  const generateTsCopy = useMemoizedFn(() => {
+    generateTypescript((result) => {
+      copyToClipboard(result.data);
+      message.success('已复制至粘贴板');
+    });
+  });
+
+  const generateTsFile = useMemoizedFn(() => {
+    generateTypescript(async (result) => {
+      const outputPath = form.getFieldValue('outputPath');
+      const resp = await apiWriteTsFile({ tsDef: result.data, outputPath });
+      if (resp.success) {
+        message.success('已输出至对应 ts 文件');
+      } else {
+        notification.error({ message: resp.errMsg ?? 'ts 文件输出失败，请稍后再试', duration: null });
+      }
+    });
+  });
+
+  useEffect(() => {
+    refreshSwaggerSchema();
+  }, [currentRemoteUrl]);
+
+  useMount(() => {
+    handleExtInfo();
+    form.setFieldValue('outputOptions', ['responseBody', 'requestParams']);
   });
 
   return (
@@ -232,7 +236,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     >
                       添加新的 Swagger 接口
                     </Button>
-                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={handleGenerateTs}>
+                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsFile}>
                       生成 Typescript
                     </Button>
                     <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsCopy}>

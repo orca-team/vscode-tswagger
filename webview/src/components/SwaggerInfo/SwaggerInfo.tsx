@@ -17,7 +17,7 @@ const SwaggerInfo: React.FC<SwaggerInfoProps> = (props) => {
     <div className={`${styles.root} ${className}`} {...otherProps}>
       <Badge.Ribbon text={`OpenAPI ${v2Doc.swagger} 规范`} color={token.colorPrimaryActive}>
         <Collapse size="large" expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}>
-          <Collapse.Panel key="swaggerOverview" header={v2Doc.info.title}>
+          <Collapse.Panel key="swaggerOverview" header={`【文档信息】${v2Doc.info.title}`}>
             <Descriptions title="">
               <Descriptions.Item label="基本路径" span={3}>
                 {v2Doc.basePath}

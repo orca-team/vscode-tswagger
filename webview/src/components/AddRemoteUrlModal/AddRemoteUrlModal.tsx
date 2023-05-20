@@ -1,11 +1,10 @@
 import React from 'react';
-import { Modal, ModalProps, Form, Input, Button, message, theme, Space } from 'antd';
-import { postMessage } from '@/utils/vscode';
+import { Modal, ModalProps, Form, Input, Button, message, theme } from 'antd';
 import styles from './AddRemoteUrlModal.less';
-import useMessageListener from '@/hooks/useMessageListener';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import { useMount } from 'ahooks';
 import { useGlobalState } from '@/states/globalState';
+import { apiAddRemoteUrl } from '@/services';
 
 const FormList = Form.List;
 const FormItem = Form.Item;
@@ -24,29 +23,19 @@ const AddRemoteUrlModal: React.FC<AddRemoteUrlModalProps> = (props) => {
 
   const handleOk = async () => {
     const values = await form.validateFields();
-    postMessage({
-      method: 'webview-addRemoteUrl',
-      params: {
-        list: values.list ?? [],
-      },
-    });
+    const resp = await apiAddRemoteUrl({ list: values.list ?? [] });
+    if (!resp.success) {
+      message.error(resp.errMsg ?? '远程接口增加失败');
+      return;
+    }
+    setExtSetting({ remoteUrlList: extSetting.remoteUrlList.concat(form.getFieldValue('list')) });
+    message.success('远程接口更新成功');
+    handleCancel();
   };
 
   const handleCancel = () => {
     onCancel && onCancel();
   };
-
-  useMessageListener((vscodeMsg) => {
-    if (vscodeMsg.method === 'vscode-addRemoteUrl') {
-      if (!vscodeMsg.success) {
-        message.error(vscodeMsg.errMsg ?? '远程接口增加失败');
-        return;
-      }
-      setExtSetting({ remoteUrlList: extSetting.remoteUrlList.concat(form.getFieldValue('list')) });
-      message.success('远程接口更新成功');
-      handleCancel();
-    }
-  });
 
   useMount(() => {
     form.setFieldValue('list', [{ name: '', url: '' }]);

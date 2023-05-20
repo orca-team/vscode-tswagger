@@ -1,7 +1,8 @@
 import { SwaggerPathSchema } from '@/utils/types';
 import { FetchResult, callService, postMessage } from '@/utils/vscode';
-import { OpenAPIV2 } from 'openapi-types';
+import { OpenAPI, OpenAPIV2 } from 'openapi-types';
 import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from '../../../src/types';
+import directoryTree from 'directory-tree';
 
 const webviewService = {
   /**
@@ -59,11 +60,22 @@ const webviewService = {
 
 export default webviewService;
 
+export const apiQueryExtInfo = async () => callService<FetchResult<any>>('webview-queryExtInfo');
+
+export const apiQueryCwd = async () => callService<FetchResult<directoryTree.DirectoryTree[]>>('webview-queryCwd');
+
+export const apiAddRemoteUrl = async (params: { list: any[] }) => callService<FetchResult<boolean>>('webview-addRemoteUrl', params);
+
+export const apiParseSwaggerUrl = async (remoteUrl: string) => callService<FetchResult<OpenAPI.Document>>('webview-parseSwaggerUrl', remoteUrl);
+
 export const apiParseSwaggerJson = async (swaggerJson: string) =>
   callService<FetchResult<OpenAPIV2.Document>>('webview-parseSwaggerJson', swaggerJson);
 
-export const apiGenerateTypeScript = async (params: {
+export const apiGenerateV2TypeScript = async (params: {
   collection: SwaggerPathSchemaV2[];
   V2Document: OpenAPIV2.Document;
   options: Partial<HandleSwaggerPathOptions>;
-}) => callService<FetchResult<string>>('webview-generateTypeScript', params);
+}) => callService<FetchResult<string>>('webview-generateV2TypeScript', params);
+
+export const apiWriteTsFile = async (params: { tsDef: string; outputPath: string }) =>
+  callService<FetchResult<boolean>>('webview-writeTsFile', params);

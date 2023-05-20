@@ -4,9 +4,8 @@ import { useMount } from 'ahooks';
 import useMessageListener from '@/hooks/useMessageListener';
 import directoryTree from 'directory-tree';
 import { TreeSelect, TreeSelectProps } from 'antd';
-import { DefaultOptionType } from 'rc-tree-select/lib/TreeSelect';
 import { FileOutlined, FolderFilled } from '@ant-design/icons';
-import webviewService from '@/services';
+import { apiQueryCwd } from '@/services';
 
 export interface DirectoryTreeSelectProps extends TreeSelectProps {}
 
@@ -15,17 +14,24 @@ const DirectoryTreeSelect: React.FC<DirectoryTreeSelectProps> = (props) => {
 
   const [dirTree, setDirTree] = useState<directoryTree.DirectoryTree[]>();
 
+  const getCwdTreeData = async () => {
+    const resp = await apiQueryCwd();
+    if (resp.success) {
+      setDirTree(resp.data);
+    }
+  };
+
   useMount(() => {
-    webviewService.queryCWD();
+    getCwdTreeData();
   });
 
   useMessageListener((vscodeMsg) => {
-    if (vscodeMsg.method === 'vscode-CWD') {
+    if (vscodeMsg.method === 'webview-tsFileChange') {
       setDirTree(vscodeMsg.data as directoryTree.DirectoryTree[]);
     }
   });
 
-  const handleDir2TreeData = (children: directoryTree.DirectoryTree[]): DefaultOptionType[] => {
+  const handleDir2TreeData = (children: directoryTree.DirectoryTree[]): TreeSelectProps['treeData'] => {
     return children.map(({ type, name, path, children }) => {
       const isDirectory = type === 'directory';
       return {
@@ -39,7 +45,7 @@ const DirectoryTreeSelect: React.FC<DirectoryTreeSelectProps> = (props) => {
     });
   };
 
-  const dirTreeData: DefaultOptionType[] = useMemo(() => {
+  const dirTreeData: TreeSelectProps['treeData'] = useMemo(() => {
     return dirTree ? handleDir2TreeData(dirTree) : [];
   }, [dirTree]);
 

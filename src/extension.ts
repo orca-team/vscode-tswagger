@@ -2,10 +2,11 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
-import extensionEvent, { generateTypeScript, parseSwaggerJson } from './extensionEvent';
+import { addRemoteUrlList, generateV2TypeScript, parseSwaggerJson, parseSwaggerUrl, queryCwd, queryExtInfo, writeTsFile } from './controller';
 import { isDev } from './utils/vscodeUtil';
 import { setGlobalContext } from './globalContext';
 import { manageServicesFromPanel } from './utils/manageServices';
+import { listenTsFileChange } from './listeners';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -33,13 +34,26 @@ export function activate(context: vscode.ExtensionContext) {
 
       const { onDidDispose } = umiPanel;
       const { onDidReceiveMessage } = umiPanel.webview;
-      const { extensionService, postMessage } = extensionEvent(umiPanel);
 
       const registerService = manageServicesFromPanel(umiPanel.webview);
 
+      // 获取插件配置、全局状态等信息
+      registerService('webview-queryExtInfo', async () => await queryExtInfo(context));
+      // 读取当前目录树
+      registerService('webview-queryCwd', queryCwd);
+      // 添加新的远程接口
+      registerService('webview-addRemoteUrl', addRemoteUrlList);
+      // 解析远程接口
+      registerService('webview-parseSwaggerUrl', parseSwaggerUrl);
       // 解析 Swagger Json 字符串
       registerService('webview-parseSwaggerJson', parseSwaggerJson);
-      registerService('webview-generateTypeScript', generateTypeScript);
+      // 生成 OpenAPI2.0 版本的 Typescript
+      registerService('webview-generateV2TypeScript', (config) => generateV2TypeScript(umiPanel!.webview, config));
+      // 写入 ts 文件
+      registerService('webview-writeTsFile', writeTsFile);
+
+      // 开始监听 ts 文件变化
+      listenTsFileChange(umiPanel.webview);
 
       // webview 销毁时
       onDidDispose(
@@ -53,38 +67,6 @@ export function activate(context: vscode.ExtensionContext) {
       // 监听 webview 发送的事件
       onDidReceiveMessage(async (message) => {
         console.info('[Message from umi webview]: ', message);
-        const { params } = message;
-        switch (message.method) {
-          case 'log':
-            console.log(params);
-            break;
-          // 获取插件配置等相关信息
-          case 'webview-queryExtInfo': {
-            extensionService.sendExtInfo();
-            break;
-          }
-          // webview 新增 apiDocs 接口
-          case 'webview-addRemoteUrl': {
-            extensionService.addRemoteUrlList(params.list);
-            break;
-          }
-          // webview 解析 Swagger 远程接口返回的 schema
-          case 'webview-querySwaggerSchema': {
-            await extensionService.parseSwaggerUrl(params.url);
-            break;
-          }
-          // webview 读取当前工作目录
-          case 'webview-queryCWD': {
-            extensionService.sendCwdTreeData();
-            break;
-          }
-          // 将 swagger2.0 转成 ts
-          case 'webview-generateAPIV2Ts': {
-            const { outputPath, outputOptions, V2Document, collection = [] } = params;
-            await extensionService.generateAPIV2Ts(collection, V2Document, outputPath, outputOptions);
-            break;
-          }
-        }
       });
     }
 

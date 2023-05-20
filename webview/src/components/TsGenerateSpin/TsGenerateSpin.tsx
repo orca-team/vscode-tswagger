@@ -10,7 +10,7 @@ const TsGenerateSpin: React.FC<TsGenerateSpinProps> = (props) => {
   const [progress, setProgress] = useState<number>(0);
 
   useMessageListener((vscodeMsg) => {
-    if (vscodeMsg.method === 'vscode-currentTsProgress') {
+    if (vscodeMsg.method === 'webview-tsGenProgress') {
       const { current, total } = vscodeMsg.data;
       setProgress(Math.ceil((current / total) * 100));
     }
