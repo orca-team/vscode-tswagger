@@ -140,7 +140,7 @@ const handleSwaggerPathV2 = async (
         responseSchema.definitions = V2Document.definitions;
         if (isV2RefObject(responseSchema)) {
           const className = match$RefClassName(responseSchema.$ref);
-          const refSchema = V2Document.definitions?.[className] ?? {};
+          const refSchema = V2Document.definitions?.[className.join('')] ?? {};
           // refSchema.definitions = V2Document.definitions;
           schemaCollection.push(refSchema);
         } else {
