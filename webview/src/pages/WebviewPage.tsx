@@ -9,7 +9,7 @@ import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
-import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
+import { useBoolean, useDebounce, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
   Affix,
   Button,
@@ -18,6 +18,7 @@ import {
   Empty,
   FloatButton,
   Form,
+  Input,
   Layout,
   Select,
   Space,
@@ -31,6 +32,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
 import { FetchResult, copyToClipboard } from '@/utils/vscode';
+import Fuse from 'fuse.js';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -45,16 +47,17 @@ export interface WebviewPageProps extends React.HTMLAttributes<HTMLDivElement> {
 const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const { className = '', ...otherProps } = props;
 
-  const [form] = useForm();
-  const currentRemoteUrl = useWatch('remoteUrl', form);
-  const currentOutputOptions = useWatch<string[]>('outputOptions', form);
+  const [apiGroup, setApiGroup] = useState<ApiGroupByTag[]>([]);
+  const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
+  const _this = useRef<{ V2Document?: OpenAPIV2.Document; fuseApiGroup?: Fuse<ApiGroupByTag> }>({}).current;
 
+  const [form] = useForm();
+  const currentRemoteUrl = useWatch<string>('remoteUrl', form);
+  const currentSearchKey = useWatch<string>('searchKey', form);
+  const debounceSearchKey = useDebounce(currentSearchKey, { wait: 300 });
   const { extSetting, setExtSetting } = useGlobalState();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
-
-  const [apiGroup, setApiGroup] = useState<ApiGroupByTag[]>([]);
-  const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
   const modalController = usePromisifyModal();
   const [expand, { toggle: toggleExpand }] = useToggle(true);
   const [selectedApiMap, { set: setSelectedApiMap, remove: removeSelectedApiMap, reset: resetSelectedApiMap }] = useMap<
@@ -62,7 +65,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     ApiPathType[]
   >();
 
-  const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
+  const hasSwaggerDocs = !!swaggerDocs;
 
   const options = useMemo(() => {
     return extSetting.remoteUrlList.map(({ name, url }) => ({
@@ -70,6 +73,11 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       value: url,
     }));
   }, [extSetting.remoteUrlList]);
+
+  const currentApiGroup = useMemo(
+    () => (debounceSearchKey ? _this.fuseApiGroup?.search(debounceSearchKey).map((f) => f.item) ?? [] : apiGroup),
+    [apiGroup, debounceSearchKey],
+  );
 
   const handleExtInfo = useMemoizedFn(async () => {
     const extInfoResp = await apiQueryExtInfo();
@@ -94,9 +102,15 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     const currentApiName = options.find((option) => option.value === currentRemoteUrl)?.label;
     message.success(`【${currentApiName}】 Swagger 接口地址解析成功`);
     const apiDocs = resp.data as OpenAPIV2.Document;
+    const apiGroup = parseOpenAPIV2(apiDocs);
     setSwaggerDocs(apiDocs);
-    setApiGroup(parseOpenAPIV2(apiDocs));
+    setApiGroup(apiGroup);
     _this.V2Document = apiDocs;
+    _this.fuseApiGroup = new Fuse(apiGroup, {
+      includeScore: true,
+      threshold: 0.5,
+      keys: ['apiPathList.path', 'tag.name'],
+    });
   });
 
   const generateTypescript = useMemoizedFn(async (successCallback: (result: FetchResult<string>) => void) => {
@@ -110,6 +124,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       });
     });
     const outputOptions: Record<string, boolean> = {};
+    const currentOutputOptions = form.getFieldValue('outputOptions') as string[];
     currentOutputOptions.forEach((option) => {
       outputOptions[option] = true;
     });
@@ -207,6 +222,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   >
                     <DirectoryTreeSelect placeholder="请选择需要输出的 ts/tsx 文件" />
                   </FormItem>
+                  <FormItem label="模糊筛选" name="searchKey">
+                    <Input allowClear placeholder="请输入 标签名称 / API路径名称 进行模糊筛选" />
+                  </FormItem>
                 </Form>
                 <div style={{ textAlign: 'right' }}>
                   <Space size="small">
@@ -250,10 +268,10 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
               </Content>
             </Affix>
             <Spin spinning={parseLoading}>
-              {!!swaggerDocs ? <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} /> : null}
-              {!!apiGroup.length ? (
+              {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
+              {!!currentApiGroup.length ? (
                 <Collapse className={styles.apiList}>
-                  {apiGroup.map((item, index) => (
+                  {currentApiGroup.map((item, index) => (
                     <ApiGroupPanel
                       key={index}
                       onChange={(tag, selected) => {
