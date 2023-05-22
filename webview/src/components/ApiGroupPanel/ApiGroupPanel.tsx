@@ -21,6 +21,19 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   const { token } = theme.useToken();
   const { selected, toggleAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList);
 
+  const displayPathInfo = (path: string, pathInfo: OpenAPIV2.OperationObject) => {
+    const { summary } = pathInfo;
+
+    return (
+      <>
+        <Text style={{ fontSize: 14 }} strong>
+          {path}
+        </Text>
+        {summary && <Text style={{ fontSize: 14, opacity: 0.85 }}>{`（${summary}）`}</Text>}
+      </>
+    );
+  };
+
   useEffect(() => {
     onChange?.(tag, selected);
   }, [selected]);
@@ -59,7 +72,7 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
               <MethodTag method={apiPath.method} className={styles[`httpMethod-${apiPath.method}`]}>
                 {apiPath.method}
               </MethodTag>
-              <Text style={{ fontSize: 14 }}>{apiPath.path}</Text>
+              <Text style={{ fontSize: 14 }}>{displayPathInfo(apiPath.path, apiPath.pathInfo)}</Text>
             </Space>
           </div>
         ))}

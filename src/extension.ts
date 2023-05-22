@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
-import { addRemoteUrlList, generateV2TypeScript, parseSwaggerJson, parseSwaggerUrl, queryCwd, queryExtInfo, writeTsFile } from './controller';
+import { addRemoteUrlList, generateV2TypeScript, parseSwaggerJson, parseSwaggerUrl, queryCwd, queryExtInfo, writeTsFile } from './controllers';
 import { isDev } from './utils/vscodeUtil';
 import { setGlobalContext } from './globalContext';
 import { manageServicesFromPanel } from './utils/manageServices';
