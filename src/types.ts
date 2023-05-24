@@ -9,6 +9,7 @@ export type $RefType = typeof $REF_LOCAL | typeof $REF_URL | typeof $REF_REMOTE;
 export type HandleSwaggerPathOptions = {
   requestParams: boolean;
   responseBody: boolean;
+  service: boolean;
 };
 
 export type GlobalStateKey = 'localTranslation';

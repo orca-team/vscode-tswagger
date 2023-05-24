@@ -35,6 +35,13 @@ export const isLocal$ref = ($ref: string) => !!$ref && $refType($ref) === $REF_L
 export const isV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject => '$ref' in obj;
 
 /**
+ * 是否为 OpenAPIV2 版本的引用本地对象类型
+ * @param obj 目标对象
+ * @returns boolean
+ */
+export const isLocalV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject => isLocal$ref(obj.ref) && isV2RefObject(obj);
+
+/**
  * 获取 swagger $ref 中的实体类名称
  * @param $ref 目标 $ref
  * @returns 实体类名称
