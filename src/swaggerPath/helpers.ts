@@ -1,0 +1,52 @@
+import { camelCase, upperCase } from 'lodash-es';
+import { OpenAPIV2 } from 'openapi-types';
+import { filterString, match$RefClassName } from '../utils/swaggerUtil';
+
+export const bracesReg = /{(\w+)}/g;
+
+/**
+ * 转化 swagger API Path 中的大括号为 ByXXX 的形式，如 /pet/{id}/uploadImage => petByIdUploadImage
+ * @param path 路径字符串
+ * @returns 过滤大括号后的路径字符串
+ */
+export const convertAPIPath = (path: string) => (bracesReg.test(path) ? path.replace(bracesReg, (_, pathKey) => camelCase(`by_${pathKey}`)) : path);
+
+/**
+ * 对任意字符串执行首字母大写
+ * @param text 目标字符串
+ * @returns 首字母大写后的字符串
+ */
+export const upperFirstLetter = (text: string) => (text ? `${upperCase(text[0])}${text.slice(1)}` : text);
+
+/**
+ * 组合 API 路径名称
+ * @param prefix 前缀
+ * @param path 路径字符串
+ * @param suffix 后缀
+ * @returns 将 API path 组合成一个有效名称
+ */
+export const composeNameByAPIPath = (prefix: string, path: string, suffix: string = '') =>
+  upperFirstLetter(
+    camelCase(
+      [prefix]
+        .concat(convertAPIPath(path).split('/'))
+        .concat(suffix)
+        .filter((it) => !!it)
+        .join('__'),
+    ),
+  );
+
+/**
+ * 根据 $ref 值获取 OpenAPI2.0 下
+ * @param schema
+ * @param V2Document
+ * @returns ref 对应的实体类 schema object
+ */
+export const getV2RefTargetSchema = async (schema: OpenAPIV2.SchemaObject, V2Document: OpenAPIV2.Document) => {
+  const originRefCls = match$RefClassName(schema.$ref!);
+  const schemaName = await filterString(originRefCls);
+  const refSchema = V2Document.definitions?.[originRefCls.join('')] ?? {};
+  refSchema.title = schemaName;
+
+  return refSchema;
+};

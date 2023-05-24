@@ -11,3 +11,10 @@ export const hasChinese = (text: string) => /[\u4E00-\u9FFF]+/g.test(text);
  * @returns 由中文或英文组成的字符串数组
  */
 export const splitChineseAndEnglish = (text: string) => text.match(/[\u4E00-\u9FA5a-zA-Z]+/g);
+
+/**
+ * 是否是常规属性名
+ * @param propName 属性名
+ * @returns boolean
+ */
+export const isRegularPropName = (propName: string) => /^\$[a-zA-Z_][a-zA-Z0-9_]*$/.test(propName);

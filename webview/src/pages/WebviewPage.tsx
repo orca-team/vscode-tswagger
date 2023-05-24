@@ -167,7 +167,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   useMount(() => {
     handleExtInfo();
-    form.setFieldValue('outputOptions', ['responseBody', 'requestParams']);
+    form.setFieldValue('outputOptions', ['responseBody', 'requestParams', 'service']);
   });
 
   return (
@@ -207,11 +207,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     <Checkbox.Group>
                       <Checkbox value="requestParams">生成 RequestParams</Checkbox>
                       <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
-                      <Tooltip title="敬请期待">
-                        <Checkbox value="service" disabled>
-                          生成 Service
-                        </Checkbox>
-                      </Tooltip>
+                      <Checkbox value="service">生成 Service</Checkbox>
                     </Checkbox.Group>
                   </FormItem>
                   <FormItem
