@@ -7,6 +7,7 @@
   "author": "Orchard",
   "publisher": "Orchard",
   "repository": "https://github.com/Orchardxyz/vscode-swagger-typescript-generator.git",
+  "license": "MIT",
   "keywords": [
     "vscode",
     "vscode extension",
@@ -55,6 +56,7 @@
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV='development'",
     "test-compile": "tsc -p ./",
+    "pkg":"vsce package --no-dependencies",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
