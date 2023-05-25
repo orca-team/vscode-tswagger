@@ -74,7 +74,7 @@ export const callService = async <T>(method: string, params?: any): Promise<T> =
       // mock
       resolve({} as T);
     }
-    timeout(10000).catch(reject);
+    timeout(60000).catch(reject);
   }).finally(() => {
     window.removeEventListener('message', callback);
   });
