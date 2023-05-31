@@ -1,7 +1,7 @@
 {
-  "name": "swagger-typescript-generator",
-  "displayName": "swagger-typescript-generator",
-  "description": "swagger-typescript-generator",
+  "name": "tswagger",
+  "displayName": "tswagger",
+  "description": "generate typescript for swagger.",
   "version": "0.0.1",
   "private": "true",
   "author": "Orchard",
@@ -50,13 +50,13 @@
     }
   },
   "scripts": {
-    "webview-build": "pnpm --filter stg-webview build",
-    "webview-watch": "pnpm --filter stg-webview start",
+    "webview-build": "pnpm --filter tswagger-webview build",
+    "webview-watch": "pnpm --filter tswagger-webview start",
     "vscode:prepublish": "npm run webview-build && npm run esbuild-build -- --minify",
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV='development'",
     "test-compile": "tsc -p ./",
-    "pkg":"vsce package --no-dependencies",
+    "pkg": "vsce package --no-dependencies",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"

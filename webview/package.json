@@ -1,5 +1,5 @@
 {
-  "name": "stg-webview",
+  "name": "tswagger-webview",
   "version": "0.0.0",
   "private": true,
   "description": "umi4 webview for swagger-typescript-generator extension",
