@@ -59,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
       onDidDispose(
         () => {
           umiPanel = undefined;
+          vscode.window.showWarningMessage('tswagger 插件可视化 webview 界面已被销毁，请关闭界面 webview 后重新进入');
         },
         null,
         context.subscriptions,
