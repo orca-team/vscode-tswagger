@@ -6,7 +6,7 @@
   "private": "true",
   "author": "Orchard",
   "publisher": "Orchard",
-  "repository": "https://github.com/Orchardxyz/vscode-swagger-typescript-generator.git",
+  "repository": "https://github.com/Orchardxyz/vscode-tswagger.git",
   "license": "MIT",
   "keywords": [
     "vscode",
@@ -34,15 +34,15 @@
   "contributes": {
     "commands": [
       {
-        "command": "swagger-typescript-generator.generateTypescript",
+        "command": "tswagger.generateTypescript",
         "title": "GenerateTypescriptForSwagger"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "SwaggerTypescriptGenerator",
+      "title": "tswagger",
       "properties": {
-        "SwaggerTypescriptGenerator.remoteUrlList": {
+        "tswagger.remoteUrlList": {
           "type": "array",
           "description": "配置 swagger 接口列表"
         }

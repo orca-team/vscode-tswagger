@@ -11,14 +11,14 @@ import { listenTsFileChange } from './listeners';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "swagger-typescript-generator" is now active!');
+  console.log('Congratulations, your extension "tswagger" is now active!');
 
   setGlobalContext(context);
 
   let umiPanel: vscode.WebviewPanel | undefined;
   let umiHTML: string = '';
 
-  let generateTypescriptCommand = vscode.commands.registerCommand('swagger-typescript-generator.generateTypescript', () => {
+  let generateTypescriptCommand = vscode.commands.registerCommand('tswagger.generateTypescript', () => {
     const activeViewColumn = vscode.window.activeTextEditor?.viewColumn;
 
     if (umiPanel) {

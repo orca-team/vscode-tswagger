@@ -1,4 +1,4 @@
-# swagger-typescript-generator README
+# tswagger README
 
 ## Features
 
