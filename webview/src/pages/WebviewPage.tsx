@@ -32,7 +32,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
 import { FetchResult, copyToClipboard } from '@/utils/vscode';
-import Fuse from 'fuse.js';
+import fuzzysort from 'fuzzysort';
 
 const { Header, Content } = Layout;
 const { Item: FormItem, useForm, useWatch } = Form;
@@ -49,7 +49,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const [apiGroup, setApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
-  const _this = useRef<{ V2Document?: OpenAPIV2.Document; fuseApiGroup?: Fuse<ApiGroupByTag> }>({}).current;
+  const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
   const currentRemoteUrl = useWatch<string>('remoteUrl', form);
@@ -75,7 +75,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   }, [extSetting.remoteUrlList]);
 
   const currentApiGroup = useMemo(
-    () => (debounceSearchKey ? _this.fuseApiGroup?.search(debounceSearchKey).map((f) => f.item) ?? [] : apiGroup),
+    () => (debounceSearchKey ? fuzzysort.go(debounceSearchKey, apiGroup, { keys: ['apiPathList.path', 'tag.name'] }).map((it) => it.obj) : apiGroup),
     [apiGroup, debounceSearchKey],
   );
 
@@ -106,11 +106,6 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     setSwaggerDocs(apiDocs);
     setApiGroup(apiGroup);
     _this.V2Document = apiDocs;
-    _this.fuseApiGroup = new Fuse(apiGroup, {
-      includeScore: true,
-      threshold: 0.5,
-      keys: ['apiPathList.path', 'tag.name'],
-    });
   });
 
   const generateTypescript = useMemoizedFn(async (successCallback: (result: FetchResult<string>) => void) => {
