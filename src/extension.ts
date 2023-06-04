@@ -2,7 +2,17 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
-import { addRemoteUrlList, generateV2TypeScript, parseSwaggerJson, parseSwaggerUrl, queryCwd, queryExtInfo, writeTsFile } from './controllers';
+import {
+  addSwaggerUrl,
+  delSwaggerUrl,
+  generateV2TypeScript,
+  parseSwaggerJson,
+  parseSwaggerUrl,
+  queryCwd,
+  queryExtInfo,
+  updateSwaggerUrl,
+  writeTsFile,
+} from './controllers';
 import { isDev } from './utils/vscodeUtil';
 import { setGlobalContext } from './globalContext';
 import { manageServicesFromPanel } from './utils/manageServices';
@@ -41,8 +51,12 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-queryExtInfo', async () => await queryExtInfo(context));
       // 读取当前目录树
       registerService('webview-queryCwd', queryCwd);
-      // 添加新的远程接口
-      registerService('webview-addRemoteUrl', addRemoteUrlList);
+      // 添加swagger接口
+      registerService('webview-addSwaggerUrl', addSwaggerUrl);
+      // 删除swagger接口
+      registerService('webview-delSwaggerUrl', delSwaggerUrl);
+      // 更新swagger接口
+      registerService('webview-updateSwaggerUrl', updateSwaggerUrl);
       // 解析远程接口
       registerService('webview-parseSwaggerUrl', parseSwaggerUrl);
       // 解析 Swagger Json 字符串
@@ -59,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
       onDidDispose(
         () => {
           umiPanel = undefined;
-          vscode.window.showWarningMessage('tswagger 插件可视化 webview 界面已被销毁，请关闭界面 webview 后重新进入');
+          vscode.window.showWarningMessage('tswagger 插件可视化 webview 界面已卸载');
         },
         null,
         context.subscriptions,

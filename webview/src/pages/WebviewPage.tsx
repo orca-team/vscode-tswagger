@@ -33,9 +33,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
 import { FetchResult, copyToClipboard } from '@/utils/vscode';
 import fuzzysort from 'fuzzysort';
+import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 
 const { Header, Content } = Layout;
-const { Item: FormItem, useForm, useWatch } = Form;
+const { useForm, useWatch } = Form;
 
 const formItemLayout = {
   labelCol: { span: 24 },
@@ -68,11 +69,11 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const hasSwaggerDocs = !!swaggerDocs;
 
   const options = useMemo(() => {
-    return extSetting.remoteUrlList.map(({ name, url }) => ({
+    return extSetting.swaggerUrlList.map(({ name, url }) => ({
       label: name,
       value: url,
     }));
-  }, [extSetting.remoteUrlList]);
+  }, [extSetting.swaggerUrlList]);
 
   const currentApiGroup = useMemo(
     () => (debounceSearchKey ? fuzzysort.go(debounceSearchKey, apiGroup, { keys: ['apiPathList.path', 'tag.name'] }).map((it) => it.obj) : apiGroup),
@@ -81,7 +82,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const handleExtInfo = useMemoizedFn(async () => {
     const extInfoResp = await apiQueryExtInfo();
-    setExtSetting({ remoteUrlList: extInfoResp.data.setting.remoteUrlList ?? [] });
+    setExtSetting({ swaggerUrlList: extInfoResp.data.setting.swaggerUrlList ?? [] });
   });
 
   const refreshSwaggerSchema = useMemoizedFn(async () => {
@@ -181,7 +182,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 }}
               >
                 <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
-                  <FormItem
+                  <Form.Item
                     name="remoteUrl"
                     required
                     rules={[{ required: true, message: '请选择一个 Swagger 地址' }]}
@@ -196,26 +197,18 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                       </Space>
                     }
                   >
-                    <Select placeholder="请选择一个 swagger 远程地址接口" showSearch optionFilterProp="label" options={options} />
-                  </FormItem>
-                  <FormItem name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
+                    <SwaggerUrlSelect showSearch optionFilterProp="label" />
+                  </Form.Item>
+                  <Form.Item name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
                     <Checkbox.Group>
                       <Checkbox value="requestParams">生成 RequestParams</Checkbox>
                       <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
                       <Checkbox value="service">生成 Service</Checkbox>
                     </Checkbox.Group>
-                  </FormItem>
-                  <FormItem
-                    required
-                    rules={[{ required: true, message: '请选择需要输出的目标文件' }]}
-                    name="outputPath"
-                    label="输出至当前项目 ts 文件："
-                  >
-                    <DirectoryTreeSelect placeholder="请选择需要输出的 ts/tsx 文件" />
-                  </FormItem>
-                  <FormItem label="模糊筛选" name="searchKey">
+                  </Form.Item>
+                  <Form.Item label="模糊筛选" name="searchKey">
                     <Input allowClear placeholder="请输入 标签名称 / API路径名称 进行模糊筛选" />
-                  </FormItem>
+                  </Form.Item>
                 </Form>
                 <div style={{ textAlign: 'right' }}>
                   <Space size="small">
@@ -236,18 +229,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     >
                       <Button type="primary">打開本地文件</Button>
                     </Upload>
-                    <Button
-                      icon={<PlusOutlined />}
-                      type="default"
-                      onClick={() => {
-                        modalController.show(<AddRemoteUrlModal width="60%" />);
-                      }}
-                    >
-                      添加新的 Swagger 接口
-                    </Button>
-                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsFile}>
+                    {/* <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsFile}>
                       生成 Typescript
-                    </Button>
+                    </Button> */}
                     <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsCopy}>
                       複製 TypeScript
                     </Button>

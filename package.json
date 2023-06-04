@@ -42,7 +42,7 @@
       "type": "object",
       "title": "tswagger",
       "properties": {
-        "tswagger.remoteUrlList": {
+        "tswagger.swaggerUrlList": {
           "type": "array",
           "description": "配置 swagger 接口列表"
         }
