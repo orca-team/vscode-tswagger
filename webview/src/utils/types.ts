@@ -1,8 +1,9 @@
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 
-export type RemoteUrlConfigItem = {
-  name: string;
+export type SwaggerUrlConfigItem = {
+  id: number;
   url: string;
+  name?: string;
 };
 
 export type HttpMethod = Lowercase<'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'PATCH'>;

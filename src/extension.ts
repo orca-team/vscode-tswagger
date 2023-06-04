@@ -2,7 +2,17 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
-import { addRemoteUrlList, generateV2TypeScript, parseSwaggerJson, parseSwaggerUrl, queryCwd, queryExtInfo, writeTsFile } from './controllers';
+import {
+  addSwaggerUrl,
+  delSwaggerUrl,
+  generateV2TypeScript,
+  parseSwaggerJson,
+  parseSwaggerUrl,
+  queryCwd,
+  queryExtInfo,
+  updateSwaggerUrl,
+  writeTsFile,
+} from './controllers';
 import { isDev } from './utils/vscodeUtil';
 import { setGlobalContext } from './globalContext';
 import { manageServicesFromPanel } from './utils/manageServices';
@@ -11,14 +21,14 @@ import { listenTsFileChange } from './listeners';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "swagger-typescript-generator" is now active!');
+  console.log('Congratulations, your extension "tswagger" is now active!');
 
   setGlobalContext(context);
 
   let umiPanel: vscode.WebviewPanel | undefined;
   let umiHTML: string = '';
 
-  let generateTypescriptCommand = vscode.commands.registerCommand('swagger-typescript-generator.generateTypescript', () => {
+  let generateTypescriptCommand = vscode.commands.registerCommand('tswagger.generateTypescript', () => {
     const activeViewColumn = vscode.window.activeTextEditor?.viewColumn;
 
     if (umiPanel) {
@@ -41,8 +51,12 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-queryExtInfo', async () => await queryExtInfo(context));
       // 读取当前目录树
       registerService('webview-queryCwd', queryCwd);
-      // 添加新的远程接口
-      registerService('webview-addRemoteUrl', addRemoteUrlList);
+      // 添加swagger接口
+      registerService('webview-addSwaggerUrl', addSwaggerUrl);
+      // 删除swagger接口
+      registerService('webview-delSwaggerUrl', delSwaggerUrl);
+      // 更新swagger接口
+      registerService('webview-updateSwaggerUrl', updateSwaggerUrl);
       // 解析远程接口
       registerService('webview-parseSwaggerUrl', parseSwaggerUrl);
       // 解析 Swagger Json 字符串
@@ -59,6 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
       onDidDispose(
         () => {
           umiPanel = undefined;
+          vscode.window.showWarningMessage('tswagger 插件可视化 webview 界面已卸载');
         },
         null,
         context.subscriptions,

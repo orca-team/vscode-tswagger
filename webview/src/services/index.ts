@@ -1,4 +1,4 @@
-import { SwaggerPathSchema } from '@/utils/types';
+import { SwaggerPathSchema, SwaggerUrlConfigItem } from '@/utils/types';
 import { FetchResult, callService, postMessage } from '@/utils/vscode';
 import { OpenAPI, OpenAPIV2 } from 'openapi-types';
 import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from '../../../src/types';
@@ -64,7 +64,12 @@ export const apiQueryExtInfo = async () => callService<FetchResult<any>>('webvie
 
 export const apiQueryCwd = async () => callService<FetchResult<directoryTree.DirectoryTree[]>>('webview-queryCwd');
 
-export const apiAddRemoteUrl = async (params: { list: any[] }) => callService<FetchResult<boolean>>('webview-addRemoteUrl', params);
+export const apiAddSwaggerUrl = async (data: SwaggerUrlConfigItem) => callService<FetchResult<SwaggerUrlConfigItem[]>>('webview-addSwaggerUrl', data);
+
+export const apiDelSwaggerUrl = async (data: SwaggerUrlConfigItem) => callService<FetchResult<SwaggerUrlConfigItem[]>>('webview-delSwaggerUrl', data);
+
+export const apiUpdateSwaggerUrl = async (data: SwaggerUrlConfigItem) =>
+  callService<FetchResult<SwaggerUrlConfigItem[]>>('webview-updateSwaggerUrl', data);
 
 export const apiParseSwaggerUrl = async (remoteUrl: string) => callService<FetchResult<OpenAPI.Document>>('webview-parseSwaggerUrl', remoteUrl);
 

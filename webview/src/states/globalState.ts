@@ -1,16 +1,15 @@
-import { RemoteUrlConfigItem } from '@/utils/types';
+import { SwaggerUrlConfigItem } from '@/utils/types';
 import { useSetState } from 'ahooks';
 import { createGlobalStore } from 'hox';
 
 export type ExtSettingType = {
-  remoteUrlList: RemoteUrlConfigItem[];
+  swaggerUrlList: SwaggerUrlConfigItem[];
 };
 
 export const [useGlobalState] = createGlobalStore(() => {
   const [extSetting, setExtSetting] = useSetState<ExtSettingType>({
-    remoteUrlList: [],
+    swaggerUrlList: [],
   });
-  //   const [cache]
 
   return {
     extSetting,

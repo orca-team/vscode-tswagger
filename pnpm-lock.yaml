@@ -17,7 +17,7 @@ importers:
       directory-tree: ^3.5.1
       esbuild: ^0.17.15
       eslint: ^7.19.0
-      fuse.js: ^6.6.2
+      fuzzysort: ^2.0.4
       glob: ^7.1.6
       json-schema-to-typescript: ^12.0.0
       lodash-es: ^4.17.21
@@ -29,7 +29,7 @@ importers:
       '@apidevtools/swagger-parser': 10.1.0_openapi-types@12.1.0
       bing-translate-api: 2.9.1
       directory-tree: 3.5.1
-      fuse.js: registry.npmjs.org/fuse.js/6.6.2
+      fuzzysort: registry.npmjs.org/fuzzysort/2.0.4
       json-schema-to-typescript: 12.0.0
       lodash-es: 4.17.21
     devDependencies:
@@ -9028,9 +9028,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  registry.npmjs.org/fuse.js/6.6.2:
-    resolution: {integrity: sha512-cJaJkxCCxC8qIIcPBF9yGxY0W/tVZS3uEISDxhYIdtk8OL93pe+6Zj7LjCqVV4dzbqcriOZ+kQ/NE4RXZHsIGA==, registry: https://registry.yarnpkg.com/, tarball: https://registry.npmjs.org/fuse.js/-/fuse.js-6.6.2.tgz}
-    name: fuse.js
-    version: 6.6.2
-    engines: {node: '>=10'}
+  registry.npmjs.org/fuzzysort/2.0.4:
+    resolution: {integrity: sha512-Api1mJL+Ad7W7vnDZnWq5pGaXJjyencT+iKGia2PlHUcSsSzWwIQ3S1isiMpwpavjYtGd2FzhUIhnnhOULZgDw==, registry: https://registry.yarnpkg.com/, tarball: https://registry.npmjs.org/fuzzysort/-/fuzzysort-2.0.4.tgz}
+    name: fuzzysort
+    version: 2.0.4
     dev: false

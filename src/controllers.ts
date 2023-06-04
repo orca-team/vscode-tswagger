@@ -12,7 +12,7 @@ import { flatMap } from 'lodash-es';
 import templateAxios from './requestTemplates/axios';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
-  const allSetting = getAllConfiguration(['remoteUrlList']);
+  const allSetting = getAllConfiguration(['swaggerUrlList']);
   const globalState = getGlobalState(context);
   return {
     setting: allSetting,
@@ -49,11 +49,30 @@ export const parseSwaggerJson = async (swaggerJsonStr: string) => {
   return apiResponse;
 };
 
-export const addRemoteUrlList = async (params: { list: any[] }) => {
-  const remoteUrlList = getConfiguration('remoteUrlList');
-  setConfiguration('remoteUrlList', remoteUrlList.concat(params.list));
-  const latestRemoteUrlList = getConfiguration('remoteUrlList') || [];
-  return { remoteUrlList: latestRemoteUrlList };
+export const addSwaggerUrl = async (data: any) => {
+  const swaggerUrlList = getConfiguration('swaggerUrlList');
+  swaggerUrlList.push(data);
+  setConfiguration('swaggerUrlList', swaggerUrlList);
+  return swaggerUrlList;
+};
+
+export const delSwaggerUrl = async (data: any) => {
+  const swaggerUrlList = getConfiguration('swaggerUrlList');
+  const newSwaggerUrlList = swaggerUrlList.filter((it: any) => it.id !== data.id && it.url !== data.url);
+  setConfiguration('swaggerUrlList', newSwaggerUrlList);
+  return newSwaggerUrlList;
+};
+
+export const updateSwaggerUrl = async (data: any) => {
+  const swaggerUrlList = getConfiguration('swaggerUrlList');
+  const targetIndex = swaggerUrlList.findIndex((it: any) => it.id === data.id && it.url === data.url);
+  if (targetIndex > -1) {
+    swaggerUrlList[targetIndex] = data;
+    setConfiguration('swaggerUrlList', swaggerUrlList);
+    return swaggerUrlList;
+  }
+
+  return null;
 };
 
 const headerImport = `import { get, post, put, del } from '@/utils/fetch.ts';\n\n`;

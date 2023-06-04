@@ -19,7 +19,7 @@ export const getPathInVsCode = (context: vscode.ExtensionContext, webviewPanel: 
 };
 
 export const getConfiguration = <T = any>(configName: string = '') => {
-  const settingsConfig = vscode.workspace.getConfiguration('SwaggerTypescriptGenerator');
+  const settingsConfig = vscode.workspace.getConfiguration('tswagger');
   const config = settingsConfig.get(configName) ?? [];
 
   return config as T;
@@ -34,7 +34,7 @@ export const getAllConfiguration = (configNameList: string[] = []) => {
 };
 
 export const setConfiguration = (configName: string, configValue: any) => {
-  const settingsConfig = vscode.workspace.getConfiguration('SwaggerTypescriptGenerator');
+  const settingsConfig = vscode.workspace.getConfiguration('tswagger');
   settingsConfig.update(configName, configValue, true);
 };
 
@@ -44,12 +44,12 @@ export const getGlobalState = <Value = any>(context: vscode.ExtensionContext, ke
   const globalState: Record<string, Value> = {};
   if (!key) {
     allExtGlobalStateKeys.forEach((key) => {
-      globalState[key] = context.globalState.get(`SwaggerTypescriptGenerator.${key}`) as Value;
+      globalState[key] = context.globalState.get(`tswagger.${key}`) as Value;
     });
   }
-  return context.globalState.get(`SwaggerTypescriptGenerator.${key}`) as Value;
+  return context.globalState.get(`tswagger.${key}`) as Value;
 };
 
 export const setGlobalState = <Value = any>(context: vscode.ExtensionContext, key?: GlobalStateKey, value?: Value) => {
-  context.globalState.update(`SwaggerTypescriptGenerator${key ? `.${key}` : ''}`, value);
+  context.globalState.update(`tswagger${key ? `.${key}` : ''}`, value);
 };

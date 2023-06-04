@@ -1,12 +1,12 @@
 {
-  "name": "swagger-typescript-generator",
-  "displayName": "swagger-typescript-generator",
-  "description": "swagger-typescript-generator",
+  "name": "tswagger",
+  "displayName": "tswagger",
+  "description": "generate typescript for swagger.",
   "version": "0.0.1",
   "private": "true",
   "author": "Orchard",
   "publisher": "Orchard",
-  "repository": "https://github.com/Orchardxyz/vscode-swagger-typescript-generator.git",
+  "repository": "https://github.com/Orchardxyz/vscode-tswagger.git",
   "license": "MIT",
   "keywords": [
     "vscode",
@@ -34,15 +34,15 @@
   "contributes": {
     "commands": [
       {
-        "command": "swagger-typescript-generator.generateTypescript",
+        "command": "tswagger.generateTypescript",
         "title": "GenerateTypescriptForSwagger"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "SwaggerTypescriptGenerator",
+      "title": "tswagger",
       "properties": {
-        "SwaggerTypescriptGenerator.remoteUrlList": {
+        "tswagger.swaggerUrlList": {
           "type": "array",
           "description": "配置 swagger 接口列表"
         }
@@ -50,13 +50,13 @@
     }
   },
   "scripts": {
-    "webview-build": "pnpm --filter stg-webview build",
-    "webview-watch": "pnpm --filter stg-webview start",
+    "webview-build": "pnpm --filter tswagger-webview build",
+    "webview-watch": "pnpm --filter tswagger-webview start",
     "vscode:prepublish": "npm run webview-build && npm run esbuild-build -- --minify",
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV='development'",
     "test-compile": "tsc -p ./",
-    "pkg":"vsce package --no-dependencies",
+    "pkg": "vsce package --no-dependencies",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
@@ -82,7 +82,7 @@
     "@apidevtools/swagger-parser": "^10.1.0",
     "bing-translate-api": "^2.9.1",
     "directory-tree": "^3.5.1",
-    "fuse.js": "^6.6.2",
+    "fuzzysort": "^2.0.4",
     "json-schema-to-typescript": "^12.0.0",
     "lodash-es": "^4.17.21"
   }
