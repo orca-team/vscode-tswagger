@@ -1,13 +1,11 @@
-import AddRemoteUrlModal from '@/components/AddRemoteUrlModal';
 import ApiGroupPanel from '@/components/ApiGroupPanel';
-import DirectoryTreeSelect from '@/components/DirectoryTreeSelect';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
 import { apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo, apiWriteTsFile } from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import { DownOutlined, PlusOutlined } from '@ant-design/icons';
+import { DownOutlined, FolderAddOutlined, LinkOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useDebounce, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
@@ -23,6 +21,8 @@ import {
   Select,
   Space,
   Spin,
+  Tabs,
+  TabsProps,
   Tooltip,
   Upload,
   message,
@@ -43,6 +43,9 @@ const formItemLayout = {
   wrapperCol: { span: 18 },
 };
 
+const PARSE_METHOD_DOCS = 'swagger docs';
+const PARSE_METHOD_LOCAL = 'local file';
+
 export interface WebviewPageProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const WebviewPage: React.FC<WebviewPageProps> = (props) => {
@@ -53,8 +56,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
-  const currentRemoteUrl = useWatch<string>('remoteUrl', form);
+  const currentSwaggerUrl = useWatch<string>('swaggerUrl', form);
   const currentSearchKey = useWatch<string>('searchKey', form);
+
   const debounceSearchKey = useDebounce(currentSearchKey, { wait: 300 });
   const { extSetting, setExtSetting } = useGlobalState();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
@@ -86,12 +90,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   });
 
   const refreshSwaggerSchema = useMemoizedFn(async () => {
-    if (!currentRemoteUrl) {
+    if (!currentSwaggerUrl) {
       return;
     }
     startParseLoading();
     resetSelectedApiMap();
-    const resp = await apiParseSwaggerUrl(currentRemoteUrl);
+    const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
@@ -100,7 +104,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       notification.error({ message: resp.errMsg ?? 'Swagger 接口地址解析失败, 请稍后再试', duration: null });
       return;
     }
-    const currentApiName = options.find((option) => option.value === currentRemoteUrl)?.label;
+    const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
     message.success(`【${currentApiName}】 Swagger 接口地址解析成功`);
     const apiDocs = resp.data as OpenAPIV2.Document;
     const apiGroup = parseOpenAPIV2(apiDocs);
@@ -159,7 +163,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   useEffect(() => {
     refreshSwaggerSchema();
-  }, [currentRemoteUrl]);
+  }, [currentSwaggerUrl]);
 
   useMount(() => {
     handleExtInfo();
@@ -182,23 +186,76 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 }}
               >
                 <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
-                  <Form.Item
-                    name="remoteUrl"
-                    required
-                    rules={[{ required: true, message: '请选择一个 Swagger 地址' }]}
-                    label={
-                      <Space>
-                        <span>Swagger API：</span>
-                        <Tooltip title="刷新当前 swagger 接口的路径数据">
-                          <Button type="link" disabled={!currentRemoteUrl} style={{ display: 'inline-block' }} onClick={refreshSwaggerSchema}>
-                            刷新
-                          </Button>
-                        </Tooltip>
-                      </Space>
-                    }
-                  >
-                    <SwaggerUrlSelect showSearch optionFilterProp="label" />
-                  </Form.Item>
+                  <Tabs
+                    defaultActiveKey={PARSE_METHOD_DOCS}
+                    items={[
+                      {
+                        key: PARSE_METHOD_DOCS,
+                        label: (
+                          <span>
+                            <LinkOutlined />
+                            Swagger 文档地址
+                          </span>
+                        ),
+                        children: (
+                          <Form.Item
+                            name="swaggerUrl"
+                            required
+                            rules={[{ required: true, message: '请选择一个 Swagger 地址' }]}
+                            style={{ marginTop: 4 }}
+                            label={
+                              <Space>
+                                <span>文档接口地址：</span>
+                                <Tooltip title="刷新当前 swagger 接口的路径数据">
+                                  <Button
+                                    type="link"
+                                    disabled={!currentSwaggerUrl}
+                                    style={{ display: 'inline-block' }}
+                                    onClick={refreshSwaggerSchema}
+                                  >
+                                    刷新
+                                  </Button>
+                                </Tooltip>
+                              </Space>
+                            }
+                          >
+                            <SwaggerUrlSelect showSearch />
+                          </Form.Item>
+                        ),
+                      },
+                      {
+                        key: PARSE_METHOD_LOCAL,
+                        label: (
+                          <span>
+                            <FolderAddOutlined />
+                            本地文件
+                          </span>
+                        ),
+                        children: (
+                          <Upload
+                            className={styles.localFileBtn}
+                            fileList={[]}
+                            beforeUpload={async (file) => {
+                              const jsonContent = await file.text();
+                              const result = await apiParseSwaggerJson(jsonContent);
+                              if (result.success) {
+                                const apiDocs = result.data;
+                                setSwaggerDocs(apiDocs);
+                                setApiGroup(parseOpenAPIV2(apiDocs));
+                                _this.V2Document = apiDocs;
+                              }
+
+                              return false;
+                            }}
+                          >
+                            <Button type="primary" icon={<UploadOutlined />}>
+                              打开本地文件
+                            </Button>
+                          </Upload>
+                        ),
+                      },
+                    ]}
+                  />
                   <Form.Item name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
                     <Checkbox.Group>
                       <Checkbox value="requestParams">生成 RequestParams</Checkbox>
@@ -212,29 +269,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 </Form>
                 <div style={{ textAlign: 'right' }}>
                   <Space size="small">
-                    <Upload
-                      fileList={[]}
-                      beforeUpload={async (file) => {
-                        const jsonContent = await file.text();
-                        const result = await apiParseSwaggerJson(jsonContent);
-                        if (result.success) {
-                          const apiDocs = result.data;
-                          setSwaggerDocs(apiDocs);
-                          setApiGroup(parseOpenAPIV2(apiDocs));
-                          _this.V2Document = apiDocs;
-                        }
-
-                        return false;
-                      }}
-                    >
-                      <Button type="primary">打開本地文件</Button>
-                    </Upload>
-                    {/* <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsFile}>
+                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsFile}>
                       生成 Typescript
-                    </Button> */}
-                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsCopy}>
-                      複製 TypeScript
                     </Button>
+                    {/* <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsCopy}>
+                      複製 TypeScript
+                    </Button> */}
                     <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
                       {expand ? '收起' : '展开'}
                     </Button>

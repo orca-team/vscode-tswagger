@@ -7,6 +7,12 @@ import { useBoolean } from 'ahooks';
 import UrlConfigForm from './UrlConfigForm';
 import useSwaggerUrlService from './useSwaggerUrlService';
 
+export const formatSwaggerConfigLabel = (item: SwaggerUrlConfigItem) => {
+  const { name, url } = item;
+
+  return name ? `${name} (${url})` : url;
+};
+
 export interface CustomLabelProps extends React.HTMLAttributes<HTMLDivElement> {
   value: SwaggerUrlConfigItem;
 }
@@ -39,7 +45,7 @@ const CustomLabel: React.FC<CustomLabelProps> = (props) => {
 
   return (
     <div className={`${styles.root} ${className}`} {...otherProps} onMouseEnter={showOperation} onMouseLeave={hideOperation}>
-      <span className={styles.label}>{name ? `${name} (${url})` : url}</span>
+      <span className={styles.label}>{formatSwaggerConfigLabel(value)}</span>
       <Space className={styles.operation} size="middle" style={{ display: operationVisible ? 'flex' : 'none' }}>
         <EditOutlined onClick={handleEdit} />
         <DeleteOutlined

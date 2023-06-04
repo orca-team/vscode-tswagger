@@ -3,7 +3,7 @@ import styles from './SwaggerUrlSelect.less';
 import { Button, Divider, Form, Select, SelectProps, Space } from 'antd';
 import { useGlobalState } from '@/states/globalState';
 import { PlusOutlined } from '@ant-design/icons';
-import CustomLabel from './CustomLabel';
+import CustomLabel, { formatSwaggerConfigLabel } from './CustomLabel';
 import UrlConfigForm from './UrlConfigForm';
 import useSwaggerUrlService from './useSwaggerUrlService';
 
@@ -28,9 +28,12 @@ const SwaggerUrlSelect: React.FC<SwaggerUrlSelectProps> = (props) => {
       className={`${styles.root} ${className}`}
       placeholder="请选择已有的接口地址或直接在下拉框中新增接口文档"
       {...otherProps}
+      optionLabelProp="displayLabel"
+      optionFilterProp="displayLabel"
       options={swaggerUrlList.map((config, index) => ({
         label: <CustomLabel value={config} />,
         value: config.url,
+        displayLabel: formatSwaggerConfigLabel(config),
       }))}
       dropdownRender={(menu) => {
         return (
