@@ -1,7 +1,7 @@
 import ApiGroupPanel from '@/components/ApiGroupPanel';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
-import { apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo, apiWriteTsFile } from '@/services';
+import { apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo } from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
@@ -18,11 +18,9 @@ import {
   Form,
   Input,
   Layout,
-  Select,
   Space,
   Spin,
   Tabs,
-  TabsProps,
   Tooltip,
   Upload,
   message,
@@ -31,9 +29,9 @@ import {
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
-import { FetchResult, copyToClipboard } from '@/utils/vscode';
 import fuzzysort from 'fuzzysort';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
+import TsResultModal from '@/components/TsResultModal';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -96,16 +94,17 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     startParseLoading();
     resetSelectedApiMap();
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
+    console.log('resp', resp);
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
       setSwaggerDocs(undefined);
       setApiGroup([]);
-      notification.error({ message: resp.errMsg ?? 'Swagger 接口地址解析失败, 请稍后再试', duration: null });
+      notification.error({ message: resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试', duration: null });
       return;
     }
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
-    message.success(`【${currentApiName}】 Swagger 接口地址解析成功`);
+    message.success(`【${currentApiName}】 Swagger 文档解析成功`);
     const apiDocs = resp.data as OpenAPIV2.Document;
     const apiGroup = parseOpenAPIV2(apiDocs);
     setSwaggerDocs(apiDocs);
@@ -113,7 +112,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     _this.V2Document = apiDocs;
   });
 
-  const generateTypescript = useMemoizedFn(async (successCallback: (result: FetchResult<string>) => void) => {
+  const generateTypescript = useMemoizedFn(async () => {
     await form.validateFields();
     startGenerateLoading();
     const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
@@ -136,29 +135,11 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     });
     stopGenerateLoading();
     if (result.success) {
-      successCallback(result);
+      // successCallback(result);
+      modalController.show(<TsResultModal content={result.data} />);
     } else {
       notification.error({ message: result.errMsg ?? 'Typescript 生成失败，请稍后再试', duration: null });
     }
-  });
-
-  const generateTsCopy = useMemoizedFn(() => {
-    generateTypescript((result) => {
-      copyToClipboard(result.data);
-      message.success('已复制至粘贴板');
-    });
-  });
-
-  const generateTsFile = useMemoizedFn(() => {
-    generateTypescript(async (result) => {
-      const outputPath = form.getFieldValue('outputPath');
-      const resp = await apiWriteTsFile({ tsDef: result.data, outputPath });
-      if (resp.success) {
-        message.success('已输出至对应 ts 文件');
-      } else {
-        notification.error({ message: resp.errMsg ?? 'ts 文件输出失败，请稍后再试', duration: null });
-      }
-    });
   });
 
   useEffect(() => {
@@ -269,12 +250,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 </Form>
                 <div style={{ textAlign: 'right' }}>
                   <Space size="small">
-                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsFile}>
+                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTypescript}>
                       生成 Typescript
                     </Button>
-                    {/* <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTsCopy}>
-                      複製 TypeScript
-                    </Button> */}
                     <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
                       {expand ? '收起' : '展开'}
                     </Button>
