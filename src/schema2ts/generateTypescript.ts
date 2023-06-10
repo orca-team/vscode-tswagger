@@ -4,6 +4,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import { convertAPIV2ToJSONSchema } from './convertSwagger';
 import { ServiceInfoMap } from '../swaggerPath/types';
 import { toLower, upperCase } from 'lodash-es';
+import { shakeV2RefsInSchema } from '../utils/swaggerUtil';
 
 export type GenerateOptions = Partial<Options & { title: string }>;
 
@@ -26,7 +27,10 @@ export const generateTypescriptFromAPIV2 = async (
   V2Document: OpenAPIV2.Document,
   options?: GenerateOptions,
 ) => {
-  const JSONSchema = await convertAPIV2ToJSONSchema(swaggerSchema, V2Document);
+  const shakedDefs = shakeV2RefsInSchema(swaggerSchema, V2Document.definitions ?? {});
+  const shakedSchema: OpenAPIV2.SchemaObject = { ...swaggerSchema, definitions: shakedDefs };
+  const shakedDocument: OpenAPIV2.Document = { ...V2Document, definitions: shakedDefs };
+  const JSONSchema = await convertAPIV2ToJSONSchema(shakedSchema, shakedDocument);
   console.info('[JSONSchema Result]: ');
   console.info(JSONSchema);
   const tsDef = await generateTsFromJSONSchema(JSONSchema, options);

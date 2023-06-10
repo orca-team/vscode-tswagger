@@ -35,6 +35,52 @@ export const isLocal$ref = ($ref: string) => !!$ref && $refType($ref) === $REF_L
 export const isV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject => '$ref' in obj;
 
 /**
+ * 收集目标对象中所有的 local $ref 值
+ * @param obj 目标对象
+ * @param resultSet 结果集
+ * @returns 结果集
+ */
+const collectRefName = <Target extends Object>(obj: Target, resultSet = new Set<string>()) => {
+  Object.entries(obj).forEach(([key, value]) => {
+    if (typeof value === 'object') {
+      collectRefName(value, resultSet);
+    } else if (key === '$ref' && !!value && isLocal$ref(value!)) {
+      resultSet.add(match$RefClassName(value!).join(''));
+    }
+  });
+
+  return resultSet;
+};
+
+/**
+ * 收集 schema 中的所有 $ref local 实体
+ * @param schema OpenAPIV2 Schema
+ * @param defSets 上一次实体类集合
+ * @returns 所有本地实体类集合
+ */
+export const shakeV2RefsInSchema = (schema: OpenAPIV2.SchemaObject, entireDefs: OpenAPIV2.DefinitionsObject) => {
+  // 先收集 schema 中的所有 $ref 实体名称
+  const schemaRefNameSet = collectRefName(schema);
+  // 再根据从 schema 中收集到的实体类对 definitions 进行二次收集
+  const defNameSetList = new Set<string>();
+  schemaRefNameSet.forEach((ref) => {
+    defNameSetList.add(ref);
+    const childRefNameSet = collectRefName(entireDefs[ref]);
+    childRefNameSet.forEach((childRef) => {
+      defNameSetList.add(childRef);
+    });
+  });
+
+  // $ref tree shaking
+  const validDefs: OpenAPIV2.DefinitionsObject = {};
+  defNameSetList.forEach((defName) => {
+    validDefs[defName] = entireDefs[defName];
+  });
+
+  return validDefs;
+};
+
+/**
  * 是否为 OpenAPIV2 版本的引用本地对象类型
  * @param obj 目标对象
  * @returns boolean
