@@ -15,7 +15,9 @@ export const translate2EnByBing = async (text: string) => {
 
 export const formatTranslation = (translation: string) =>
   translation
+    .replace(/[^a-zA-Z]/g, ' ')
     .split(' ')
+    .filter((text) => !!text)
     .map((text) => capitalize(text))
     .join('');
 
