@@ -94,7 +94,6 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     startParseLoading();
     resetSelectedApiMap();
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
-    console.log('resp', resp);
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
