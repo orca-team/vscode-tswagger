@@ -3,6 +3,7 @@ import { $REF_LOCAL, $REF_REMOTE, $REF_URL, $RefType } from '../types';
 import { hasChinese, splitChineseAndEnglish } from './regexHelpers';
 import localTranslate from './localTranslate';
 import translate from '../schema2ts/translate';
+import { isObject, uniq } from 'lodash-es';
 
 /**
  * 读取当前 $ref 类型
@@ -33,6 +34,81 @@ export const isLocal$ref = ($ref: string) => !!$ref && $refType($ref) === $REF_L
  * @returns boolean
  */
 export const isV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject => '$ref' in obj;
+
+const patchAdd2Set = <Data = any>(set: Set<Data>, ...items: Data[]) => {
+  items.forEach((item) => set.add(item));
+};
+
+/**
+ * 收集目标对象中所有的 local $ref 值
+ * @param obj 目标对象
+ * @param resultSet 结果集
+ * @returns 结果集
+ */
+const collectRefName = <Target extends Object>(obj: Target, resultSet = new Set<string>()) => {
+  Object.entries(obj).forEach(([key, value]) => {
+    if (isObject(value)) {
+      collectRefName(value, resultSet);
+    } else if (key === '$ref' && !!value && isLocal$ref(value!)) {
+      resultSet.add(match$RefClassName(value!).join(''));
+    }
+  });
+
+  return resultSet;
+};
+
+type DepDefListItem = string;
+
+/**
+ * 递归收集 definitions 中所依赖到的所有实体类
+ * @param defQueue 子依赖队列
+ * @param entireDefs 完整的 definitions 定义
+ * @param resultSet 结果集
+ * @returns 结果集
+ */
+const collectV2AllDepDefs = (defQueue: DepDefListItem[], entireDefs: OpenAPIV2.DefinitionsObject, resultSet = new Set<DepDefListItem>()) => {
+  // 去重，减少循环
+  defQueue = uniq(defQueue);
+  if (!defQueue.length) {
+    return;
+  }
+  const length = defQueue.length;
+  new Array(length).fill(0).map(() => {
+    const current = defQueue.shift();
+    const defList = collectRefName(entireDefs[current!]);
+    if (defList.size) {
+      patchAdd2Set(resultSet, ...defList);
+      defQueue.push(...defList);
+    }
+  });
+  collectV2AllDepDefs(defQueue, entireDefs, resultSet);
+};
+
+/**
+ * 收集 schema 中的所有 $ref local 实体
+ * @param schema OpenAPIV2 Schema
+ * @param defSets 上一次实体类集合
+ * @returns 所有本地实体类集合
+ */
+export const shakeV2RefsInSchema = (schema: OpenAPIV2.SchemaObject, entireDefs: OpenAPIV2.DefinitionsObject) => {
+  // 先收集 schema 中的所有 $ref 实体名称
+  const schemaRefNameSet = collectRefName({ ...schema, definitions: null });
+  // 再根据从 schema 中收集到的实体类对 definitions 进行二次收集
+  const defNameSet = new Set<string>();
+  schemaRefNameSet.forEach((ref) => {
+    const childDefSet = collectRefName(entireDefs[ref]);
+    collectV2AllDepDefs([...childDefSet], entireDefs, childDefSet);
+    patchAdd2Set(defNameSet, ref, ...childDefSet);
+  });
+
+  // $ref tree shaking
+  const validDefs: OpenAPIV2.DefinitionsObject = {};
+  defNameSet.forEach((defName) => {
+    validDefs[defName] = entireDefs[defName];
+  });
+
+  return validDefs;
+};
 
 /**
  * 是否为 OpenAPIV2 版本的引用本地对象类型

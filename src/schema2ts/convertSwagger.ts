@@ -66,12 +66,9 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
 
 export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject, V2Document?: OpenAPIV2.Document): Promise<JSONSchema> => {
   const JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
-  if (V2Document?.definitions) {
-    JSONSchema.definitions = await convertAPIV2Definitions(V2Document.definitions);
-  }
-  if (swaggerSchema.definitions) {
-    JSONSchema.definitions = await convertAPIV2Definitions(swaggerSchema.definitions as OpenAPIV2.DefinitionsObject);
-  }
+  JSONSchema.definitions = await convertAPIV2Definitions(
+    (swaggerSchema.definitions ? (swaggerSchema.definitions as OpenAPIV2.DefinitionsObject) : V2Document?.definitions) ?? {},
+  );
 
   return JSONSchema;
 };

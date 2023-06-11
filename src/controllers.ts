@@ -5,7 +5,7 @@ import SwaggerParser from '@apidevtools/swagger-parser';
 import handleSwaggerPathV2 from './swaggerPath/handleSwaggerPathV2';
 import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from './types';
 import { OpenAPIV2 } from 'openapi-types';
-import { generateServiceFromAPIV2, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
+import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { sendCurrTsGenProgressMsg } from './serverSentEvents';
 import { flatMap } from 'lodash-es';
@@ -75,8 +75,6 @@ export const updateSwaggerUrl = async (data: any) => {
   return null;
 };
 
-const headerImport = `import { get, post, put, del } from '@/utils/fetch.ts';\n\n`;
-
 export const generateV2TypeScript = async (
   webview: vscode.Webview,
   config: {
@@ -115,7 +113,7 @@ export const generateV2TypeScript = async (
   }
 
   if (options.service) {
-    tsDefs = headerImport + tsDefs;
+    tsDefs = (await generateServiceImport(serviceCollection.map((it) => it.serviceInfoMap!))) + tsDefs;
   }
 
   // 临时：将接口全部放在参数定义下方
