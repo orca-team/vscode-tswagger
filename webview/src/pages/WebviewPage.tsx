@@ -116,6 +116,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   });
 
   const handleSearch = useMemoizedFn((searchKey: string) => {
+    resetSelectedApiMap();
     setCurrentApiGroup(
       searchKey
         ? fuzzysort.go(searchKey, _this.apiGroup ?? [], { keys: ['apiPathList.path', 'tag.name'] }).map((it) => it.obj)
