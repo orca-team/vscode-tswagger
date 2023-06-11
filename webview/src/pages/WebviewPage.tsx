@@ -7,7 +7,7 @@ import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, FolderAddOutlined, LinkOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
-import { useBoolean, useDebounce, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
+import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
   Affix,
   Button,
@@ -32,6 +32,7 @@ import styles from './WebviewPage.less';
 import fuzzysort from 'fuzzysort';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
+import { RcFile } from 'antd/es/upload';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -49,15 +50,13 @@ export interface WebviewPageProps extends React.HTMLAttributes<HTMLDivElement> {
 const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const { className = '', ...otherProps } = props;
 
-  const [apiGroup, setApiGroup] = useState<ApiGroupByTag[]>([]);
+  const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
-  const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
+  const _this = useRef<{ apiGroup?: ApiGroupByTag[]; V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
   const currentSwaggerUrl = useWatch<string>('swaggerUrl', form);
-  const currentSearchKey = useWatch<string>('searchKey', form);
 
-  const debounceSearchKey = useDebounce(currentSearchKey, { wait: 300 });
   const { extSetting, setExtSetting } = useGlobalState();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
@@ -77,15 +76,25 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     }));
   }, [extSetting.swaggerUrlList]);
 
-  const currentApiGroup = useMemo(
-    () => (debounceSearchKey ? fuzzysort.go(debounceSearchKey, apiGroup, { keys: ['apiPathList.path', 'tag.name'] }).map((it) => it.obj) : apiGroup),
-    [apiGroup, debounceSearchKey],
-  );
+  // 切换 api 时重置页面状态
+  const resetPageWhenChange = useMemoizedFn(() => {
+    setSwaggerDocs(undefined);
+    setCurrentApiGroup([]);
+    form.setFieldValue('searchKey', '');
+  });
 
   const handleExtInfo = useMemoizedFn(async () => {
     const extInfoResp = await apiQueryExtInfo();
     setExtSetting({ swaggerUrlList: extInfoResp.data.setting.swaggerUrlList ?? [] });
   });
+
+  const handleV2DocumentData = (apiDocs: OpenAPIV2.Document) => {
+    const apiGroup = parseOpenAPIV2(apiDocs);
+    setSwaggerDocs(apiDocs);
+    setCurrentApiGroup(apiGroup);
+    _this.apiGroup = apiGroup;
+    _this.V2Document = apiDocs;
+  };
 
   const refreshSwaggerSchema = useMemoizedFn(async () => {
     if (!currentSwaggerUrl) {
@@ -97,18 +106,31 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
-      setSwaggerDocs(undefined);
-      setApiGroup([]);
+      resetPageWhenChange();
       notification.error({ message: resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试', duration: null });
       return;
     }
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
     message.success(`【${currentApiName}】 Swagger 文档解析成功`);
-    const apiDocs = resp.data as OpenAPIV2.Document;
-    const apiGroup = parseOpenAPIV2(apiDocs);
-    setSwaggerDocs(apiDocs);
-    setApiGroup(apiGroup);
-    _this.V2Document = apiDocs;
+    handleV2DocumentData(resp.data as OpenAPIV2.Document);
+  });
+
+  const handleSearch = useMemoizedFn((searchKey: string) => {
+    setCurrentApiGroup(
+      searchKey
+        ? fuzzysort.go(searchKey, _this.apiGroup ?? [], { keys: ['apiPathList.path', 'tag.name'] }).map((it) => it.obj)
+        : _this.apiGroup ?? [],
+    );
+  });
+
+  const handleOpenLocalFile = useMemoizedFn(async (file: RcFile) => {
+    const jsonContent = await file.text();
+    const result = await apiParseSwaggerJson(jsonContent);
+    if (result.success) {
+      handleV2DocumentData(result.data);
+    }
+
+    return false;
   });
 
   const generateTypescript = useMemoizedFn(async () => {
@@ -168,6 +190,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
                   <Tabs
                     defaultActiveKey={PARSE_METHOD_DOCS}
+                    onChange={resetPageWhenChange}
                     items={[
                       {
                         key: PARSE_METHOD_DOCS,
@@ -212,22 +235,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                           </span>
                         ),
                         children: (
-                          <Upload
-                            className={styles.localFileBtn}
-                            fileList={[]}
-                            beforeUpload={async (file) => {
-                              const jsonContent = await file.text();
-                              const result = await apiParseSwaggerJson(jsonContent);
-                              if (result.success) {
-                                const apiDocs = result.data;
-                                setSwaggerDocs(apiDocs);
-                                setApiGroup(parseOpenAPIV2(apiDocs));
-                                _this.V2Document = apiDocs;
-                              }
-
-                              return false;
-                            }}
-                          >
+                          <Upload className={styles.localFileBtn} fileList={[]} beforeUpload={handleOpenLocalFile}>
                             <Button type="primary" icon={<UploadOutlined />}>
                               打开本地文件
                             </Button>
@@ -243,8 +251,15 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                       <Checkbox value="service">生成 Service</Checkbox>
                     </Checkbox.Group>
                   </Form.Item>
-                  <Form.Item label="模糊筛选" name="searchKey">
-                    <Input allowClear placeholder="请输入 标签名称 / API路径名称 进行模糊筛选" />
+                  <Form.Item label="模糊查询" name="searchKey">
+                    <Input
+                      allowClear
+                      placeholder="请输入 标签名称 / API路径名称（按 Enter 键进行模糊查询）"
+                      onPressEnter={(e) => {
+                        // @ts-ignore
+                        handleSearch(e.target.value);
+                      }}
+                    />
                   </Form.Item>
                 </Form>
                 <div style={{ textAlign: 'right' }}>
