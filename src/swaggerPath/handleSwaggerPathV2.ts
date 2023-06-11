@@ -1,4 +1,4 @@
-import { OpenAPIV2 } from 'openapi-types';
+import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 import { ApiPathTypeV2, HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from '../types';
 import { composeNameByAPIPath, getV2RefTargetSchema } from './helpers';
 import { filterString, groupV2Parameters, isLocal$ref, isV2RefObject } from '../utils/swaggerUtil';
@@ -24,7 +24,6 @@ const handleV2RequestProperties = (parameters: OpenAPIV2.Parameters) => {
   let properties: Record<string, OpenAPIV2.SchemaObject> = {};
   parameters.forEach((parameter) => {
     const { schema = {}, name } = parameter as OpenAPIV2.Parameter;
-    // console.log('parameter', parameter);
     // 目前仅处理本地引用
     if (isLocal$ref(schema.$ref)) {
       // const className = match$RefClassName(schema.$ref);
@@ -161,6 +160,18 @@ export const handleV2ResponseBody = (responses: OpenAPIV2.ResponsesObject) => {
   return responseSchema;
 };
 
+export const parsePathParamFields = (schema: OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject) => {
+  const pathParamFields: string[] = [];
+  const { properties = {} } = schema;
+  Object.entries(properties).forEach(([key, value]) => {
+    if (!value.$ref) {
+      pathParamFields.push(key);
+    }
+  });
+
+  return pathParamFields;
+};
+
 const defaultOptions: Partial<HandleSwaggerPathOptions> = {
   requestParams: true,
   responseBody: true,
@@ -226,6 +237,7 @@ const handleSwaggerPathV2 = async (
       // 处理接口
       if (options.service) {
         serviceInfoMap.pathParam = parameterCollection.find((it) => it.type === 'path')?.name;
+        serviceInfoMap.pathParamFields = parsePathParamFields(parameterCollection.find((it) => it.type === 'path')?.schemaList?.[0] ?? {});
         serviceInfoMap.pathQuery = parameterCollection.find((it) => it.type === 'query')?.name;
         serviceInfoMap.requestBody = parameterCollection.find((it) => it.type === 'body')?.name;
         serviceInfoMap.response = responseCollection.find((it) => it.type === 'response')?.name;

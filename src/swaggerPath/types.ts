@@ -6,14 +6,42 @@ import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
  * 同时包含返回体参数名称 response
  */
 export type ServiceInfoMap = {
+  /**
+   * 基础路径
+   */
   basePath: string;
+  /**
+   * api 路径
+   */
   path: string;
+  /**
+   * 请求方式
+   */
   method: string;
+  /**
+   * 生成的接口名称
+   */
   serviceName: string;
+  /**
+   * 接口路径参数
+   */
   pathParam?: string;
+  /**
+   * 接口携带参数
+   */
   pathQuery?: string;
+  /**
+   * 请求体数据
+   */
   requestBody?: string;
+  /**
+   * 响应体数据
+   */
   response?: string;
+  /**
+   * 接口路径参数值集合
+   */
+  pathParamFields?: string[];
 };
 
 export type SwaggerCollectionType = 'path' | 'query' | 'body' | 'response' | 'service';
