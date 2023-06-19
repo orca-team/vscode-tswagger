@@ -35,7 +35,7 @@ export const isLocal$ref = ($ref: string) => !!$ref && $refType($ref) === $REF_L
  */
 export const isV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject => '$ref' in obj;
 
-const patchAdd2Set = <Data = any>(set: Set<Data>, ...items: Data[]) => {
+const batchAdd2Set = <Data = any>(set: Set<Data>, ...items: Data[]) => {
   items.forEach((item) => set.add(item));
 };
 
@@ -77,7 +77,7 @@ const collectV2AllDepDefs = (defQueue: DepDefListItem[], entireDefs: OpenAPIV2.D
     const current = defQueue.shift();
     const defList = collectRefName(entireDefs[current!]);
     if (defList.size) {
-      patchAdd2Set(resultSet, ...defList);
+      batchAdd2Set(resultSet, ...defList);
       defQueue.push(...defList);
     }
   });
@@ -98,7 +98,7 @@ export const shakeV2RefsInSchema = (schema: OpenAPIV2.SchemaObject, entireDefs: 
   schemaRefNameSet.forEach((ref) => {
     const childDefSet = collectRefName(entireDefs[ref]);
     collectV2AllDepDefs([...childDefSet], entireDefs, childDefSet);
-    patchAdd2Set(defNameSet, ref, ...childDefSet);
+    batchAdd2Set(defNameSet, ref, ...childDefSet);
   });
 
   // $ref tree shaking
