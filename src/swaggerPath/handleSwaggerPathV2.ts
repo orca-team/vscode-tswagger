@@ -219,7 +219,6 @@ const handleSwaggerPathV2 = async (
             },
           ];
         } else {
-          responseSchema.type = 'object';
           responseSchema.title = composeNameByAPIPath(method, path, 'ResponseBody');
           responseSchema.description = generateTsDefDesc(apiPath, '返回数据');
           responseCollection = [
