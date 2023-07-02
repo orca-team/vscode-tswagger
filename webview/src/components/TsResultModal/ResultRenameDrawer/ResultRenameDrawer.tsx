@@ -24,8 +24,15 @@ import RenameText from '../RenameText';
 import { useBoolean, useMemoizedFn } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
 import { V2TSGenerateResult } from '@/services';
+import { Rule } from 'antd/es/form';
 
 const { Text } = Typography;
+
+const renameReg = new RegExp(/^[a-zA-Z][a-zA-Z0-9]+$/);
+const renameRule: Rule = {
+  pattern: renameReg,
+  message: '只能包含英文和数字, 且必须以英文开头',
+};
 
 const convertNameMappingList = (nameMappingList: ApiGroupNameMapping[]) => {
   const allGroupName = [...new Set(nameMappingList.map((name) => name.groupName))];
@@ -106,6 +113,13 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
       }
       footerStyle={{ width: '100%', display: 'flex' }}
     >
+      <Button
+        onClick={() => {
+          form.validateFields();
+        }}
+      >
+        校验
+      </Button>
       <Form form={form}>
         <Collapse className={styles.collapse} defaultActiveKey="deps" size="small" style={{ marginBottom: 24 }}>
           <Collapse.Panel
@@ -121,7 +135,11 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
               <Descriptions size="small" title={null} bordered labelStyle={{ width: 300 }}>
                 {Object.entries(allDefNameMapping ?? {}).map(([defName, filteredDefName], index) => (
                   <Descriptions.Item key={index} label={`<过滤前> ${defName}`} span={3}>
-                    <Form.Item name={['allDefNameMapping', defName]} noStyle>
+                    <Form.Item
+                      className={styles.formItem}
+                      name={['allDefNameMapping', defName]}
+                      rules={[{ required: true, message: `请输入新的 ${defName} 名称` }, renameRule]}
+                    >
                       <RenameText />
                     </Form.Item>
                   </Descriptions.Item>
@@ -188,35 +206,55 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                   >
                                     {serviceName && (
                                       <Descriptions.Item label="接口方法名称" span={3}>
-                                        <Form.Item name={[itemName, 'serviceName']} noStyle>
+                                        <Form.Item
+                                          name={[itemName, 'serviceName']}
+                                          className={styles.formItem}
+                                          rules={[{ required: true, message: `请输入新的接口方法名称` }, renameRule]}
+                                        >
                                           <RenameText />
                                         </Form.Item>
                                       </Descriptions.Item>
                                     )}
                                     {pathParamName && (
                                       <Descriptions.Item label="路径参数类型名称" span={3}>
-                                        <Form.Item name={[itemName, 'pathParamName']} noStyle>
+                                        <Form.Item
+                                          name={[itemName, 'pathParamName']}
+                                          className={styles.formItem}
+                                          rules={[{ required: true, message: `请输入新的路径参数类型名称` }, renameRule]}
+                                        >
                                           <RenameText />
                                         </Form.Item>
                                       </Descriptions.Item>
                                     )}
                                     {pathQueryName && (
                                       <Descriptions.Item label="携带参数类型名称" span={3}>
-                                        <Form.Item name={[itemName, 'pathQueryName']} noStyle>
+                                        <Form.Item
+                                          name={[itemName, 'pathQueryName']}
+                                          className={styles.formItem}
+                                          rules={[{ required: true, message: `请输入新的携带参数类型名称名称` }, renameRule]}
+                                        >
                                           <RenameText />
                                         </Form.Item>
                                       </Descriptions.Item>
                                     )}
                                     {requestBodyName && (
                                       <Descriptions.Item label="请求体数据类型名称" span={3}>
-                                        <Form.Item name={[itemName, 'requestBodyName']} noStyle>
+                                        <Form.Item
+                                          name={[itemName, 'requestBodyName']}
+                                          className={styles.formItem}
+                                          rules={[{ required: true, message: `请输入新的请求体数据类型名称` }, renameRule]}
+                                        >
                                           <RenameText />
                                         </Form.Item>
                                       </Descriptions.Item>
                                     )}
                                     {responseBodyName && (
                                       <Descriptions.Item label="返回体数据类型名称" span={3}>
-                                        <Form.Item name={[itemName, 'responseBodyName']} noStyle>
+                                        <Form.Item
+                                          name={[itemName, 'responseBodyName']}
+                                          className={styles.formItem}
+                                          rules={[{ required: true, message: `请输入新的返回体数据类型名称` }, renameRule]}
+                                        >
                                           <RenameText />
                                         </Form.Item>
                                       </Descriptions.Item>
