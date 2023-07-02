@@ -4,7 +4,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import { convertAPIV2ToJSONSchema } from './convertSwagger';
 import { ServiceInfoMap } from '../swaggerPath/types';
 import { toLower, upperCase } from 'lodash-es';
-import { shakeV2RefsInSchema } from '../utils/swaggerUtil';
+import { filterString, shakeV2RefsInSchema } from '../utils/swaggerUtil';
 
 export type GenerateOptions = Partial<Options & { title: string }>;
 
@@ -25,17 +25,25 @@ export const generateTsFromJSONSchema = async (schema: JSONSchema, options: Gene
 export const generateTypescriptFromAPIV2 = async (
   swaggerSchema: OpenAPIV2.SchemaObject,
   V2Document: OpenAPIV2.Document,
+  mapping?: Record<string, string>,
   options?: GenerateOptions,
 ) => {
   const shakedDefs = shakeV2RefsInSchema(swaggerSchema, V2Document.definitions ?? {});
   const shakedSchema: OpenAPIV2.SchemaObject = { ...swaggerSchema, definitions: shakedDefs };
   const shakedDocument: OpenAPIV2.Document = { ...V2Document, definitions: shakedDefs };
+  convertAPIV2ToJSONSchema.defRenameMapping = mapping;
   const JSONSchema = await convertAPIV2ToJSONSchema(shakedSchema, shakedDocument);
   console.info('[JSONSchema Result]: ');
   console.info(JSONSchema);
   const tsDef = await generateTsFromJSONSchema(JSONSchema, options);
 
-  return tsDef;
+  const defNameMapping: Record<string, string> = {};
+
+  for (const defName of Object.keys(shakedDefs)) {
+    defNameMapping[defName] = mapping?.[defName] ?? (await filterString(defName));
+  }
+
+  return { tsDef, depDefs: shakedDefs, defNameMapping };
 };
 
 /**

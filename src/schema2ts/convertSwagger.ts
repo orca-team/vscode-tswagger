@@ -2,6 +2,12 @@ import { JSONSchema } from 'json-schema-to-typescript';
 import { OpenAPIV2 } from 'openapi-types';
 import { buildAnyTypeSchema, buildBasicTypeSchema } from './buildSchema';
 import { filterString, match$RefClassName } from '../utils/swaggerUtil';
+import { isArray } from 'lodash-es';
+
+const filterStringByMapping = async (text: string | string[]) =>
+  isArray(text)
+    ? Promise.all(text.map((t) => convertAPIV2ToJSONSchema.defRenameMapping?.[t] ?? filterString(t))).then((r) => r.join(''))
+    : convertAPIV2ToJSONSchema.defRenameMapping?.[text] ?? filterString(text);
 
 export const swaggerSchemaBasicTypes = ['string', 'boolean', 'number', 'integer'];
 
@@ -12,7 +18,7 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
   if ($schemaRef) {
     const refClassName = match$RefClassName($schemaRef);
     return {
-      $ref: `#/definitions/${await filterString(refClassName)}`,
+      $ref: `#/definitions/${await filterStringByMapping(refClassName)}`,
     };
   }
 
@@ -73,11 +79,16 @@ export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaOb
   return JSONSchema;
 };
 
+/**
+ * 依赖名称映射集合
+ */
+convertAPIV2ToJSONSchema.defRenameMapping = {} as Record<string, string> | undefined;
+
 export const convertAPIV2Definitions = async (definitions: OpenAPIV2.DefinitionsObject): Promise<JSONSchema> => {
   const defs: JSONSchema = {};
 
   for (const [name, schema] of Object.entries(definitions)) {
-    let currentName = await filterString(name);
+    let currentName = await filterStringByMapping(name);
     defs[currentName] = await convertAPIV2ToJSONSchema(schema);
     defs[currentName].title = currentName;
   }

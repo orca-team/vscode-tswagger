@@ -3,7 +3,7 @@ import { getAllConfiguration, getConfiguration, getGlobalState, setConfiguration
 import dirTree from 'directory-tree';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import handleSwaggerPathV2 from './swaggerPath/handleSwaggerPathV2';
-import { HandleSwaggerPathOptions, SwaggerPathSchemaV2 } from './types';
+import { GenerateTypescriptConfig } from './types';
 import { OpenAPIV2 } from 'openapi-types';
 import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
@@ -75,24 +75,21 @@ export const updateSwaggerUrl = async (data: any) => {
   return null;
 };
 
-export const generateV2TypeScript = async (
-  webview: vscode.Webview,
-  config: {
-    collection: SwaggerPathSchemaV2[];
-    V2Document: OpenAPIV2.Document;
-    options: Partial<HandleSwaggerPathOptions>;
-  },
-) => {
-  const { V2Document, collection, options } = config;
+export const generateV2TypeScript = async (webview: vscode.Webview, config: GenerateTypescriptConfig) => {
+  const { V2Document, options, renameMapping } = config;
+
   let tsDefs = '';
-  const swaggerCollection = await handleSwaggerPathV2(collection, V2Document, options);
+  let currentDefNameMapping: Record<string, string> = {};
+  const { swaggerCollection, nameMappingList } = await handleSwaggerPathV2(config);
   const schemaCollection = flatMap(swaggerCollection.map((it) => it.schemaList ?? [])) as OpenAPIV2.SchemaObject[];
   const serviceCollection = swaggerCollection.filter((it) => it.type === 'service');
   const total = schemaCollection.length + serviceCollection.length;
   let current = 0;
   for (const schema of schemaCollection) {
     current++;
-    tsDefs += await generateTypescriptFromAPIV2(schema, V2Document);
+    const { tsDef: schemaTsDef, defNameMapping } = await generateTypescriptFromAPIV2(schema, V2Document, renameMapping?.allDefNameMapping);
+    currentDefNameMapping = { ...currentDefNameMapping, ...defNameMapping };
+    tsDefs += schemaTsDef;
     sendCurrTsGenProgressMsg(webview, {
       total,
       current,
@@ -122,7 +119,7 @@ export const generateV2TypeScript = async (
     tsDefs += await generateServiceFromAPIV2(service.serviceInfoMap!);
   }
 
-  return tsDefs;
+  return { tsDefs, nameMappingList, allDefNameMapping: currentDefNameMapping };
 };
 
 export const writeTsFile = async (params: { tsDef: string; outputPath: string }) => {
