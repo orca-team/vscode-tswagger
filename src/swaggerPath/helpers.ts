@@ -41,7 +41,7 @@ export const composeNameByAPIPath = (prefix: string, path: string, suffix: strin
  * @param schema
  * @param V2Document
  * @param mapName schema 映射名称
- * @returns ref 对应的实体类 schema object
+ * @returns ref 对应实体名称 以及 ref 对应的实体类 schema object
  */
 export const getV2RefTargetSchema = async (schema: OpenAPIV2.SchemaObject, V2Document: OpenAPIV2.Document, mapName?: string) => {
   const originRefCls = match$RefClassName(schema.$ref!);
@@ -49,5 +49,5 @@ export const getV2RefTargetSchema = async (schema: OpenAPIV2.SchemaObject, V2Doc
   const refSchema = V2Document.definitions?.[originRefCls.join('')] ?? {};
   refSchema.title = schemaName;
 
-  return refSchema;
+  return { originRefName: originRefCls.join(''), refSchema };
 };

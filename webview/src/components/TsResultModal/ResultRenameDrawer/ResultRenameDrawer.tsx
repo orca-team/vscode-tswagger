@@ -15,9 +15,10 @@ import {
   notification,
   Popconfirm,
   message,
+  Tooltip,
 } from 'antd';
 import { ApiGroupNameMapping, NameMappingByGroup, RenameMapping } from '../../../../../src/types';
-import { SyncOutlined, TagFilled } from '@ant-design/icons';
+import { ExclamationCircleOutlined, SyncOutlined, TagFilled } from '@ant-design/icons';
 import MethodTag from '../../MethodTag';
 import { isPlainObject } from 'lodash-es';
 import RenameText from '../RenameText';
@@ -25,8 +26,12 @@ import { useBoolean, useMemoizedFn } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
 import { V2TSGenerateResult } from '@/services';
 import { Rule } from 'antd/es/form';
+import { apiGroupItemConfigs } from './constants';
 
 const { Text } = Typography;
+
+const allDefNameMappingFormKey = 'allDefNameMapping';
+const nameGroupFormKey = 'nameGroup';
 
 const renameReg = new RegExp(/^[a-zA-Z][a-zA-Z0-9]+$/);
 const renameRule: Rule = {
@@ -47,6 +52,16 @@ const convertNameMappingList = (nameMappingList: ApiGroupNameMapping[]) => {
   return newGroup;
 };
 
+const convertRelatedGroupItem = (groupItem: ApiGroupNameMapping, defNameMapping: Record<string, string>) => {
+  const { paramRefDefNameList } = groupItem;
+  const newGroupItem = { ...groupItem };
+  paramRefDefNameList.forEach(({ type: nameField, originRefName }) => {
+    newGroupItem[nameField] = defNameMapping[originRefName] ?? '';
+  });
+
+  return newGroupItem;
+};
+
 export interface ResultRenameDrawerProps extends Omit<DrawerProps, 'onClose'> {
   renameTypescript: (renameMapping: RenameMapping) => Promise<FetchResult<V2TSGenerateResult>>;
   nameMappingList?: ApiGroupNameMapping[];
@@ -60,12 +75,13 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
 
   const { token } = theme.useToken();
   const [form] = Form.useForm<RenameMapping>();
+  const latestDefNameMapping = Form.useWatch(allDefNameMappingFormKey, form);
 
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
 
   const handleReGenTypescript = useMemoizedFn(async () => {
+    const renameMapping = await form.validateFields();
     startGenerateLoading();
-    const renameMapping = form.getFieldsValue();
     const resp = await renameTypescript(renameMapping);
     stopGenerateLoading();
 
@@ -78,12 +94,22 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
     }
   });
 
+  // 关联实体类的名称同步进行修改
   useEffect(() => {
-    form.setFieldValue('nameGroup', convertNameMappingList(nameMappingList ?? []));
+    const currentNameGroup = (form.getFieldValue(nameGroupFormKey) ?? []) as NameMappingByGroup[];
+    const newNameGroup: NameMappingByGroup[] = currentNameGroup.map(({ group, ...otherProps }) => ({
+      ...otherProps,
+      group: group.map((item) => convertRelatedGroupItem(item, latestDefNameMapping)),
+    }));
+    form.setFieldValue(nameGroupFormKey, newNameGroup);
+  }, [latestDefNameMapping]);
+
+  useEffect(() => {
+    form.setFieldValue(nameGroupFormKey, convertNameMappingList(nameMappingList ?? []));
   }, [nameMappingList]);
 
   useEffect(() => {
-    form.setFieldValue('allDefNameMapping', allDefNameMapping);
+    form.setFieldValue(allDefNameMappingFormKey, allDefNameMapping);
   }, [allDefNameMapping]);
 
   return (
@@ -113,13 +139,6 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
       }
       footerStyle={{ width: '100%', display: 'flex' }}
     >
-      <Button
-        onClick={() => {
-          form.validateFields();
-        }}
-      >
-        校验
-      </Button>
       <Form form={form}>
         <Collapse className={styles.collapse} defaultActiveKey="deps" size="small" style={{ marginBottom: 24 }}>
           <Collapse.Panel
@@ -137,7 +156,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                   <Descriptions.Item key={index} label={`<过滤前> ${defName}`} span={3}>
                     <Form.Item
                       className={styles.formItem}
-                      name={['allDefNameMapping', defName]}
+                      name={[allDefNameMappingFormKey, defName]}
                       rules={[{ required: true, message: `请输入新的 ${defName} 名称` }, renameRule]}
                     >
                       <RenameText />
@@ -160,13 +179,13 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
               </Text>
             }
           >
-            <Form.List name="nameGroup">
+            <Form.List name={nameGroupFormKey}>
               {(groupFields) => (
                 <>
                   {groupFields.map((groupField) => {
                     const groupIndex = groupField.name;
-                    const groupName = form.getFieldValue(['nameGroup', groupIndex, 'groupName']);
-                    const childApiGroupName = ['nameGroup', groupIndex, 'group'];
+                    const groupName = form.getFieldValue([nameGroupFormKey, groupIndex, 'groupName']);
+                    const childApiGroupName = [nameGroupFormKey, groupIndex, 'group'];
 
                     return (
                       <div className={styles.tagGroup} {...groupField}>
@@ -186,8 +205,10 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                             <>
                               {fields.map((field) => {
                                 const itemName = field.name;
-                                const { path, method, serviceName, pathParamName, pathQueryName, requestBodyName, responseBodyName, description } =
-                                  form.getFieldValue([...childApiGroupName, itemName]);
+                                const { path, method, description, paramRefDefNameList, ...apiNameMapping } = form.getFieldValue([
+                                  ...childApiGroupName,
+                                  itemName,
+                                ]) as ApiGroupNameMapping;
 
                                 return (
                                   <Descriptions
@@ -204,61 +225,31 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                     labelStyle={{ width: 160 }}
                                     bordered
                                   >
-                                    {serviceName && (
-                                      <Descriptions.Item label="接口方法名称" span={3}>
-                                        <Form.Item
-                                          name={[itemName, 'serviceName']}
-                                          className={styles.formItem}
-                                          rules={[{ required: true, message: `请输入新的接口方法名称` }, renameRule]}
-                                        >
-                                          <RenameText />
-                                        </Form.Item>
-                                      </Descriptions.Item>
-                                    )}
-                                    {pathParamName && (
-                                      <Descriptions.Item label="路径参数类型名称" span={3}>
-                                        <Form.Item
-                                          name={[itemName, 'pathParamName']}
-                                          className={styles.formItem}
-                                          rules={[{ required: true, message: `请输入新的路径参数类型名称` }, renameRule]}
-                                        >
-                                          <RenameText />
-                                        </Form.Item>
-                                      </Descriptions.Item>
-                                    )}
-                                    {pathQueryName && (
-                                      <Descriptions.Item label="携带参数类型名称" span={3}>
-                                        <Form.Item
-                                          name={[itemName, 'pathQueryName']}
-                                          className={styles.formItem}
-                                          rules={[{ required: true, message: `请输入新的携带参数类型名称名称` }, renameRule]}
-                                        >
-                                          <RenameText />
-                                        </Form.Item>
-                                      </Descriptions.Item>
-                                    )}
-                                    {requestBodyName && (
-                                      <Descriptions.Item label="请求体数据类型名称" span={3}>
-                                        <Form.Item
-                                          name={[itemName, 'requestBodyName']}
-                                          className={styles.formItem}
-                                          rules={[{ required: true, message: `请输入新的请求体数据类型名称` }, renameRule]}
-                                        >
-                                          <RenameText />
-                                        </Form.Item>
-                                      </Descriptions.Item>
-                                    )}
-                                    {responseBodyName && (
-                                      <Descriptions.Item label="返回体数据类型名称" span={3}>
-                                        <Form.Item
-                                          name={[itemName, 'responseBodyName']}
-                                          className={styles.formItem}
-                                          rules={[{ required: true, message: `请输入新的返回体数据类型名称` }, renameRule]}
-                                        >
-                                          <RenameText />
-                                        </Form.Item>
-                                      </Descriptions.Item>
-                                    )}
+                                    {apiGroupItemConfigs.map(({ key: nameField, label }) => {
+                                      const relatedDefInfo = paramRefDefNameList.find((it) => it.type === nameField);
+                                      const renameValue = apiNameMapping[nameField];
+                                      const isRelatedDefName = !!relatedDefInfo; // 是否关联实体名称
+
+                                      return apiNameMapping[nameField] ? (
+                                        <Descriptions.Item key={nameField} label={label} span={3}>
+                                          <div className={styles.serviceDescItem}>
+                                            {isRelatedDefName && (
+                                              <Tooltip title={`${renameValue} 直接关联实体类，请在依赖实体名称映射中进行名称修改`}>
+                                                <ExclamationCircleOutlined className={styles.infoIcon} style={{ color: token.colorWarning }} />
+                                              </Tooltip>
+                                            )}
+                                            <Form.Item
+                                              name={[itemName, nameField]}
+                                              className={styles.formItem}
+                                              dependencies={[allDefNameMappingFormKey, relatedDefInfo?.originRefName ?? '']}
+                                              rules={[{ required: true, message: `请输入新的${label}` }, renameRule]}
+                                            >
+                                              {isRelatedDefName ? <RenameText underline={false} disabled /> : <RenameText />}
+                                            </Form.Item>
+                                          </div>
+                                        </Descriptions.Item>
+                                      ) : null;
+                                    })}
                                   </Descriptions>
                                 );
                               })}

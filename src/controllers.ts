@@ -79,8 +79,8 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
   const { V2Document, options, renameMapping } = config;
 
   let tsDefs = '';
-  let currentDefNameMapping: Record<string, string> = {};
-  const { swaggerCollection, nameMappingList } = await handleSwaggerPathV2(config);
+  const { swaggerCollection, nameMappingList, associatedDefNameMapping } = await handleSwaggerPathV2(config);
+  let currentDefNameMapping: Record<string, string> = { ...associatedDefNameMapping };
   const schemaCollection = flatMap(swaggerCollection.map((it) => it.schemaList ?? [])) as OpenAPIV2.SchemaObject[];
   const serviceCollection = swaggerCollection.filter((it) => it.type === 'service');
   const total = schemaCollection.length + serviceCollection.length;

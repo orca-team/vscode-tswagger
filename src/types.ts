@@ -58,6 +58,20 @@ export type ApiNameMapping = {
 };
 
 /**
+ * <参数名称=实体名称>关联类型
+ */
+export type ParamRefDefNameType = {
+  /**
+   * 归属类型
+   */
+  type: keyof Pick<ApiGroupNameMapping, 'pathParamName' | 'pathQueryName' | 'requestBodyName' | 'responseBodyName'>;
+  /**
+   * 原归属实体类名
+   */
+  originRefName: string;
+};
+
+/**
  * 接口入参、出参、接口名称映射
  */
 export type ApiGroupNameMapping = {
@@ -73,6 +87,10 @@ export type ApiGroupNameMapping = {
    * 分组名称（即 tag 名称）
    */
   groupName: string;
+  /**
+   * <参数名称=实体名称>关联列表
+   */
+  paramRefDefNameList: ParamRefDefNameType[];
   /**
    * 接口描述
    */

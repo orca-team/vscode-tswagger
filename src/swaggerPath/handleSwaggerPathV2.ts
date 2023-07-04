@@ -64,9 +64,13 @@ export const handleV2Request = async (
   apiPath: ApiPathTypeV2,
   tag: string,
   V2Document: OpenAPIV2.Document,
-  nameMapping: ApiGroupNameMapping,
-  renameMapping?: ApiGroupNameMapping,
+  mappingInfo: {
+    nameMapping: ApiGroupNameMapping;
+    renameMapping?: ApiGroupNameMapping;
+    associatedDefNameMapping?: Record<string, string>;
+  },
 ) => {
+  const { nameMapping, renameMapping, associatedDefNameMapping } = mappingInfo;
   const { path, pathInfo } = apiPath;
   const { parameters } = pathInfo;
   if (!parameters) {
@@ -86,9 +90,14 @@ export const handleV2Request = async (
   if (bodyParameter) {
     const { schema: bodySchema } = bodyParameter;
     if (isV2RefObject(bodySchema)) {
-      const refSchema = await getV2RefTargetSchema(bodySchema, V2Document, renameMapping?.requestBodyName);
+      const { originRefName, refSchema } = await getV2RefTargetSchema(bodySchema, V2Document, renameMapping?.requestBodyName);
       const finalName = refSchema.title;
+      associatedDefNameMapping && (associatedDefNameMapping[originRefName] = finalName ?? '');
       nameMapping.requestBodyName = finalName;
+      nameMapping.paramRefDefNameList.push({
+        type: 'requestBodyName',
+        originRefName,
+      });
       collection.push(
         merge({
           type: 'body',
@@ -186,13 +195,21 @@ export const parsePathParamFields = (schema: OpenAPIV2.SchemaObject | OpenAPIV3.
 
 const handleSwaggerPathV2 = async (
   config: GenerateTypescriptConfig,
-): Promise<{ swaggerCollection: SwaggerCollectionItem[]; nameMappingList: ApiGroupNameMapping[] }> => {
+): Promise<{
+  /** 根据标签、路径对接口的出入参进行分类处理的结果集 */
+  swaggerCollection: SwaggerCollectionItem[];
+  /** 接口出入参各类名称映射集 */
+  nameMappingList: ApiGroupNameMapping[];
+  /** 关联实体名称，即接口出入参直接为已定义的实体名称 */
+  associatedDefNameMapping: Record<string, string>;
+}> => {
   const { V2Document, collection, options, renameMapping } = config;
 
   const { nameGroup: renameGroup } = renameMapping ?? {};
 
   const swaggerCollection: SwaggerCollectionItem[] = [];
   const nameMappingList: ApiGroupNameMapping[] = [];
+  const associatedDefNameMapping: Record<string, string> = {};
 
   for (const { apiPathList, tag } of collection) {
     const targetMappingGroup = renameGroup?.find((it) => it.groupName === tag)?.group;
@@ -201,7 +218,7 @@ const handleSwaggerPathV2 = async (
       const { summary, parameters, responses } = pathInfo;
 
       // 接口各类型名称映射
-      const nameMapping: ApiGroupNameMapping = { path, method, groupName: tag, description: summary };
+      const nameMapping: ApiGroupNameMapping = { path, method, groupName: tag, paramRefDefNameList: [], description: summary };
 
       // 重命名名称映射
       const mapping = targetMappingGroup?.find((it) => it.path === path && it.method === method);
@@ -218,7 +235,7 @@ const handleSwaggerPathV2 = async (
 
       // 处理入参
       if (options.requestParams && parameters) {
-        parameterCollection = await handleV2Request(apiPath, tag, V2Document, nameMapping, mapping);
+        parameterCollection = await handleV2Request(apiPath, tag, V2Document, { nameMapping, renameMapping: mapping, associatedDefNameMapping });
         swaggerCollection.push(...parameterCollection);
       }
       // 处理出参
@@ -226,9 +243,14 @@ const handleSwaggerPathV2 = async (
         const responseSchema = handleV2ResponseBody(responses);
         responseSchema.definitions = V2Document.definitions;
         if (isV2RefObject(responseSchema)) {
-          const refSchema = await getV2RefTargetSchema(responseSchema, V2Document, mapping?.responseBodyName);
+          const { originRefName, refSchema } = await getV2RefTargetSchema(responseSchema, V2Document, mapping?.responseBodyName);
           const finalName = refSchema.title;
+          associatedDefNameMapping[originRefName] = finalName ?? '';
           nameMapping.responseBodyName = finalName;
+          nameMapping.paramRefDefNameList.push({
+            type: 'responseBodyName',
+            originRefName,
+          });
           responseCollection = [
             {
               tag,
@@ -275,7 +297,7 @@ const handleSwaggerPathV2 = async (
     }
   }
 
-  return { swaggerCollection, nameMappingList };
+  return { swaggerCollection, nameMappingList, associatedDefNameMapping };
 };
 
 export default handleSwaggerPathV2;
