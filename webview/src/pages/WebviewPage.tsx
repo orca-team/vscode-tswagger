@@ -81,6 +81,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const resetPageWhenChange = useMemoizedFn(() => {
     setSwaggerDocs(undefined);
     setCurrentApiGroup([]);
+    resetSelectedApiMap();
     form.setFieldValue('searchKey', '');
   });
 
@@ -102,15 +103,14 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       return;
     }
     startParseLoading();
-    resetSelectedApiMap();
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
-      resetPageWhenChange();
       notification.error({ message: resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试', duration: null });
       return;
     }
+    resetPageWhenChange();
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
     message.success(`【${currentApiName}】 Swagger 文档解析成功`);
     handleV2DocumentData(resp.data as OpenAPIV2.Document);
@@ -294,7 +294,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 <Collapse className={styles.apiList}>
                   {currentApiGroup.map((item, index) => (
                     <ApiGroupPanel
-                      key={index}
+                      key={`${currentSwaggerUrl}-${index}`}
                       onChange={(tag, selected) => {
                         if (selected.length) {
                           setSelectedApiMap(tag.name, selected);
