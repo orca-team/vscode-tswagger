@@ -1,0 +1,63 @@
+.root {
+  position: relative;
+
+  :global {
+    .ant-descriptions-item-content {
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+  }
+
+  .formItem {
+    margin-bottom: 0;
+  }
+
+  .collapse {
+    position: relative;
+
+    .tagGroup {
+      margin-top: 16px;
+      &:first-child {
+        margin-top: 0;
+      }
+
+      .tagHeader {
+        display: flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 4px;
+      }
+    }
+
+    .panel {
+      position: relative;
+
+      .serviceGroup {
+        position: relative;
+        margin-bottom: 16px;
+
+        :global {
+          .ant-descriptions-header {
+            margin-bottom: 8px;
+          }
+        }
+
+        .apiPath {
+          display: flex;
+          align-items: center;
+        }
+
+        .serviceDescItem {
+          display: flex;
+          align-items: center;
+
+          .infoIcon {
+            font-size: 16px;
+            margin-right: 8px;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  }
+}

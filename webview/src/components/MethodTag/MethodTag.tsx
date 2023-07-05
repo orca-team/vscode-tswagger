@@ -1,16 +1,16 @@
-import React from "react";
-import styles from "./MethodTag.less";
-import { HttpMethod } from "@/utils/types";
-import { Tag, TagProps } from "antd";
+import React from 'react';
+import styles from './MethodTag.less';
+import { Tag, TagProps } from 'antd';
+import { HttpMethod } from '../../../../src/types';
 
-const methodColorMap: Record<HttpMethod, TagProps["color"]> = {
-  get: "green",
-  post: "blue",
-  put: "yellow",
-  delete: "red",
-  patch: "purple",
-  options: "geekblue",
-  head: "cyan",
+const methodColorMap: Record<HttpMethod, TagProps['color']> = {
+  get: 'green',
+  post: 'blue',
+  put: 'yellow',
+  delete: 'red',
+  patch: 'purple',
+  options: 'geekblue',
+  head: 'cyan',
 };
 
 export interface MethodTagProps extends TagProps {
@@ -18,7 +18,7 @@ export interface MethodTagProps extends TagProps {
 }
 
 const MethodTag: React.FC<MethodTagProps> = (props) => {
-  const { className = "", method, ...otherProps } = props;
+  const { className = '', method, ...otherProps } = props;
 
   return (
     <Tag className={`${styles.root} ${className}`} color={methodColorMap[method]} {...otherProps}>

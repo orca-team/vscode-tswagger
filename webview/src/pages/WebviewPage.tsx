@@ -33,6 +33,7 @@ import fuzzysort from 'fuzzysort';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
+import { RenameMapping } from '../../../src/types';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -80,6 +81,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const resetPageWhenChange = useMemoizedFn(() => {
     setSwaggerDocs(undefined);
     setCurrentApiGroup([]);
+    resetSelectedApiMap();
     form.setFieldValue('searchKey', '');
   });
 
@@ -101,15 +103,14 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       return;
     }
     startParseLoading();
-    resetSelectedApiMap();
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
-      resetPageWhenChange();
       notification.error({ message: resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试', duration: null });
       return;
     }
+    resetPageWhenChange();
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
     message.success(`【${currentApiName}】 Swagger 文档解析成功`);
     handleV2DocumentData(resp.data as OpenAPIV2.Document);
@@ -134,9 +135,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     return false;
   });
 
-  const generateTypescript = useMemoizedFn(async () => {
-    await form.validateFields();
-    startGenerateLoading();
+  const generateV2Typescript = useMemoizedFn(async (renameMapping?: RenameMapping) => {
     const collection: Array<{ tag: string; apiPathList: ApiPathType[] }> = [];
     selectedApiMap.forEach((apiPathList, tagName) => {
       collection.push({
@@ -154,11 +153,19 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       collection,
       options: outputOptions,
       V2Document: _this.V2Document!,
+      renameMapping,
     });
+
+    return result;
+  });
+
+  const generateTypescript = useMemoizedFn(async () => {
+    await form.validateFields();
+    startGenerateLoading();
+    const result = await generateV2Typescript();
     stopGenerateLoading();
     if (result.success) {
-      // successCallback(result);
-      modalController.show(<TsResultModal content={result.data} />);
+      modalController.show(<TsResultModal {...result.data} renameTypescript={generateV2Typescript} />);
     } else {
       notification.error({ message: result.errMsg ?? 'Typescript 生成失败，请稍后再试', duration: null });
     }
@@ -265,7 +272,13 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 </Form>
                 <div style={{ textAlign: 'right' }}>
                   <Space size="small">
-                    <Button type="primary" disabled={selectedApiMap.size === 0} onClick={generateTypescript}>
+                    <Button
+                      type="primary"
+                      disabled={selectedApiMap.size === 0}
+                      onClick={() => {
+                        generateTypescript();
+                      }}
+                    >
                       生成 Typescript
                     </Button>
                     <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
@@ -281,7 +294,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 <Collapse className={styles.apiList}>
                   {currentApiGroup.map((item, index) => (
                     <ApiGroupPanel
-                      key={index}
+                      key={`${currentSwaggerUrl}-${index}`}
                       onChange={(tag, selected) => {
                         if (selected.length) {
                           setSelectedApiMap(tag.name, selected);
