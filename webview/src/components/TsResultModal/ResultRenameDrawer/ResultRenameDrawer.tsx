@@ -24,7 +24,7 @@ import { isPlainObject } from 'lodash-es';
 import RenameText from '../RenameText';
 import { useBoolean, useMemoizedFn } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
-import { V2TSGenerateResult } from '@/services';
+import { V2TSGenerateResult } from '../../../../../src/controllers';
 import { Rule } from 'antd/es/form';
 import { apiGroupItemConfigs } from './constants';
 
@@ -153,7 +153,15 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
             {isPlainObject(allDefNameMapping) && Object.keys(allDefNameMapping).length ? (
               <Descriptions size="small" title={null} bordered labelStyle={{ width: 300 }}>
                 {Object.entries(allDefNameMapping ?? {}).map(([defName, filteredDefName], index) => (
-                  <Descriptions.Item key={index} label={`<过滤前> ${defName}`} span={3}>
+                  <Descriptions.Item
+                    key={index}
+                    label={
+                      <Tooltip title={defName}>
+                        <Text ellipsis style={{ maxWidth: 300 }}>{`<过滤前> ${defName}`}</Text>
+                      </Tooltip>
+                    }
+                    span={3}
+                  >
                     <Form.Item
                       className={styles.formItem}
                       name={[allDefNameMappingFormKey, defName]}
