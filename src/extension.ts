@@ -5,6 +5,7 @@ import hotReloadWebview from './utils/hotReloadWebview';
 import {
   addSwaggerUrl,
   delSwaggerUrl,
+  generateV2ServiceFile,
   generateV2TypeScript,
   parseSwaggerJson,
   parseSwaggerUrl,
@@ -65,6 +66,8 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-generateV2TypeScript', (config) => generateV2TypeScript(umiPanel!.webview, config));
       // 写入 ts 文件
       registerService('webview-writeTsFile', writeTsFile);
+      // 生成接口文件
+      registerService('webview-generateV2ServiceFile', generateV2ServiceFile);
 
       // 开始监听 ts 文件变化
       listenTsFileChange(umiPanel.webview);

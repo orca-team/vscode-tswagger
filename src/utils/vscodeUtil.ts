@@ -18,6 +18,17 @@ export const getPathInVsCode = (context: vscode.ExtensionContext, webviewPanel: 
   return webviewPanel.webview.asWebviewUri(vscode.Uri.file(join(context.extensionPath, path)));
 };
 
+/**
+ * 返回当前工作空间目
+ * @returns 当前工作空间目录
+ */
+export const getCurrentWorkspace = () => {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const workspace = workspaceFolders?.[0];
+
+  return workspace;
+};
+
 export const getConfiguration = <T = any>(configName: string = '') => {
   const settingsConfig = vscode.workspace.getConfiguration('tswagger');
   const config = settingsConfig.get(configName) ?? [];

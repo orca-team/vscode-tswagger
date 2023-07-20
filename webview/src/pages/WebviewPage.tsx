@@ -1,7 +1,7 @@
 import ApiGroupPanel from '@/components/ApiGroupPanel';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
-import { apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo } from '@/services';
+import { apiGenerateV2ServiceFile, apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo } from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
@@ -33,7 +33,7 @@ import fuzzysort from 'fuzzysort';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
-import { RenameMapping } from '../../../src/types';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, RenameMapping } from '../../../src/types';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -159,13 +159,17 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     return result;
   });
 
+  const saveTypescript = useMemoizedFn(async (tsDefs: string, nameMappingList: ApiGroupNameMapping[], defNameMappingList: ApiGroupDefNameMapping[]) => {
+   return apiGenerateV2ServiceFile({ swaggerInfo: _this.V2Document!, data: {tsDefs, nameMappingList, defNameMappingList}});
+  });
+
   const generateTypescript = useMemoizedFn(async () => {
     await form.validateFields();
     startGenerateLoading();
     const result = await generateV2Typescript();
     stopGenerateLoading();
     if (result.success) {
-      modalController.show(<TsResultModal {...result.data} renameTypescript={generateV2Typescript} />);
+      modalController.show(<TsResultModal {...result.data} renameTypescript={generateV2Typescript} saveTypescript={saveTypescript} />);
     } else {
       notification.error({ message: result.errMsg ?? 'Typescript 生成失败，请稍后再试', duration: null });
     }
@@ -252,13 +256,13 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                       },
                     ]}
                   />
-                  <Form.Item name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
+                  {/* <Form.Item name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
                     <Checkbox.Group>
                       <Checkbox value="requestParams">生成 RequestParams</Checkbox>
                       <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
                       <Checkbox value="service">生成 Service</Checkbox>
                     </Checkbox.Group>
-                  </Form.Item>
+                  </Form.Item> */}
                   <Form.Item label="模糊查询" name="searchKey">
                     <Input
                       allowClear

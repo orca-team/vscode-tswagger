@@ -4,6 +4,62 @@ import { hasChinese, splitChineseAndEnglish } from './regexHelpers';
 import localTranslate from './localTranslate';
 import translate from '../schema2ts/translate';
 import { isObject, uniq } from 'lodash-es';
+import { join } from 'path';
+import { getCurrentWorkspace } from './vscodeUtil';
+
+export const DEFAULT_BASE_PATH_NAME = '_default';
+
+/**
+ * 获取接口基本路径名称
+ * @param basePath 接口基本路径
+ * @returns 基本路径名称
+ */
+export const getBasePathName = (basePath?: string) =>
+  basePath?.startsWith('/') ? basePath?.slice(0) ?? DEFAULT_BASE_PATH_NAME : basePath ?? DEFAULT_BASE_PATH_NAME;
+
+/**
+ * 获取当前工作空间 .tswagger 根路径地址
+ * @returns .tswagger 根路径
+ */
+export const getTSwaggerBasePath = () => {
+  const workspace = getCurrentWorkspace();
+  if (!workspace) {
+    return null;
+  }
+  const tswaggerBasePath = join(workspace.uri.fsPath, 'src/.tswagger');
+
+  return tswaggerBasePath;
+};
+
+/**
+ * 获取当前工作空间接口 & 映射文件生成地址
+ * @param basePath 接口基本路径
+ * @returns 当前接口 & 映射文件生成地址
+ */
+export const getServiceMapPath = (basePath?: string) => {
+  const tswaggerBasePath = getTSwaggerBasePath();
+  if (!tswaggerBasePath) {
+    return null;
+  }
+
+  return join(tswaggerBasePath, getBasePathName(basePath));
+};
+
+const addZero = (value: number) => (value < 10 ? `0${value}` : value);
+
+export const currentTime = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = addZero(now.getMonth() + 1);
+  const day = addZero(now.getDate());
+  const hour = addZero(now.getHours());
+  const minute = addZero(now.getMinutes());
+  const second = addZero(now.getSeconds());
+
+  const dateTime = `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+
+  return dateTime;
+};
 
 /**
  * 读取当前 $ref 类型

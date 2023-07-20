@@ -117,6 +117,23 @@ export type ApiGroupNameMapping = {
   serviceName?: string;
 };
 
+/**
+ * 不同分组下所依赖的实体名称映射
+ */
+export type ApiGroupDefNameMapping = {
+  /**
+   * 分组名称（即 tag 名称）
+   */
+  groupName: string;
+  /**
+   * 依赖实体名称映射
+   */
+  mapping: Record<string, string>;
+};
+
+/**
+ * 根据标签分组的接口各类型定义名称
+ */
 export type NameMappingByGroup = {
   groupName: string;
   group: ApiGroupNameMapping[];
@@ -132,4 +149,22 @@ export type GenerateTypescriptConfig = {
   V2Document: OpenAPIV2.Document;
   options: Partial<HandleSwaggerPathOptions>;
   renameMapping?: RenameMapping;
+};
+
+/**
+ * 本地保存的接口文件 & 接口名称映射文件类型
+ */
+export type ServiceMapInfoYAMLJSONType = {
+  /** 插件版本 */
+  extVersion: string;
+  /** 接口基本路径 */
+  basePath?: string;
+  /** 分组名称 */
+  groupName: string;
+  /** 生成时间 */
+  createTime: string;
+  /** 名称映射数据 */
+  nameMappingList: ApiGroupNameMapping[];
+  /** 依赖名称映射数据 */
+  defNameMappingList: ApiGroupDefNameMapping[];
 };

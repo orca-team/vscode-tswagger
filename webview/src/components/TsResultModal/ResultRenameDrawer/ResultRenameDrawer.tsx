@@ -24,7 +24,7 @@ import { isPlainObject } from 'lodash-es';
 import RenameText from '../RenameText';
 import { useBoolean, useMemoizedFn } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
-import { V2TSGenerateResult } from '@/services';
+import { V2TSGenerateResult } from '../../../../../src/controllers';
 import { Rule } from 'antd/es/form';
 import { apiGroupItemConfigs } from './constants';
 

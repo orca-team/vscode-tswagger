@@ -1,5 +1,5 @@
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
-import { ApiGroupNameMapping, ApiPathTypeV2, GenerateTypescriptConfig } from '../types';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiPathTypeV2, GenerateTypescriptConfig } from '../types';
 import { composeNameByAPIPath, getV2RefTargetSchema } from './helpers';
 import { filterString, groupV2Parameters, isLocal$ref, isV2RefObject } from '../utils/swaggerUtil';
 import { ServiceInfoMap, SwaggerCollectionItem } from './types';
@@ -201,7 +201,7 @@ const handleSwaggerPathV2 = async (
   /** 接口出入参各类名称映射集 */
   nameMappingList: ApiGroupNameMapping[];
   /** 关联实体名称，即接口出入参直接为已定义的实体名称 */
-  associatedDefNameMapping: Record<string, string>;
+  associatedDefNameMappingList: ApiGroupDefNameMapping[];
 }> => {
   const { V2Document, collection, options, renameMapping } = config;
 
@@ -209,10 +209,11 @@ const handleSwaggerPathV2 = async (
 
   const swaggerCollection: SwaggerCollectionItem[] = [];
   const nameMappingList: ApiGroupNameMapping[] = [];
-  const associatedDefNameMapping: Record<string, string> = {};
+  const associatedDefNameMappingList: ApiGroupDefNameMapping[] = [];
 
   for (const { apiPathList, tag } of collection) {
     const targetMappingGroup = renameGroup?.find((it) => it.groupName === tag)?.group;
+    const associatedDefNameMapping: Record<string, string> = {};
     for (const apiPath of apiPathList) {
       const { method, path, pathInfo } = apiPath;
       const { summary, parameters, responses } = pathInfo;
@@ -295,9 +296,13 @@ const handleSwaggerPathV2 = async (
 
       nameMappingList.push(nameMapping);
     }
+    associatedDefNameMappingList.push({
+      groupName: tag,
+      mapping: associatedDefNameMapping,
+    });
   }
 
-  return { swaggerCollection, nameMappingList, associatedDefNameMapping };
+  return { swaggerCollection, nameMappingList, associatedDefNameMappingList };
 };
 
 export default handleSwaggerPathV2;
