@@ -1,11 +1,13 @@
 import { OpenAPIV2 } from 'openapi-types';
-import { $REF_LOCAL, $REF_REMOTE, $REF_URL, $RefType } from '../types';
+import { $REF_LOCAL, $REF_REMOTE, $REF_URL, $RefType, ServiceMapInfoYAMLJSONType } from '../types';
 import { hasChinese, splitChineseAndEnglish } from './regexHelpers';
 import localTranslate from './localTranslate';
 import translate from '../schema2ts/translate';
 import { isObject, uniq } from 'lodash-es';
 import { join } from 'path';
 import { getCurrentWorkspace } from './vscodeUtil';
+import { existsSync, readFileSync } from 'fs-extra';
+import YAML from 'yaml';
 
 export const DEFAULT_BASE_PATH_NAME = '_default';
 
@@ -43,6 +45,27 @@ export const getServiceMapPath = (basePath?: string) => {
   }
 
   return join(tswaggerBasePath, getBasePathName(basePath));
+};
+
+/**
+ * 获取对应分组的 service.map.yaml 文件
+ * @param groupName 分组名称
+ * @param basePath 接口基本路径
+ * @returns 对应分组的 service.map.yaml 文件
+ */
+export const getServiceMapJSON = (groupName: string, basePath?: string) => {
+  const baseTargetPath = getServiceMapPath(basePath);
+  if (!baseTargetPath) {
+    return null;
+  }
+  const serviceMapFilePath = join(baseTargetPath, groupName, 'service.map.yaml');
+  if (!existsSync(serviceMapFilePath)) {
+    return null;
+  }
+  const mapYaml = readFileSync(serviceMapFilePath, { encoding: 'utf-8' });
+  const mapInfoJSON = YAML.parse(mapYaml) as ServiceMapInfoYAMLJSONType;
+
+  return mapInfoJSON;
 };
 
 const addZero = (value: number) => (value < 10 ? `0${value}` : value);

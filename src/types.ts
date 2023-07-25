@@ -132,6 +132,47 @@ export type ApiGroupDefNameMapping = {
 };
 
 /**
+ * 接口生成结果
+ */
+export type ServiceResult = {
+  /**
+   * biaoq
+   */
+  tag: string;
+  /**
+   * 路径
+   */
+  path: string;
+  /**
+   * 请求方式
+   */
+  method: string;
+  /**
+   * 接口名称
+   */
+  serviceName: string;
+  /**
+   * 结果定义
+   */
+  tsDefs: string;
+};
+
+/**
+ * 不同分组下的接口生成结果
+ */
+export type ApiGroupServiceResult = {
+  /**
+   * 分组名称（即 tag 名称）
+   */
+  groupName: string;
+
+  /**
+   * 生成接口列表
+   */
+  serviceList: ServiceResult[];
+};
+
+/**
  * 根据标签分组的接口各类型定义名称
  */
 export type NameMappingByGroup = {

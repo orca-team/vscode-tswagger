@@ -2,7 +2,7 @@ import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiPathTypeV2, GenerateTypescriptConfig } from '../types';
 import { composeNameByAPIPath, getV2RefTargetSchema } from './helpers';
 import { filterString, groupV2Parameters, isLocal$ref, isV2RefObject } from '../utils/swaggerUtil';
-import { ServiceInfoMap, SwaggerCollectionItem } from './types';
+import { SwaggerCollectionGroupItem, SwaggerCollectionItem, SwaggerServiceInfoType } from './types';
 import { upperCase } from 'lodash-es';
 
 const generateTsName = async (apiPath: ApiPathTypeV2, type: string) => {
@@ -59,7 +59,6 @@ export const handleV2Parameters = (parameters: OpenAPIV2.Parameter[]) => {
   return result;
 };
 
-// TODO: 逻辑待优化
 export const handleV2Request = async (
   apiPath: ApiPathTypeV2,
   tag: string,
@@ -71,59 +70,48 @@ export const handleV2Request = async (
   },
 ) => {
   const { nameMapping, renameMapping, associatedDefNameMapping } = mappingInfo;
-  const { path, pathInfo } = apiPath;
+  const { pathInfo } = apiPath;
   const { parameters } = pathInfo;
   if (!parameters) {
     return [];
   }
   const { pathParameters, queryParameters, bodyParameter } = groupV2Parameters(parameters);
-  const collection: SwaggerCollectionItem[] = [];
-
-  const basicInfo: Pick<SwaggerCollectionItem, 'tag' | 'targetPath'> = {
-    tag,
-    targetPath: path,
-  };
-
-  const merge = (target: Pick<SwaggerCollectionItem, 'type' | 'name' | 'schemaList'>) => ({ ...target, ...basicInfo });
+  const collection: SwaggerServiceInfoType[] = [];
 
   // 请求 Body (有且仅有一个 body)
   if (bodyParameter) {
     const { schema: bodySchema } = bodyParameter;
     if (isV2RefObject(bodySchema)) {
       const { originRefName, refSchema } = await getV2RefTargetSchema(bodySchema, V2Document, renameMapping?.requestBodyName);
-      const finalName = refSchema.title;
+      const finalName = refSchema.title ?? '';
       associatedDefNameMapping && (associatedDefNameMapping[originRefName] = finalName ?? '');
       nameMapping.requestBodyName = finalName;
       nameMapping.paramRefDefNameList.push({
         type: 'requestBodyName',
         originRefName,
       });
-      collection.push(
-        merge({
-          type: 'body',
-          name: finalName,
-          schemaList: [refSchema],
-        }),
-      );
+      collection.push({
+        type: 'body',
+        name: finalName,
+        schemaList: [refSchema],
+      });
     } else {
       const finalName = renameMapping?.requestBodyName ?? (await generateTsName(apiPath, 'RequestBody'));
       nameMapping.requestBodyName = finalName;
-      collection.push(
-        merge({
-          type: 'body',
-          name: finalName,
-          schemaList: [
-            {
-              definitions: V2Document.definitions,
-              type: 'object',
-              title: finalName,
-              description: generateTsDefDesc(apiPath, '请求体'),
-              properties: bodySchema.properties,
-              required: bodySchema.required,
-            },
-          ],
-        }),
-      );
+      collection.push({
+        type: 'body',
+        name: finalName,
+        schemaList: [
+          {
+            definitions: V2Document.definitions,
+            type: 'object',
+            title: finalName,
+            description: generateTsDefDesc(apiPath, '请求体'),
+            properties: bodySchema.properties,
+            required: bodySchema.required,
+          },
+        ],
+      });
     }
   }
 
@@ -137,13 +125,11 @@ export const handleV2Request = async (
     pathSchemaObject.description = generateTsDefDesc(apiPath, '路径参数');
     pathSchemaObject.definitions = V2Document.definitions;
     schemaList.push(pathSchemaObject);
-    collection.push(
-      merge({
-        type: 'path',
-        name: finalName,
-        schemaList,
-      }),
-    );
+    collection.push({
+      type: 'path',
+      name: finalName,
+      schemaList,
+    });
   }
 
   // 请求路径携带的参数
@@ -156,13 +142,11 @@ export const handleV2Request = async (
     querySchemaObject.description = generateTsDefDesc(apiPath, '路径携带参数');
     querySchemaObject.definitions = V2Document.definitions;
     schemaList.push(querySchemaObject);
-    collection.push(
-      merge({
-        type: 'query',
-        name: finalName,
-        schemaList,
-      }),
-    );
+    collection.push({
+      type: 'query',
+      name: finalName,
+      schemaList,
+    });
   }
 
   return collection;
@@ -214,88 +198,87 @@ const handleSwaggerPathV2 = async (
   for (const { apiPathList, tag } of collection) {
     const targetMappingGroup = renameGroup?.find((it) => it.groupName === tag)?.group;
     const associatedDefNameMapping: Record<string, string> = {};
+    const collectionItemGroup: SwaggerCollectionGroupItem[] = [];
     for (const apiPath of apiPathList) {
       const { method, path, pathInfo } = apiPath;
       const { summary, parameters, responses } = pathInfo;
 
-      // 接口各类型名称映射
-      const nameMapping: ApiGroupNameMapping = { path, method, groupName: tag, paramRefDefNameList: [], description: summary };
-
       // 重命名名称映射
       const mapping = targetMappingGroup?.find((it) => it.path === path && it.method === method);
 
-      let parameterCollection: SwaggerCollectionItem[] = [];
-      let responseCollection: SwaggerCollectionItem[] = [];
-      const serviceInfoMap: ServiceInfoMap = {
+      // 当前接口名称
+      const currentServiceName =
+        mapping?.serviceName ?? (pathInfo.operationId ? await filterString(pathInfo.operationId) : composeNameByAPIPath(method, path, 'API'));
+
+      // 接口各类型名称映射
+      const nameMapping: ApiGroupNameMapping = {
         path,
         method,
-        basePath: V2Document.basePath ?? '',
-        serviceName:
-          mapping?.serviceName ?? (pathInfo.operationId ? await filterString(pathInfo.operationId) : composeNameByAPIPath(method, path, 'API')),
+        groupName: tag,
+        serviceName: currentServiceName,
+        paramRefDefNameList: [],
+        description: summary,
+      };
+
+      const swaggerCollectionItem: SwaggerCollectionGroupItem = {
+        path,
+        method,
+        serviceName: currentServiceName,
+        serviceInfoList: [],
       };
 
       // 处理入参
       if (options.requestParams && parameters) {
-        parameterCollection = await handleV2Request(apiPath, tag, V2Document, { nameMapping, renameMapping: mapping, associatedDefNameMapping });
-        swaggerCollection.push(...parameterCollection);
+        const parameterCollection = await handleV2Request(apiPath, tag, V2Document, {
+          nameMapping,
+          renameMapping: mapping,
+          associatedDefNameMapping,
+        });
+        const pathParamFields = parsePathParamFields(parameterCollection.find((it) => it.type === 'path')?.schemaList?.[0] ?? {});
+        swaggerCollectionItem.pathParamFields = pathParamFields;
+        swaggerCollectionItem.serviceInfoList.push(...parameterCollection);
       }
       // 处理出参
       if (options.responseBody && responses) {
         const responseSchema = handleV2ResponseBody(responses);
         responseSchema.definitions = V2Document.definitions;
+        const responseCollection: SwaggerServiceInfoType[] = [];
         if (isV2RefObject(responseSchema)) {
           const { originRefName, refSchema } = await getV2RefTargetSchema(responseSchema, V2Document, mapping?.responseBodyName);
-          const finalName = refSchema.title;
+          const finalName = refSchema.title ?? '';
           associatedDefNameMapping[originRefName] = finalName ?? '';
           nameMapping.responseBodyName = finalName;
           nameMapping.paramRefDefNameList.push({
             type: 'responseBodyName',
             originRefName,
           });
-          responseCollection = [
-            {
-              tag,
-              targetPath: path,
-              type: 'response',
-              name: finalName,
-              schemaList: [refSchema],
-            },
-          ];
+          responseCollection.push({
+            type: 'response',
+            name: finalName,
+            schemaList: [refSchema],
+          });
         } else {
           responseSchema.title = mapping?.responseBodyName ?? composeNameByAPIPath(method, path, 'ResponseBody');
-          const finalName = responseSchema.title;
+          const finalName = responseSchema.title ?? '';
           nameMapping.responseBodyName = finalName;
           responseSchema.description = generateTsDefDesc(apiPath, '返回数据');
-          responseCollection = [
-            {
-              tag,
-              targetPath: path,
-              type: 'response',
-              name: finalName,
-              schemaList: [responseSchema],
-            },
-          ];
+          responseCollection.push({
+            type: 'response',
+            name: finalName,
+            schemaList: [responseSchema],
+          });
         }
-        swaggerCollection.push(...responseCollection);
-      }
-      // 处理接口
-      if (options.service) {
-        serviceInfoMap.pathParam = parameterCollection.find((it) => it.type === 'path')?.name;
-        serviceInfoMap.pathParamFields = parsePathParamFields(parameterCollection.find((it) => it.type === 'path')?.schemaList?.[0] ?? {});
-        serviceInfoMap.pathQuery = parameterCollection.find((it) => it.type === 'query')?.name;
-        serviceInfoMap.requestBody = parameterCollection.find((it) => it.type === 'body')?.name;
-        serviceInfoMap.response = responseCollection.find((it) => it.type === 'response')?.name;
-        nameMapping.serviceName = mapping?.serviceName ?? serviceInfoMap.serviceName;
-        swaggerCollection.push({
-          tag,
-          type: 'service',
-          targetPath: path,
-          serviceInfoMap,
-        });
+        swaggerCollectionItem.serviceInfoList.push(...responseCollection);
       }
 
+      collectionItemGroup.push(swaggerCollectionItem);
       nameMappingList.push(nameMapping);
     }
+    swaggerCollection.push({
+      tag,
+      basePath: V2Document.basePath ?? '',
+      group: collectionItemGroup,
+    });
     associatedDefNameMappingList.push({
       groupName: tag,
       mapping: associatedDefNameMapping,

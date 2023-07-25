@@ -251,6 +251,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                               className={styles.formItem}
                                               dependencies={[allDefNameMappingFormKey, relatedDefInfo?.originRefName ?? '']}
                                               rules={[{ required: true, message: `请输入新的${label}` }, renameRule]}
+                                              style={{ width: '100%' }}
                                             >
                                               {isRelatedDefName ? <RenameText underline={false} disabled /> : <RenameText />}
                                             </Form.Item>

@@ -2,7 +2,7 @@ import { Options } from 'json-schema-to-typescript';
 import { JSONSchema, compile } from 'json-schema-to-typescript';
 import { OpenAPIV2 } from 'openapi-types';
 import { convertAPIV2ToJSONSchema } from './convertSwagger';
-import { ServiceInfoMap } from '../swaggerPath/types';
+import { SwaggerCollectionGroupItem } from '../swaggerPath/types';
 import { toLower, upperCase } from 'lodash-es';
 import { filterString, shakeV2RefsInSchema } from '../utils/swaggerUtil';
 
@@ -52,7 +52,7 @@ export const generateTypescriptFromAPIV2 = async (
  * @param source 请求方法导入地址
  * @returns import 头
  */
-export const generateServiceImport = (serviceInfoMapCollection: ServiceInfoMap[], sourcePath: string = '@/utils/fetch.ts') => {
+export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectionGroupItem[], sourcePath: string = '@/utils/fetch.ts') => {
   const methodsExceptDel: string[] = ['get', 'post', 'put'];
   const usedMethods = new Set<string>();
   for (const { method } of serviceInfoMapCollection) {
@@ -87,12 +87,21 @@ const composeServiceParams = (method: string, requestOptionsStr: string) => {
 
 /**
  * 生成接口
- * @param serviceInfoMap 入参、出参、接口名称映射信息
+ * @param serviceInfo 入参、出参、接口名称映射信息
  * @returns service 字符串
  */
-export const generateServiceFromAPIV2 = async (serviceInfoMap: ServiceInfoMap) => {
-  const { path, method, pathParam, pathParamFields = [], pathQuery, requestBody, serviceName, response } = serviceInfoMap;
-  const comment = `【${upperCase(method)}】${serviceInfoMap.path} 接口`;
+export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGroupItem) => {
+  const { path, method, pathParamFields = [], serviceInfoList, serviceName } = serviceInfo;
+  // 路径上参数 ts 名称
+  const pathParam = serviceInfoList.find((info) => info.type === 'path')?.name;
+  // 路径携带参数 ts 名称
+  const pathQuery = serviceInfoList.find((info) => info.type === 'query')?.name;
+  // 请求体参数 ts 名称
+  const requestBody = serviceInfoList.find((info) => info.type === 'body')?.name;
+  // 响应体参数 ts 名称
+  const response = serviceInfoList.find((info) => info.type === 'response')?.name;
+
+  const comment = `【${upperCase(method)}】${path} 接口`;
   const currentMethod = toLower(method);
   const isDeleteMethod = currentMethod === 'delete';
   const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
