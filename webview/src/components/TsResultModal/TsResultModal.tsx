@@ -67,13 +67,15 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
         ),
         key: groupName,
         selectable: false,
-        children: serviceList.map(({ serviceName }) => ({
+        children: serviceList.map(({ serviceName }, pathIndex) => ({
           title: (
             <Text ellipsis={{ tooltip: true }} style={{ fontSize: 14, maxWidth: 180, letterSpacing: 1 }}>
               {serviceName}
             </Text>
           ),
-          key: `${groupName},${serviceName}`,
+          // 增加 index 作为唯一性 key
+          // 可能存在相同的 serviceName (如：当后端设置了相同的 operationId)
+          key: [groupName, serviceName, pathIndex].join(','),
         })),
       });
     });
