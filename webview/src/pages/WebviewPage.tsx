@@ -33,7 +33,7 @@ import fuzzysort from 'fuzzysort';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
-import { ApiGroupDefNameMapping, ApiGroupNameMapping, RenameMapping } from '../../../src/types';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../src/types';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -159,8 +159,8 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     return result;
   });
 
-  const saveTypescript = useMemoizedFn(async (tsDefs: string, nameMappingList: ApiGroupNameMapping[], defNameMappingList: ApiGroupDefNameMapping[]) => {
-   return apiGenerateV2ServiceFile({ swaggerInfo: _this.V2Document!, data: {tsDefs, nameMappingList, defNameMappingList}});
+  const saveTypescript = useMemoizedFn(async (serviceResult: ApiGroupServiceResult[], nameMappingList: ApiGroupNameMapping[], defNameMappingList: ApiGroupDefNameMapping[]) => {
+   return apiGenerateV2ServiceFile({ swaggerInfo: _this.V2Document!, data: {serviceResult, nameMappingList, defNameMappingList}});
   });
 
   const generateTypescript = useMemoizedFn(async () => {

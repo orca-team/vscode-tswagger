@@ -44,13 +44,24 @@ export type ServiceInfoMap = {
   pathParamFields?: string[];
 };
 
-export type SwaggerCollectionType = 'path' | 'query' | 'body' | 'response' | 'service';
+export type SwaggerCollectionType = 'path' | 'query' | 'body' | 'response';
+
+export type SwaggerServiceInfoType = {
+  type: SwaggerCollectionType;
+  name: string;
+  schemaList?: OpenAPIV2.SchemaObject[] | OpenAPIV3.SchemaObject[];
+};
+
+export type SwaggerCollectionGroupItem = {
+  path: string;
+  method: string;
+  serviceName: string;
+  serviceInfoList: SwaggerServiceInfoType[];
+  pathParamFields?: string[];
+};
 
 export type SwaggerCollectionItem = {
-  type: SwaggerCollectionType;
+  basePath: string;
   tag: string;
-  targetPath: string;
-  name?: string;
-  schemaList?: OpenAPIV2.SchemaObject[] | OpenAPIV3.SchemaObject[];
-  serviceInfoMap?: ServiceInfoMap;
+  group: SwaggerCollectionGroupItem[];
 };

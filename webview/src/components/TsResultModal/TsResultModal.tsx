@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
+import React, { Key, useEffect, useState } from 'react';
 import styles from './TsResultModal.less';
 import MonacoEditor, { DiffEditor } from '@monaco-editor/react';
-import { Button, Modal, ModalProps, Space, Tooltip, message, notification } from 'antd';
+import { Button, Modal, ModalProps, Space, Tooltip, Tree, Typography, message, notification } from 'antd';
 import { useBoolean, useMemoizedFn, useMount, useSetState } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
-import { CheckCircleOutlined, CopyOutlined, FormOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, FormOutlined } from '@ant-design/icons';
 import { usePromisifyDrawer } from '@orca-fe/hooks';
 import ResultRenameDrawer, { ResultRenameDrawerProps } from './ResultRenameDrawer';
 import { V2TSGenerateResult } from '../../../../src/controllers';
-import { ApiGroupDefNameMapping, ApiGroupNameMapping, RenameMapping } from '../../../../src/types';
-import { collectAllDefNameMapping, copyToClipboard } from '@/utils';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../../src/types';
+import { collectAllDefNameMapping } from '@/utils';
+import type { DataNode } from 'antd/es/tree';
+
+const { Text } = Typography;
+
+type EditorContent = {
+  originalContent: string;
+  modifiedContent?: string;
+};
 
 export interface TsResultModalProps extends ModalProps, V2TSGenerateResult {
   renameTypescript: (renameMapping: RenameMapping) => Promise<FetchResult<V2TSGenerateResult>>;
   saveTypescript: (
-    newTsDefs: string,
+    newServiceResult: ApiGroupServiceResult[],
     newNameMappingList: ApiGroupNameMapping[],
     newDefNameMappingList: ApiGroupDefNameMapping[],
   ) => Promise<FetchResult<boolean>>;
@@ -23,7 +31,7 @@ export interface TsResultModalProps extends ModalProps, V2TSGenerateResult {
 const TsResultModal: React.FC<TsResultModalProps> = (props) => {
   const {
     className = '',
-    tsDefs: originalContent,
+    serviceResult: originalServiceResult,
     nameMappingList,
     defNameMappingList,
     renameTypescript,
@@ -34,34 +42,57 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
 
   const drawer = usePromisifyDrawer();
   const [renameDrawerProps, setRenameDrawerProps] = useSetState<Partial<ResultRenameDrawerProps>>({});
+  const [apiPathTree, setApiPathTree] = useState<DataNode[]>([]);
+  const [pathKey, setPathKey] = useState<Key>();
+  const [editorContent, setEditorContent] = useSetState<EditorContent>({ originalContent: '' });
   const [diffState, { setTrue: showTsDefDiff, setFalse: hideTsDefDiff }] = useBoolean(false);
   const [saving, { setTrue: startSaving, setFalse: stopSaving }] = useBoolean(false);
-  const [modifiedContent, setModifiedContent] = useState(originalContent);
   const [_this] = useState<{ latestTsResult: V2TSGenerateResult }>({
     latestTsResult: {
       nameMappingList,
       defNameMappingList,
-      tsDefs: originalContent,
+      serviceResult: originalServiceResult,
     },
   });
 
-  const handleCopy = useMemoizedFn((result: string) => {
-    copyToClipboard(result);
-    message.success('已复制至粘贴板');
+  const handleApiPathTree = useMemoizedFn((serviceResult: ApiGroupServiceResult[]) => {
+    const newTreeData: DataNode[] = [];
+    serviceResult.forEach((result) => {
+      const { groupName, serviceList } = result;
+      newTreeData.push({
+        title: (
+          <Text ellipsis={{ tooltip: true }} style={{ fontSize: 16, maxWidth: 200 }}>
+            {groupName}
+          </Text>
+        ),
+        key: groupName,
+        selectable: false,
+        children: serviceList.map(({ serviceName }) => ({
+          title: (
+            <Text ellipsis={{ tooltip: true }} style={{ fontSize: 14, maxWidth: 180, letterSpacing: 1 }}>
+              {serviceName}
+            </Text>
+          ),
+          key: `${groupName},${serviceName}`,
+        })),
+      });
+    });
+    setApiPathTree(newTreeData);
+    setPathKey(newTreeData?.[0]?.children?.[0]?.key?.toString());
   });
 
   const handleAftreRenameTs = useMemoizedFn((result: V2TSGenerateResult) => {
-    const { tsDefs: newTsDefs, nameMappingList, defNameMappingList } = result;
+    const { serviceResult: newServiceResult, nameMappingList, defNameMappingList } = result;
     _this.latestTsResult = result;
-    setModifiedContent(newTsDefs);
+    handleApiPathTree(newServiceResult);
     showTsDefDiff();
     setRenameDrawerProps({ nameMappingList, allDefNameMapping: collectAllDefNameMapping(defNameMappingList) });
   });
 
   const handleSave = useMemoizedFn(async () => {
-    const { nameMappingList, defNameMappingList } = _this.latestTsResult;
+    const { serviceResult, nameMappingList, defNameMappingList } = _this.latestTsResult;
     startSaving();
-    const result = await saveTypescript(modifiedContent, nameMappingList, defNameMappingList);
+    const result = await saveTypescript(serviceResult, nameMappingList, defNameMappingList);
     stopSaving();
     if (result.success) {
       message.success('已保存至项目中');
@@ -72,18 +103,35 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     }
   });
 
+  useEffect(() => {
+    if (!pathKey) {
+      return;
+    }
+    const [groupName, serviceName] = pathKey.toString().split(',');
+    const originalContent =
+      originalServiceResult.find((it) => it.groupName === groupName)?.serviceList.find((it) => it.serviceName === serviceName)?.tsDefs ?? '';
+    const modifiedContent = _this.latestTsResult.serviceResult
+      .find((it) => it.groupName === groupName)
+      ?.serviceList.find((it) => it.serviceName === serviceName)?.tsDefs;
+    setEditorContent({
+      originalContent,
+      modifiedContent,
+    });
+  }, [pathKey]);
+
   useMount(() => {
     setRenameDrawerProps({
       nameMappingList,
       allDefNameMapping: collectAllDefNameMapping(defNameMappingList),
     });
+    handleApiPathTree(originalServiceResult);
   });
 
   return (
     <Modal
       className={`${styles.root} ${className}`}
       title="Typescript 结果预览"
-      width="90%"
+      width="100%"
       wrapClassName={styles.wrap}
       maskClosable={false}
       footer={null}
@@ -105,43 +153,48 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
             重命名
           </Button>
         </Tooltip>
-        <Button
-          icon={<CopyOutlined />}
-          type="default"
-          disabled={saving}
-          onClick={() => {
-            handleCopy(modifiedContent ?? originalContent);
-          }}
-        >
-          一键复制
-        </Button>
         <Button icon={<CheckCircleOutlined />} type="primary" loading={saving} onClick={handleSave}>
           保存至项目
         </Button>
       </Space>
-      {!diffState && (
-        <MonacoEditor
-          value={originalContent}
-          height="75vh"
-          theme="vs-dark"
-          language="typescript"
-          options={{
-            readOnly: true,
-          }}
-        />
-      )}
-      {diffState && (
-        <DiffEditor
-          original={originalContent}
-          modified={modifiedContent}
-          height="75vh"
-          theme="vs-dark"
-          language="typescript"
-          options={{
-            readOnly: true,
-          }}
-        />
-      )}
+      <div className={styles.container}>
+        <div className={styles.pathTree}>
+          <Tree
+            showLine
+            defaultExpandAll
+            selectedKeys={pathKey ? [pathKey] : []}
+            onSelect={(selectedKeys) => {
+              setPathKey(selectedKeys[0]);
+            }}
+            treeData={apiPathTree}
+          />
+        </div>
+        <div className={styles.editor}>
+          {!diffState && (
+            <MonacoEditor
+              value={editorContent.originalContent}
+              height="75vh"
+              theme="vs-dark"
+              language="typescript"
+              options={{
+                readOnly: true,
+              }}
+            />
+          )}
+          {diffState && (
+            <DiffEditor
+              original={editorContent.originalContent}
+              modified={editorContent.modifiedContent}
+              height="75vh"
+              theme="vs-dark"
+              language="typescript"
+              options={{
+                readOnly: true,
+              }}
+            />
+          )}
+        </div>
+      </div>
     </Modal>
   );
 };
