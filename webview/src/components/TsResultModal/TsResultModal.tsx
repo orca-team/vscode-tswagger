@@ -131,7 +131,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     <Modal
       className={`${styles.root} ${className}`}
       title="Typescript 结果预览"
-      width="100%"
+      width="95%"
       wrapClassName={styles.wrap}
       maskClosable={false}
       footer={null}
