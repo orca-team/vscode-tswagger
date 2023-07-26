@@ -5,6 +5,7 @@ import { convertAPIV2ToJSONSchema } from './convertSwagger';
 import { SwaggerCollectionGroupItem } from '../swaggerPath/types';
 import { toLower, upperCase } from 'lodash-es';
 import { filterString, shakeV2RefsInSchema } from '../utils/swaggerUtil';
+import { TSwaggerConfig } from '../types';
 
 export type GenerateOptions = Partial<Options & { title: string }>;
 
@@ -52,7 +53,7 @@ export const generateTypescriptFromAPIV2 = async (
  * @param source 请求方法导入地址
  * @returns import 头
  */
-export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectionGroupItem[], sourcePath: string = '@/utils/fetch.ts') => {
+export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectionGroupItem[], sourcePath: string) => {
   const methodsExceptDel: string[] = ['get', 'post', 'put'];
   const usedMethods = new Set<string>();
   for (const { method } of serviceInfoMapCollection) {
@@ -67,7 +68,7 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
     }
   }
 
-  return `import { ${[...usedMethods].join(', ')} } from '${sourcePath}';\n\n`;
+  return `import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';\n\n`;
 };
 
 /**
@@ -90,8 +91,9 @@ const composeServiceParams = (method: string, requestOptionsStr: string) => {
  * @param serviceInfo 入参、出参、接口名称映射信息
  * @returns service 字符串
  */
-export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGroupItem) => {
-  const { path, method, pathParamFields = [], serviceInfoList, serviceName } = serviceInfo;
+export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGroupItem, config: TSwaggerConfig = {}) => {
+  const { basePath, path, method, pathParamFields = [], serviceInfoList, serviceName } = serviceInfo;
+  const { addBasePathPrefix } = config;
   // 路径上参数 ts 名称
   const pathParam = serviceInfoList.find((info) => info.type === 'path')?.name;
   // 路径携带参数 ts 名称
@@ -106,7 +108,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const isDeleteMethod = currentMethod === 'delete';
   const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
   let requestOptionsStr = '';
-  let url = path;
+  let url = addBasePathPrefix && basePath ? `${basePath}${path}` : path;
   if (pathParam) {
     url = url.replace(/\{(\w+)\}/g, (_, $1) => `\${${$1}}`);
   }

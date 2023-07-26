@@ -53,6 +53,7 @@ export type SwaggerServiceInfoType = {
 };
 
 export type SwaggerCollectionGroupItem = {
+  basePath: string;
   path: string;
   method: string;
   serviceName: string;

@@ -221,6 +221,7 @@ const handleSwaggerPathV2 = async (
       };
 
       const swaggerCollectionItem: SwaggerCollectionGroupItem = {
+        basePath: V2Document.basePath ?? '',
         path,
         method,
         serviceName: currentServiceName,

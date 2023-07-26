@@ -209,3 +209,13 @@ export type ServiceMapInfoYAMLJSONType = {
   /** 依赖名称映射数据 */
   defNameMappingList: ApiGroupDefNameMapping[];
 };
+
+/**
+ * 项目插件配置文件
+ */
+export type TSwaggerConfig = Partial<{
+  /** fetch 路径地址，必须以别名开头，约定以 @ 开头，@ 表示 src 目录，默认为 @/utils/fetch */
+  fetchFilePath: string;
+  /** 是否自动为生成的接口文件增加前缀，默认为 true */
+  addBasePathPrefix: boolean;
+}>;

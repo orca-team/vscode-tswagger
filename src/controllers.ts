@@ -21,7 +21,7 @@ import templateAxios from './requestTemplates/axios';
 import { getGlobalContext } from './globalContext';
 import YAML from 'yaml';
 import { join } from 'path';
-import { currentTime, getServiceMapJSON, getServiceMapPath } from './utils/swaggerUtil';
+import { currentTime, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
   const allSetting = getAllConfiguration(['swaggerUrlList']);
@@ -136,6 +136,8 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
   if (!config.renameMapping) {
     config.renameMapping = readServiceMappingFile(config);
   }
+  // 获取配置文件
+  const tswaggerConfig = getTSwaggerConfigJSON();
 
   const { V2Document, options, renameMapping } = config;
 
@@ -173,7 +175,7 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
   for (const { tag, group: swaggerServiceGroup } of swaggerCollection) {
     const result: ServiceResult[] = [];
     for (const groupItem of swaggerServiceGroup) {
-      let serviceTsDefs = generateServiceImport([groupItem]);
+      let serviceTsDefs = generateServiceImport([groupItem], tswaggerConfig?.fetchFilePath ?? '');
       const { serviceName, path, method, serviceInfoList } = groupItem;
       // 处理接口出入参
       for (const serviceInfo of serviceInfoList) {
@@ -190,7 +192,7 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
       // 检查是否存在对应的 fetch 文件，若没有则自动生成
       checkFetchFile();
       // 生成接口 ts 字符串
-      serviceTsDefs += await generateServiceFromAPIV2(groupItem);
+      serviceTsDefs += await generateServiceFromAPIV2(groupItem, tswaggerConfig ?? {});
       result.push({
         serviceName,
         path,

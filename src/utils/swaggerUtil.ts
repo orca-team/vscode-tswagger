@@ -1,12 +1,12 @@
 import { OpenAPIV2 } from 'openapi-types';
-import { $REF_LOCAL, $REF_REMOTE, $REF_URL, $RefType, ServiceMapInfoYAMLJSONType } from '../types';
+import { $REF_LOCAL, $REF_REMOTE, $REF_URL, $RefType, ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '../types';
 import { hasChinese, splitChineseAndEnglish } from './regexHelpers';
 import localTranslate from './localTranslate';
 import translate from '../schema2ts/translate';
 import { isObject, uniq } from 'lodash-es';
 import { join } from 'path';
 import { getCurrentWorkspace } from './vscodeUtil';
-import { existsSync, readFileSync } from 'fs-extra';
+import { existsSync, outputFileSync, readFileSync, readJSONSync } from 'fs-extra';
 import YAML from 'yaml';
 
 export const DEFAULT_BASE_PATH_NAME = '_default';
@@ -66,6 +66,31 @@ export const getServiceMapJSON = (groupName: string, basePath?: string) => {
   const mapInfoJSON = YAML.parse(mapYaml) as ServiceMapInfoYAMLJSONType;
 
   return mapInfoJSON;
+};
+
+export const defaultConfigJSON: TSwaggerConfig = {
+  fetchFilePath: '@/utils/fetch',
+  addBasePathPrefix: true,
+};
+
+/**
+ * 获取当前工作空间 tswagger 的配置文件
+ * @returns 当前工作空间的 config.json
+ */
+export const getTSwaggerConfigJSON = (): TSwaggerConfig | null => {
+  const tswaggerBasePath = getTSwaggerBasePath();
+  if (!tswaggerBasePath) {
+    return null;
+  }
+  const configJSONPath = join(tswaggerBasePath, 'tswagger.config.json');
+  if (!existsSync(configJSONPath)) {
+    outputFileSync(configJSONPath, JSON.stringify(defaultConfigJSON, null, 2), { encoding: 'utf-8' });
+  }
+
+  const configJSON = readJSONSync(configJSONPath, { encoding: 'utf-8' }) as TSwaggerConfig;
+  const mergedConfigJSON = { ...defaultConfigJSON, ...(configJSON ?? {}) };
+
+  return mergedConfigJSON;
 };
 
 const addZero = (value: number) => (value < 10 ? `0${value}` : value);
