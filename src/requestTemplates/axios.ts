@@ -15,7 +15,7 @@ export const get = <T>(
 
 export const post = <T>(
   url: string,
-  data: Record<string, any>,
+  data: Record<string, any> | FormData,
   options?: Omit<AxiosRequestConfig, "data">
 ) =>
   axios

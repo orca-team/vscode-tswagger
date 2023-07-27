@@ -76,15 +76,20 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
  * get 和 delete 请求默认只有 query 没有 body
  * post 和 pust 请求默认只要 body 没有 query
  * @param method 请求方式
- * @param requestOptionsStr 所有类型的请求对象字符串
+ * @param isFormData 是否是 FormData 类型的数据
  * @returns 接口默认请求参数
  */
-const composeServiceParams = (method: string, requestOptionsStr: string) => {
+const composeServiceParams = (method: string, isFormData?: boolean) => {
   if (['get', 'delete'].includes(method)) {
     return 'query';
   }
-  return 'data';
+  return isFormData ? 'formData' : 'data';
 };
+
+const formDataStr = `const formData = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    formData.append(key, value);
+  })\n\n`;
 
 /**
  * 生成接口
@@ -100,6 +105,8 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const pathQuery = serviceInfoList.find((info) => info.type === 'query')?.name;
   // 请求体参数 ts 名称
   const requestBody = serviceInfoList.find((info) => info.type === 'body')?.name;
+  // formData ts 名称
+  const formDataBody = serviceInfoList.find((info) => info.type === 'formData')?.name;
   // 响应体参数 ts 名称
   const response = serviceInfoList.find((info) => info.type === 'response')?.name;
 
@@ -119,16 +126,21 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   if (requestBody) {
     requestParams.push(`data: ${requestBody}`);
     requestOptionsStr += `data`;
+  } else if (formDataBody) {
+    requestParams.push(`data: ${formDataBody}`);
+    requestOptionsStr += `data`;
   }
+
+  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<${response ?? 'any'}>(\`${url}\`${
+    requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''
+  })`;
 
   return `
 /**
  * ${comment}
  */
 export const ${serviceName} = (${requestParams.join(', ')}) => {
-  return ${isDeleteMethod ? 'del' : currentMethod}<${response ?? 'any'}>(\`${url}\`${
-    requestOptionsStr ? `, ${composeServiceParams(currentMethod, requestOptionsStr)}` : ''
-  })
+  ${formDataBody ? `${formDataStr}  ${serviceReturnStr}` : serviceReturnStr}
 }
 `;
 };

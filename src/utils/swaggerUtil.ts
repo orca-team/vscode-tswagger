@@ -265,12 +265,14 @@ export const groupV2Parameters = (parameters: OpenAPIV2.Parameters) => {
   const refParameters = parameters.filter((param) => isV2RefObject(param)) as OpenAPIV2.ReferenceObject[];
   const pathParameters = parameters.filter((param) => !isV2RefObject(param) && param.in === 'path') as OpenAPIV2.Parameter[];
   const queryParameters = parameters.filter((param) => !isV2RefObject(param) && param.in === 'query') as OpenAPIV2.Parameter[];
+  const formDataParameters = parameters.filter((param) => !isV2RefObject(param) && param.in === 'formData') as OpenAPIV2.Parameter[];
   const bodyParameter = parameters.find((param) => !isV2RefObject(param) && param.in === 'body') as OpenAPIV2.InBodyParameterObject;
 
   return {
     refParameters,
     pathParameters,
     queryParameters,
+    formDataParameters,
     bodyParameter,
   };
 };

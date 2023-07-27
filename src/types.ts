@@ -112,6 +112,10 @@ export type ApiGroupNameMapping = {
    */
   responseBodyName?: string;
   /**
+   * FormData 数据 ts 名称
+   */
+  formDataName?: string;
+  /**
    * 生成的接口名称
    */
   serviceName?: string;

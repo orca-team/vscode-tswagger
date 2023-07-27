@@ -44,7 +44,7 @@ export type ServiceInfoMap = {
   pathParamFields?: string[];
 };
 
-export type SwaggerCollectionType = 'path' | 'query' | 'body' | 'response';
+export type SwaggerCollectionType = 'path' | 'query' | 'body' | 'formData' | 'response';
 
 export type SwaggerServiceInfoType = {
   type: SwaggerCollectionType;
