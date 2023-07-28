@@ -180,7 +180,15 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
       // 处理接口出入参
       for (const serviceInfo of serviceInfoList) {
         current++;
-        const { schemaList } = serviceInfo;
+        const { type, schemaList } = serviceInfo;
+        // 路径参数不参与 ts 的生成，它会在方法参数中进行罗列
+        if (type === 'path') {
+          sendCurrTsGenProgressMsg(webview, {
+            total,
+            current,
+          });
+          continue;
+        }
         const serviceInfoDefs = await handleV2ServiceSchemaList(tag, schemaList as OpenAPIV2.SchemaObject[], () => {
           sendCurrTsGenProgressMsg(webview, {
             total,
