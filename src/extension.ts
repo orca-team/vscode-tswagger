@@ -76,7 +76,6 @@ export function activate(context: vscode.ExtensionContext) {
       onDidDispose(
         () => {
           umiPanel = undefined;
-          vscode.window.showWarningMessage('tswagger 插件可视化 webview 界面已卸载');
         },
         null,
         context.subscriptions,

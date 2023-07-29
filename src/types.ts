@@ -201,7 +201,7 @@ export type GenerateTypescriptConfig = {
  */
 export type ServiceMapInfoYAMLJSONType = {
   /** 插件版本 */
-  extVersion: string;
+  tswagger: string;
   /** 接口基本路径 */
   basePath?: string;
   /** 分组名称 */

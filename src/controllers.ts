@@ -235,12 +235,12 @@ const getServiceMapInfoJSON = (
   const { basePath } = swaggerInfo;
   const context = getGlobalContext();
   // 插件版本号
-  const extVersion = context.extension.packageJSON.version;
+  const tswagger = context.extension.packageJSON.version;
   // 生成时间
   const createTime = currentTime();
 
   const json: ServiceMapInfoYAMLJSONType = {
-    extVersion,
+    tswagger,
     basePath,
     groupName,
     createTime,
