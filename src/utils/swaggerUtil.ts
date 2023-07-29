@@ -82,7 +82,7 @@ export const getTSwaggerConfigJSON = (): TSwaggerConfig | null => {
   if (!tswaggerBasePath) {
     return null;
   }
-  const configJSONPath = join(tswaggerBasePath, 'tswagger.config.json');
+  const configJSONPath = join(tswaggerBasePath, 'config.json');
   if (!existsSync(configJSONPath)) {
     outputFileSync(configJSONPath, JSON.stringify(defaultConfigJSON, null, 2), { encoding: 'utf-8' });
   }
