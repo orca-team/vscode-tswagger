@@ -8,24 +8,7 @@ import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, FolderAddOutlined, LinkOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import {
-  Affix,
-  Button,
-  Checkbox,
-  Collapse,
-  Empty,
-  FloatButton,
-  Form,
-  Input,
-  Layout,
-  Space,
-  Spin,
-  Tabs,
-  Tooltip,
-  Upload,
-  message,
-  notification,
-} from 'antd';
+import { Affix, Button, Collapse, Empty, FloatButton, Form, Input, Layout, Space, Spin, Tabs, Tooltip, Upload } from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
@@ -34,6 +17,7 @@ import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../src/types';
+import notification from '@/utils/notification';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -107,12 +91,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     stopParseLoading();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
-      notification.error({ message: resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试', duration: null });
+      notification.error(resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试');
       return;
     }
     resetPageWhenChange();
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
-    message.success(`【${currentApiName}】 Swagger 文档解析成功`);
+    notification.success(`【${currentApiName}】 Swagger 文档解析成功`);
     handleV2DocumentData(resp.data as OpenAPIV2.Document);
   });
 
@@ -159,9 +143,11 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     return result;
   });
 
-  const saveTypescript = useMemoizedFn(async (serviceResult: ApiGroupServiceResult[], nameMappingList: ApiGroupNameMapping[], defNameMappingList: ApiGroupDefNameMapping[]) => {
-   return apiGenerateV2ServiceFile({ swaggerInfo: _this.V2Document!, data: {serviceResult, nameMappingList, defNameMappingList}});
-  });
+  const saveTypescript = useMemoizedFn(
+    async (serviceResult: ApiGroupServiceResult[], nameMappingList: ApiGroupNameMapping[], defNameMappingList: ApiGroupDefNameMapping[]) => {
+      return apiGenerateV2ServiceFile({ swaggerInfo: _this.V2Document!, data: { serviceResult, nameMappingList, defNameMappingList } });
+    },
+  );
 
   const generateTypescript = useMemoizedFn(async () => {
     await form.validateFields();
@@ -171,7 +157,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     if (result.success) {
       modalController.show(<TsResultModal {...result.data} renameTypescript={generateV2Typescript} saveTypescript={saveTypescript} />);
     } else {
-      notification.error({ message: result.errMsg ?? 'Typescript 生成失败，请稍后再试', duration: null });
+      notification.error(result.errMsg ?? 'Typescript 生成失败，请稍后再试');
     }
   });
 

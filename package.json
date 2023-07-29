@@ -35,9 +35,17 @@
     "commands": [
       {
         "command": "tswagger.generateTypescript",
-        "title": "GenerateTypescriptForSwagger"
+        "title": "Generate Typescript For Swagger"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "tswagger.generateTypescript",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "tswagger",

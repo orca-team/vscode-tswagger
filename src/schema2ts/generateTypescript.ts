@@ -5,6 +5,7 @@ import { convertAPIV2ToJSONSchema } from './convertSwagger';
 import { SwaggerCollectionGroupItem } from '../swaggerPath/types';
 import { toLower, upperCase } from 'lodash-es';
 import { filterString, shakeV2RefsInSchema } from '../utils/swaggerUtil';
+import { TSwaggerConfig } from '../types';
 
 export type GenerateOptions = Partial<Options & { title: string }>;
 
@@ -52,7 +53,7 @@ export const generateTypescriptFromAPIV2 = async (
  * @param source 请求方法导入地址
  * @returns import 头
  */
-export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectionGroupItem[], sourcePath: string = '@/utils/fetch.ts') => {
+export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectionGroupItem[], sourcePath: string) => {
   const methodsExceptDel: string[] = ['get', 'post', 'put'];
   const usedMethods = new Set<string>();
   for (const { method } of serviceInfoMapCollection) {
@@ -67,7 +68,7 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
     }
   }
 
-  return `import { ${[...usedMethods].join(', ')} } from '${sourcePath}';\n\n`;
+  return `import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';\n\n`;
 };
 
 /**
@@ -75,29 +76,37 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
  * get 和 delete 请求默认只有 query 没有 body
  * post 和 pust 请求默认只要 body 没有 query
  * @param method 请求方式
- * @param requestOptionsStr 所有类型的请求对象字符串
+ * @param isFormData 是否是 FormData 类型的数据
  * @returns 接口默认请求参数
  */
-const composeServiceParams = (method: string, requestOptionsStr: string) => {
+const composeServiceParams = (method: string, isFormData?: boolean) => {
   if (['get', 'delete'].includes(method)) {
     return 'query';
   }
-  return 'data';
+  return isFormData ? 'formData' : 'data';
 };
+
+const formDataStr = `const formData = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    formData.append(key, value);
+  })\n\n`;
 
 /**
  * 生成接口
  * @param serviceInfo 入参、出参、接口名称映射信息
  * @returns service 字符串
  */
-export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGroupItem) => {
-  const { path, method, pathParamFields = [], serviceInfoList, serviceName } = serviceInfo;
+export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGroupItem, config: TSwaggerConfig = {}) => {
+  const { basePath, path, method, pathParamFields = [], serviceInfoList, serviceName } = serviceInfo;
+  const { addBasePathPrefix } = config;
   // 路径上参数 ts 名称
   const pathParam = serviceInfoList.find((info) => info.type === 'path')?.name;
   // 路径携带参数 ts 名称
   const pathQuery = serviceInfoList.find((info) => info.type === 'query')?.name;
   // 请求体参数 ts 名称
   const requestBody = serviceInfoList.find((info) => info.type === 'body')?.name;
+  // formData ts 名称
+  const formDataBody = serviceInfoList.find((info) => info.type === 'formData')?.name;
   // 响应体参数 ts 名称
   const response = serviceInfoList.find((info) => info.type === 'response')?.name;
 
@@ -106,7 +115,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const isDeleteMethod = currentMethod === 'delete';
   const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
   let requestOptionsStr = '';
-  let url = path;
+  let url = addBasePathPrefix && basePath ? `${basePath}${path}` : path;
   if (pathParam) {
     url = url.replace(/\{(\w+)\}/g, (_, $1) => `\${${$1}}`);
   }
@@ -117,16 +126,21 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   if (requestBody) {
     requestParams.push(`data: ${requestBody}`);
     requestOptionsStr += `data`;
+  } else if (formDataBody) {
+    requestParams.push(`data: ${formDataBody}`);
+    requestOptionsStr += `data`;
   }
+
+  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<${response ?? 'any'}>(\`${url}\`${
+    requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''
+  })`;
 
   return `
 /**
  * ${comment}
  */
 export const ${serviceName} = (${requestParams.join(', ')}) => {
-  return ${isDeleteMethod ? 'del' : currentMethod}<${response ?? 'any'}>(\`${url}\`${
-    requestOptionsStr ? `, ${composeServiceParams(currentMethod, requestOptionsStr)}` : ''
-  })
+  ${formDataBody ? `${formDataStr}  ${serviceReturnStr}` : serviceReturnStr}
 }
 `;
 };

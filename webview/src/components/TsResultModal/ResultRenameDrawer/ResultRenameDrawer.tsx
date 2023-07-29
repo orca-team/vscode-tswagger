@@ -1,22 +1,6 @@
 import React, { useEffect } from 'react';
 import styles from './ResultRenameDrawer.less';
-import {
-  Typography,
-  Collapse,
-  Drawer,
-  DrawerProps,
-  Space,
-  Button,
-  Descriptions,
-  Empty,
-  Form,
-  theme,
-  Divider,
-  notification,
-  Popconfirm,
-  message,
-  Tooltip,
-} from 'antd';
+import { Typography, Collapse, Drawer, DrawerProps, Space, Button, Descriptions, Empty, Form, theme, Divider, Popconfirm, Tooltip } from 'antd';
 import { ApiGroupNameMapping, NameMappingByGroup, RenameMapping } from '../../../../../src/types';
 import { ExclamationCircleOutlined, SyncOutlined, TagFilled } from '@ant-design/icons';
 import MethodTag from '../../MethodTag';
@@ -27,6 +11,7 @@ import { FetchResult } from '@/utils/vscode';
 import { V2TSGenerateResult } from '../../../../../src/controllers';
 import { Rule } from 'antd/es/form';
 import { apiGroupItemConfigs } from './constants';
+import notification from '@/utils/notification';
 
 const { Text } = Typography;
 
@@ -86,11 +71,11 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
     stopGenerateLoading();
 
     if (resp.success) {
-      message.success('Typescript 重新生成成功');
+      notification.success('Typescript 重新生成成功');
       onClose?.();
       onAfterRenameTs?.(resp.data);
     } else {
-      notification.error({ message: resp.errMsg ?? 'Typescript 重新生成失败，请稍后再试', duration: null });
+      notification.error(resp.errMsg ?? 'Typescript 重新生成失败，请稍后再试');
     }
   });
 

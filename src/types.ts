@@ -112,6 +112,10 @@ export type ApiGroupNameMapping = {
    */
   responseBodyName?: string;
   /**
+   * FormData 数据 ts 名称
+   */
+  formDataName?: string;
+  /**
    * 生成的接口名称
    */
   serviceName?: string;
@@ -197,7 +201,7 @@ export type GenerateTypescriptConfig = {
  */
 export type ServiceMapInfoYAMLJSONType = {
   /** 插件版本 */
-  extVersion: string;
+  tswagger: string;
   /** 接口基本路径 */
   basePath?: string;
   /** 分组名称 */
@@ -209,3 +213,13 @@ export type ServiceMapInfoYAMLJSONType = {
   /** 依赖名称映射数据 */
   defNameMappingList: ApiGroupDefNameMapping[];
 };
+
+/**
+ * 项目插件配置文件
+ */
+export type TSwaggerConfig = Partial<{
+  /** fetch 路径地址，必须以别名开头，约定以 @ 开头，@ 表示 src 目录，默认为 @/utils/fetch */
+  fetchFilePath: string;
+  /** 是否自动为生成的接口文件增加前缀，默认为 true */
+  addBasePathPrefix: boolean;
+}>;

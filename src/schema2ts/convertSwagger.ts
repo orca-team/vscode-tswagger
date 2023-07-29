@@ -35,6 +35,14 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
     return mergeCommonJSONSchema(!!swaggerEnum.length ? { enum: swaggerEnum } : buildBasicTypeSchema(schemaType));
   }
 
+  // File 类型
+  if (schemaType === 'file') {
+    return mergeCommonJSONSchema({
+      type: 'any',
+      tsType: 'File',
+    });
+  }
+
   // 数组类型
   if (schemaType === 'array') {
     const { items: arrayItems } = swaggerSchema;

@@ -75,7 +75,7 @@ export const handleV2Request = async (
   if (!parameters) {
     return [];
   }
-  const { pathParameters, queryParameters, bodyParameter } = groupV2Parameters(parameters);
+  const { pathParameters, queryParameters, bodyParameter, formDataParameters } = groupV2Parameters(parameters);
   const collection: SwaggerServiceInfoType[] = [];
 
   // 请求 Body (有且仅有一个 body)
@@ -144,6 +144,23 @@ export const handleV2Request = async (
     schemaList.push(querySchemaObject);
     collection.push({
       type: 'query',
+      name: finalName,
+      schemaList,
+    });
+  }
+
+  // formData
+  if (!!formDataParameters.length) {
+    const schemaList: OpenAPIV2.SchemaObject[] = [];
+    const finalName = renameMapping?.formDataName ?? (await generateTsName(apiPath, 'FormData'));
+    nameMapping.formDataName = finalName;
+    const formDataParametersObject = handleV2Parameters(formDataParameters);
+    formDataParametersObject.title = finalName;
+    formDataParametersObject.description = generateTsDefDesc(apiPath, 'FormData');
+    formDataParametersObject.definitions = V2Document.definitions;
+    schemaList.push(formDataParametersObject);
+    collection.push({
+      type: 'formData',
       name: finalName,
       schemaList,
     });
@@ -221,6 +238,7 @@ const handleSwaggerPathV2 = async (
       };
 
       const swaggerCollectionItem: SwaggerCollectionGroupItem = {
+        basePath: V2Document.basePath ?? '',
         path,
         method,
         serviceName: currentServiceName,
