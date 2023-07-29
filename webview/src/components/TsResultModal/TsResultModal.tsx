@@ -1,7 +1,7 @@
 import React, { Key, useEffect, useState } from 'react';
 import styles from './TsResultModal.less';
 import MonacoEditor, { DiffEditor } from '@monaco-editor/react';
-import { Button, Modal, ModalProps, Space, Tooltip, Tree, Typography, message, notification } from 'antd';
+import { Button, Modal, ModalProps, Space, Tooltip, Tree, Typography } from 'antd';
 import { useBoolean, useMemoizedFn, useMount, useSetState } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
 import { CheckCircleOutlined, FormOutlined } from '@ant-design/icons';
@@ -11,6 +11,7 @@ import { V2TSGenerateResult } from '../../../../src/controllers';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../../src/types';
 import { collectAllDefNameMapping } from '@/utils';
 import type { DataNode } from 'antd/es/tree';
+import notification from '@/utils/notification';
 
 const { Text } = Typography;
 
@@ -97,11 +98,11 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     const result = await saveTypescript(serviceResult, nameMappingList, defNameMappingList);
     stopSaving();
     if (result.success) {
-      message.success('已保存至项目中');
+      notification.success('已保存至项目中');
       // @ts-expect-error
       onCancel?.(null);
     } else {
-      notification.error({ message: result.errMsg ?? '保存失败', duration: null });
+      notification.error(result.errMsg ?? '保存失败');
     }
   });
 
