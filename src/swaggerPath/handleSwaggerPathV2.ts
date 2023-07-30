@@ -17,19 +17,19 @@ const generateTsName = async (apiPath: ApiPathTypeV2, type: string) => {
 const generateTsDefDesc = (apiPath: ApiPathTypeV2, type: string) => {
   const { path, method } = apiPath;
 
-  return `【${upperCase(method)}】${path} ${type}`;
+  return `${type}: <${upperCase(method)}>[${path}]`;
 };
 
 const handleV2RequestProperties = (parameters: OpenAPIV2.Parameters) => {
   let properties: Record<string, OpenAPIV2.SchemaObject> = {};
   parameters.forEach((parameter) => {
-    const { schema = {}, name } = parameter as OpenAPIV2.Parameter;
+    const { schema = {}, name, description } = parameter as OpenAPIV2.Parameter;
     // 目前仅处理本地引用
     if (isLocal$ref(schema.$ref)) {
-      // const className = match$RefClassName(schema.$ref);
       properties[name] = { $ref: schema.$ref };
+      properties[name].description = description ?? '';
     } else {
-      const { name, schema, description, required } = parameter as OpenAPIV2.Parameter;
+      const { name, schema, required } = parameter as OpenAPIV2.Parameter;
       properties[name] = schema || parameter || {};
       properties[name].description = description ?? '';
       properties[name].required = required ? [name] : [];
@@ -106,7 +106,7 @@ export const handleV2Request = async (
             definitions: V2Document.definitions,
             type: 'object',
             title: finalName,
-            description: generateTsDefDesc(apiPath, '请求体'),
+            description: bodySchema.description ?? generateTsDefDesc(apiPath, '请求体'),
             properties: bodySchema.properties,
             required: bodySchema.required,
           },
@@ -122,7 +122,7 @@ export const handleV2Request = async (
     nameMapping.pathParamName = finalName;
     const pathSchemaObject = handleV2Parameters(pathParameters);
     pathSchemaObject.title = finalName;
-    pathSchemaObject.description = generateTsDefDesc(apiPath, '路径参数');
+    pathSchemaObject.description = pathSchemaObject.description ?? generateTsDefDesc(apiPath, '路径参数');
     pathSchemaObject.definitions = V2Document.definitions;
     schemaList.push(pathSchemaObject);
     collection.push({
@@ -139,7 +139,7 @@ export const handleV2Request = async (
     nameMapping.pathQueryName = finalName;
     const querySchemaObject = handleV2Parameters(queryParameters);
     querySchemaObject.title = finalName;
-    querySchemaObject.description = generateTsDefDesc(apiPath, '路径携带参数');
+    querySchemaObject.description = querySchemaObject.description ?? generateTsDefDesc(apiPath, '路径携带参数');
     querySchemaObject.definitions = V2Document.definitions;
     schemaList.push(querySchemaObject);
     collection.push({
@@ -156,7 +156,7 @@ export const handleV2Request = async (
     nameMapping.formDataName = finalName;
     const formDataParametersObject = handleV2Parameters(formDataParameters);
     formDataParametersObject.title = finalName;
-    formDataParametersObject.description = generateTsDefDesc(apiPath, 'FormData');
+    formDataParametersObject.description = formDataParametersObject.description ?? generateTsDefDesc(apiPath, 'FormData');
     formDataParametersObject.definitions = V2Document.definitions;
     schemaList.push(formDataParametersObject);
     collection.push({
@@ -218,7 +218,7 @@ const handleSwaggerPathV2 = async (
     const collectionItemGroup: SwaggerCollectionGroupItem[] = [];
     for (const apiPath of apiPathList) {
       const { method, path, pathInfo } = apiPath;
-      const { summary, parameters, responses } = pathInfo;
+      const { summary, description, parameters, responses } = pathInfo;
 
       // 重命名名称映射
       const mapping = targetMappingGroup?.find((it) => it.path === path && it.method === method);
@@ -241,6 +241,9 @@ const handleSwaggerPathV2 = async (
         basePath: V2Document.basePath ?? '',
         path,
         method,
+        description,
+        summary,
+        tag,
         serviceName: currentServiceName,
         serviceInfoList: [],
       };
@@ -279,7 +282,7 @@ const handleSwaggerPathV2 = async (
           responseSchema.title = mapping?.responseBodyName ?? composeNameByAPIPath(method, path, 'ResponseBody');
           const finalName = responseSchema.title ?? '';
           nameMapping.responseBodyName = finalName;
-          responseSchema.description = generateTsDefDesc(apiPath, '返回数据');
+          responseSchema.description = responseSchema.description ?? generateTsDefDesc(apiPath, '返回数据');
           responseCollection.push({
             type: 'response',
             name: finalName,

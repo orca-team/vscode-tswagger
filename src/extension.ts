@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (umiPanel) {
       umiPanel.reveal(activeViewColumn);
     } else {
-      umiPanel = vscode.window.createWebviewPanel('generate-typescript', 'GenerateTypescriptForSwagger', vscode.ViewColumn.One, {
+      umiPanel = vscode.window.createWebviewPanel('generate-typescript', 'tswagger', vscode.ViewColumn.One, {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [vscode.Uri.file(join(context.extensionPath, 'webview'))],

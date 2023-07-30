@@ -3,9 +3,10 @@ import { JSONSchema, compile } from 'json-schema-to-typescript';
 import { OpenAPIV2 } from 'openapi-types';
 import { convertAPIV2ToJSONSchema } from './convertSwagger';
 import { SwaggerCollectionGroupItem } from '../swaggerPath/types';
-import { toLower, upperCase } from 'lodash-es';
+import { toLower, toUpper } from 'lodash-es';
 import { filterString, shakeV2RefsInSchema } from '../utils/swaggerUtil';
 import { TSwaggerConfig } from '../types';
+import { FILE_DESCRIPTION, JSON_TO_FORM_DATA } from './constants';
 
 export type GenerateOptions = Partial<Options & { title: string }>;
 
@@ -68,7 +69,7 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
     }
   }
 
-  return `import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';\n\n`;
+  return `${FILE_DESCRIPTION}import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';\n\n`;
 };
 
 /**
@@ -86,10 +87,18 @@ const composeServiceParams = (method: string, isFormData?: boolean) => {
   return isFormData ? 'formData' : 'data';
 };
 
-const formDataStr = `const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => {
-    formData.append(key, value);
-  })\n\n`;
+const formatServiceDescription = (serviceInfo: SwaggerCollectionGroupItem) => {
+  const { description, summary, tag, serviceName, method, path } = serviceInfo;
+
+  return `/**
+ * @description ${description ? description : 'No Description'}
+ * @tag ${tag}
+ * @summary ${summary ? summary : 'No Summary'}
+ * @serviceName ${serviceName}
+ * @method ${toUpper(method)}
+ * @path ${path}
+ */`;
+};
 
 /**
  * 生成接口
@@ -110,7 +119,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   // 响应体参数 ts 名称
   const response = serviceInfoList.find((info) => info.type === 'response')?.name;
 
-  const comment = `【${upperCase(method)}】${path} 接口`;
+  const serviceDescription = formatServiceDescription(serviceInfo);
   const currentMethod = toLower(method);
   const isDeleteMethod = currentMethod === 'delete';
   const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
@@ -136,11 +145,9 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   })`;
 
   return `
-/**
- * ${comment}
- */
+${serviceDescription}
 export const ${serviceName} = (${requestParams.join(', ')}) => {
-  ${formDataBody ? `${formDataStr}  ${serviceReturnStr}` : serviceReturnStr}
+  ${formDataBody ? `${JSON_TO_FORM_DATA}  ${serviceReturnStr}` : serviceReturnStr}
 }
 `;
 };

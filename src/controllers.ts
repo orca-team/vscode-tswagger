@@ -16,7 +16,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
 import { existsSync, outputFileSync, pathExistsSync, readFileSync, removeSync } from 'fs-extra';
 import { sendCurrTsGenProgressMsg } from './serverSentEvents';
-import { flatMap } from 'lodash-es';
+import { flatMap, omit } from 'lodash-es';
 import templateAxios from './requestTemplates/axios';
 import { getGlobalContext } from './globalContext';
 import YAML from 'yaml';
@@ -262,7 +262,8 @@ const mergeServiceMapJSONByGroup = (
   if (!originalServiceMapJSON) {
     return { mergedServiceMapJSON: currentServiceMapJSON, changedServiceList };
   }
-  const mergedServiceMapJSON: ServiceMapInfoYAMLJSONType = originalServiceMapJSON;
+  const latestServiceMapInfo = omit(currentServiceMapJSON, ['nameMappingList', 'defNameMappingList']);
+  const mergedServiceMapJSON: ServiceMapInfoYAMLJSONType = { ...originalServiceMapJSON, ...latestServiceMapInfo };
   serviceList.forEach((result) => {
     const { path, method } = result;
     const originalNameMappingIndex = originalServiceMapJSON.nameMappingList.findIndex((it) => it.path === path && it.method === method);
