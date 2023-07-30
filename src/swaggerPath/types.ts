@@ -58,6 +58,9 @@ export type SwaggerCollectionGroupItem = {
   method: string;
   serviceName: string;
   serviceInfoList: SwaggerServiceInfoType[];
+  tag: string;
+  description?: string;
+  summary?: string;
   pathParamFields?: string[];
 };
 
