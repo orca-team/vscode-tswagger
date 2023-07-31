@@ -6,8 +6,9 @@ import translate from '../schema2ts/translate';
 import { isObject, uniq } from 'lodash-es';
 import { join } from 'path';
 import { getCurrentWorkspace } from './vscodeUtil';
-import { existsSync, outputFileSync, readFileSync, readJSONSync } from 'fs-extra';
+import { existsSync, readFileSync, readJSONSync } from 'fs-extra';
 import YAML from 'yaml';
+import { DEFAULT_CONFIG_JSON } from '../constants';
 
 export const DEFAULT_BASE_PATH_NAME = '_default';
 
@@ -68,9 +69,14 @@ export const getServiceMapJSON = (groupName: string, basePath?: string) => {
   return mapInfoJSON;
 };
 
-export const defaultConfigJSON: TSwaggerConfig = {
-  fetchFilePath: '@/utils/fetch',
-  addBasePathPrefix: true,
+export const getConfigJSONPath = () => {
+  const tswaggerBasePath = getTSwaggerBasePath();
+  if (!tswaggerBasePath) {
+    return null;
+  }
+  const configJSONPath = join(tswaggerBasePath, 'config.json');
+
+  return configJSONPath;
 };
 
 /**
@@ -78,17 +84,14 @@ export const defaultConfigJSON: TSwaggerConfig = {
  * @returns 当前工作空间的 config.json
  */
 export const getTSwaggerConfigJSON = (): TSwaggerConfig | null => {
-  const tswaggerBasePath = getTSwaggerBasePath();
-  if (!tswaggerBasePath) {
-    return null;
-  }
-  const configJSONPath = join(tswaggerBasePath, 'config.json');
-  if (!existsSync(configJSONPath)) {
-    outputFileSync(configJSONPath, JSON.stringify(defaultConfigJSON, null, 2), { encoding: 'utf-8' });
+  const configJSONPath = getConfigJSONPath();
+
+  if (!configJSONPath || !existsSync(configJSONPath)) {
+    return DEFAULT_CONFIG_JSON;
   }
 
   const configJSON = readJSONSync(configJSONPath, { encoding: 'utf-8' }) as TSwaggerConfig;
-  const mergedConfigJSON = { ...defaultConfigJSON, ...(configJSON ?? {}) };
+  const mergedConfigJSON = { ...DEFAULT_CONFIG_JSON, ...(configJSON ?? {}) };
 
   return mergedConfigJSON;
 };

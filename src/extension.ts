@@ -4,6 +4,7 @@ import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
 import {
   addSwaggerUrl,
+  checkConfigJSON,
   delSwaggerUrl,
   generateV2ServiceFile,
   generateV2TypeScript,
@@ -11,6 +12,7 @@ import {
   parseSwaggerUrl,
   queryCwd,
   queryExtInfo,
+  saveConfigJSON,
   updateSwaggerUrl,
   writeTsFile,
 } from './controllers';
@@ -68,6 +70,10 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-writeTsFile', writeTsFile);
       // 生成接口文件
       registerService('webview-generateV2ServiceFile', generateV2ServiceFile);
+      // 检查 config.json 是否存在
+      registerService('webview-checkConfigJSON', checkConfigJSON);
+      // 写入 config.json
+      registerService('webview-saveConfigJSON', saveConfigJSON);
 
       // 开始监听 ts 文件变化
       listenTsFileChange(umiPanel.webview);

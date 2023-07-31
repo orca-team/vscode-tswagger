@@ -1,14 +1,22 @@
 import ApiGroupPanel from '@/components/ApiGroupPanel';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
-import { apiGenerateV2ServiceFile, apiGenerateV2TypeScript, apiParseSwaggerJson, apiParseSwaggerUrl, apiQueryExtInfo } from '@/services';
+import {
+  apiCheckConfigJSON,
+  apiGenerateV2ServiceFile,
+  apiGenerateV2TypeScript,
+  apiParseSwaggerJson,
+  apiParseSwaggerUrl,
+  apiQueryExtInfo,
+  apiSaveConfigJSON,
+} from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, FolderAddOutlined, LinkOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import { Affix, Button, Collapse, Empty, FloatButton, Form, Input, Layout, Space, Spin, Tabs, Tooltip, Upload } from 'antd';
+import { Affix, Button, Collapse, Empty, FloatButton, Form, Input, Layout, Modal, Space, Spin, Tabs, Tooltip, Typography, Upload } from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
@@ -18,9 +26,11 @@ import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../src/types';
 import notification from '@/utils/notification';
+import ConfigJsonForm from '@/components/ConfigJSONForm';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
+const { Text } = Typography;
 
 const formItemLayout = {
   labelCol: { span: 24 },
@@ -40,6 +50,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const _this = useRef<{ apiGroup?: ApiGroupByTag[]; V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
+  const [configForm] = useForm();
   const currentSwaggerUrl = useWatch<string>('swaggerUrl', form);
 
   const { extSetting, setExtSetting } = useGlobalState();
@@ -161,6 +172,45 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     }
   });
 
+  const handleBeforeGenTs = useMemoizedFn(async () => {
+    startGenerateLoading();
+    const hasExistConfigJSON = !!(await apiCheckConfigJSON()).data;
+    if (hasExistConfigJSON) {
+      generateTypescript();
+    } else {
+      stopGenerateLoading();
+      configForm.resetFields();
+      Modal.info({
+        title: '提示',
+        width: 480,
+        closable: true,
+        content: (
+          <div>
+            <Text strong style={{ fontSize: 16 }}>
+              检测到本项目是首次生成接口文件，请先确认以下配置
+            </Text>
+            <ConfigJsonForm form={configForm} style={{ marginTop: 12 }} />
+          </div>
+        ),
+        okText: '确定并继续生成 Typescript',
+        onOk: async () => {
+          const values = await configForm.validateFields();
+          const resp = await apiSaveConfigJSON(values);
+
+          if (resp.success) {
+            notification.success('config.json 文件已生成至项目中');
+            generateTypescript();
+            return Promise.resolve();
+          } else {
+            notification.error(resp.errMsg ?? 'config.json 文件生成失败');
+          }
+
+          return Promise.reject();
+        },
+      });
+    }
+  });
+
   useEffect(() => {
     refreshSwaggerSchema();
   }, [currentSwaggerUrl]);
@@ -266,7 +316,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                       type="primary"
                       disabled={selectedApiMap.size === 0}
                       onClick={() => {
-                        generateTypescript();
+                        handleBeforeGenTs();
                       }}
                     >
                       生成 Typescript

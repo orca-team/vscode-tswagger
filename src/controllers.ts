@@ -11,6 +11,7 @@ import {
   RenameMapping,
   ServiceMapInfoYAMLJSONType,
   ServiceResult,
+  TSwaggerConfig,
 } from './types';
 import { OpenAPIV2 } from 'openapi-types';
 import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
@@ -21,7 +22,7 @@ import templateAxios from './requestTemplates/axios';
 import { getGlobalContext } from './globalContext';
 import YAML from 'yaml';
 import { join } from 'path';
-import { currentTime, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
+import { currentTime, getConfigJSONPath, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
   const allSetting = getAllConfiguration(['swaggerUrlList']);
@@ -283,6 +284,27 @@ const mergeServiceMapJSONByGroup = (
   };
 
   return { mergedServiceMapJSON, changedServiceList };
+};
+
+export const checkConfigJSON = async () => {
+  const configJSONPath = getConfigJSONPath();
+
+  if (!configJSONPath) {
+    return null;
+  }
+
+  return existsSync(configJSONPath);
+};
+
+export const saveConfigJSON = async (configJSON: TSwaggerConfig) => {
+  const configJSONPath = getConfigJSONPath();
+  if (!configJSONPath) {
+    return null;
+  }
+
+  outputFileSync(configJSONPath, JSON.stringify(configJSON, null, 2), { encoding: 'utf-8' });
+
+  return true;
 };
 
 // 生成 ts 文件至项目中，生成路径：src/.tswagger
