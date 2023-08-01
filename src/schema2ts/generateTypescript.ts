@@ -69,7 +69,8 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
     }
   }
 
-  return `${FILE_DESCRIPTION}import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';\n\n`;
+  return `${FILE_DESCRIPTION}import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';
+import type { FetchResult } from '${sourcePath || ''}'\n\n`;
 };
 
 /**
@@ -140,7 +141,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
     requestOptionsStr += `data`;
   }
 
-  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<${response ?? 'any'}>(\`${url}\`${
+  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<FetchResult<${response ?? 'any'}>>(\`${url}\`${
     requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''
   })`;
 
