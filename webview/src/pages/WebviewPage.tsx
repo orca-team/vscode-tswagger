@@ -100,12 +100,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     startParseLoading();
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
     stopParseLoading();
+    resetPageWhenChange();
     // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
     if (!resp.success) {
       notification.error(resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试');
       return;
     }
-    resetPageWhenChange();
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
     notification.success(`【${currentApiName}】 Swagger 文档解析成功`);
     handleV2DocumentData(resp.data as OpenAPIV2.Document);
@@ -270,7 +270,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                               </Space>
                             }
                           >
-                            <SwaggerUrlSelect showSearch />
+                            <SwaggerUrlSelect showSearch disabled={parseLoading} />
                           </Form.Item>
                         ),
                       },
