@@ -18,3 +18,12 @@ export const sendCurrTsGenProgressMsg = (webview: vscode.Webview, data: { total:
     success: true,
   });
 };
+
+export const sendFetchFileGenMsg = (webview: vscode.Webview, data: boolean | null) => {
+  webview.postMessage({
+    data,
+    method: 'webview-genFetchFile',
+    errMsg: 'success',
+    success: true,
+  });
+};

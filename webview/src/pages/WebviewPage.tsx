@@ -27,6 +27,7 @@ import { RcFile } from 'antd/es/upload';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../src/types';
 import notification from '@/utils/notification';
 import ConfigJsonForm from '@/components/ConfigJSONForm';
+import useMessageListener from '@/hooks/useMessageListener';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -208,6 +209,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
           return Promise.reject();
         },
       });
+    }
+  });
+
+  useMessageListener((vscodeMsg) => {
+    if (vscodeMsg.method === 'webview-genFetchFile') {
+      notification.info('检测到当前项目不存在 fetch 文件，已自动为您生成模板 fetch 文件，请在 src/utils 下查看');
     }
   });
 

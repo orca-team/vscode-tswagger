@@ -69,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
       // 写入 ts 文件
       registerService('webview-writeTsFile', writeTsFile);
       // 生成接口文件
-      registerService('webview-generateV2ServiceFile', generateV2ServiceFile);
+      registerService('webview-generateV2ServiceFile', (data) => generateV2ServiceFile(umiPanel!.webview, data));
       // 检查 config.json 是否存在
       registerService('webview-checkConfigJSON', checkConfigJSON);
       // 写入 config.json
