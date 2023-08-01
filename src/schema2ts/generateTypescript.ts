@@ -92,9 +92,9 @@ const formatServiceDescription = (serviceInfo: SwaggerCollectionGroupItem) => {
   const { description, summary, tag, serviceName, method, path } = serviceInfo;
 
   return `/**
- * @description ${description ? description : 'No Description'}
  * @tag ${tag}
  * @summary ${summary ? summary : 'No Summary'}
+ * @description ${description ? description : 'No Description'}
  * @serviceName ${serviceName}
  * @method ${toUpper(method)}
  * @path ${path}
