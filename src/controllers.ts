@@ -11,17 +11,18 @@ import {
   RenameMapping,
   ServiceMapInfoYAMLJSONType,
   ServiceResult,
+  TSwaggerConfig,
 } from './types';
 import { OpenAPIV2 } from 'openapi-types';
 import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
 import { existsSync, outputFileSync, pathExistsSync, readFileSync, removeSync } from 'fs-extra';
-import { sendCurrTsGenProgressMsg } from './serverSentEvents';
+import { sendCurrTsGenProgressMsg, sendFetchFileGenMsg } from './serverSentEvents';
 import { flatMap, omit } from 'lodash-es';
 import templateAxios from './requestTemplates/axios';
 import { getGlobalContext } from './globalContext';
 import YAML from 'yaml';
 import { join } from 'path';
-import { currentTime, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
+import { currentTime, getConfigJSONPath, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
   const allSetting = getAllConfiguration(['swaggerUrlList']);
@@ -154,19 +155,6 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
     return tsDefs;
   };
 
-  const checkFetchFile = () => {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    // 默认取第一个 (TODO: 多层工作空间)
-    const first = workspaceFolders?.[0];
-    // TODO: 配置化 & 消息推送
-    const fetchPath = first ? join(first.uri.fsPath, '/src/utils/fetch.ts') : '';
-    if (first && !pathExistsSync(fetchPath)) {
-      // TODO: 多模板
-      const template = templateAxios;
-      outputFileSync(fetchPath, template, { encoding: 'utf-8' });
-    }
-  };
-
   const { swaggerCollection, nameMappingList, associatedDefNameMappingList } = await handleSwaggerPathV2(config);
   const defNameMappingList: ApiGroupDefNameMapping[] = [...associatedDefNameMappingList];
   const serviceResult: ApiGroupServiceResult[] = [];
@@ -197,8 +185,6 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
         });
         serviceTsDefs += serviceInfoDefs;
       }
-      // 检查是否存在对应的 fetch 文件，若没有则自动生成
-      checkFetchFile();
       // 生成接口 ts 字符串
       serviceTsDefs += await generateServiceFromAPIV2(groupItem, tswaggerConfig ?? {});
       result.push({
@@ -285,8 +271,29 @@ const mergeServiceMapJSONByGroup = (
   return { mergedServiceMapJSON, changedServiceList };
 };
 
+export const checkConfigJSON = async () => {
+  const configJSONPath = getConfigJSONPath();
+
+  if (!configJSONPath) {
+    return null;
+  }
+
+  return existsSync(configJSONPath);
+};
+
+export const saveConfigJSON = async (configJSON: TSwaggerConfig) => {
+  const configJSONPath = getConfigJSONPath();
+  if (!configJSONPath) {
+    return null;
+  }
+
+  outputFileSync(configJSONPath, JSON.stringify(configJSON, null, 2), { encoding: 'utf-8' });
+
+  return true;
+};
+
 // 生成 ts 文件至项目中，生成路径：src/.tswagger
-export const generateV2ServiceFile = async (params: { swaggerInfo: OpenAPIV2.Document; data: V2TSGenerateResult }) => {
+export const generateV2ServiceFile = async (webview: vscode.Webview, params: { swaggerInfo: OpenAPIV2.Document; data: V2TSGenerateResult }) => {
   const { swaggerInfo, data } = params;
   const { serviceResult, nameMappingList, defNameMappingList } = data;
   // 文档基本信息
@@ -296,6 +303,20 @@ export const generateV2ServiceFile = async (params: { swaggerInfo: OpenAPIV2.Doc
   if (!baseTargetPath) {
     return null;
   }
+
+  const checkFetchFile = () => {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    // 默认取第一个 (TODO: 多层工作空间)
+    const first = workspaceFolders?.[0];
+    // TODO: 配置化
+    const fetchPath = first ? join(first.uri.fsPath, '/src/utils/fetch.ts') : '';
+    if (first && !pathExistsSync(fetchPath)) {
+      // TODO: 多模板
+      const template = templateAxios;
+      outputFileSync(fetchPath, template, { encoding: 'utf-8' });
+      sendFetchFileGenMsg(webview, true);
+    }
+  };
 
   serviceResult.forEach((result) => {
     const { groupName, serviceList } = result;
@@ -323,4 +344,7 @@ export const generateV2ServiceFile = async (params: { swaggerInfo: OpenAPIV2.Doc
       outputFileSync(join(baseTargetPath, groupName, `${serviceName}.ts`), tsDefs, { encoding: 'utf-8' });
     });
   });
+
+  // 检查是否存在对应的 fetch 文件，若没有则自动生成
+  checkFetchFile();
 };

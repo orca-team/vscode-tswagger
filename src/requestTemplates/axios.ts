@@ -1,6 +1,8 @@
 const templateAxios = `import axios from "axios";
 import { AxiosRequestConfig } from "axios";
 
+export type FetchResult<T> = T;
+
 export const get = <T>(
   url: string,
   params: Record<string, any>,

@@ -98,7 +98,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     const result = await saveTypescript(serviceResult, nameMappingList, defNameMappingList);
     stopSaving();
     if (result.success) {
-      notification.success('已保存至项目中');
+      notification.success('接口文件已保存至项目中');
       // @ts-expect-error
       onCancel?.(null);
     } else {
