@@ -1,6 +1,7 @@
 {
   "name": "tswagger",
   "displayName": "tswagger",
+  "icon": "assets/images/logo.png",
   "description": "generate typescript for swagger.",
   "version": "0.0.1",
   "private": "true",
