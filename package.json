@@ -53,7 +53,14 @@
       "properties": {
         "tswagger.swaggerUrlList": {
           "type": "array",
-          "description": "配置 swagger 接口列表"
+          "description": "配置 swagger 文档地址列表",
+          "default": [
+            {
+              "id": 0,
+              "name": "Swagger 官方 Demo",
+              "url": "https://petstore.swagger.io/v2/swagger.json"
+            }
+          ]
         }
       }
     }
