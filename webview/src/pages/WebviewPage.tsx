@@ -232,7 +232,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       <div className={`${styles.root} ${className}`} {...otherProps}>
         {modalController.instance}
         <Layout style={{ height: '100%' }}>
-          <Header className={styles.header}>Swagger2.0 to Typescript</Header>
+          <Header className={styles.header}>Swagger To Typescript</Header>
           <Layout className={styles.layout}>
             <Affix>
               <Content

@@ -42,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
         retainContextWhenHidden: true,
         localResourceRoots: [vscode.Uri.file(join(context.extensionPath, 'webview'))],
       });
+      umiPanel.iconPath = vscode.Uri.file(join(context.extensionPath, 'assets/images/logo.svg'));
       umiHTML = loadUmiHTML(context, umiPanel);
       umiPanel.webview.html = umiHTML;
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styles from './SwaggerUrlSelect.less';
 import { Button, Divider, Form, Select, SelectProps, Space } from 'antd';
 import { useGlobalState } from '@/states/globalState';
@@ -22,6 +22,10 @@ const SwaggerUrlSelect: React.FC<SwaggerUrlSelectProps> = (props) => {
     const value = await addForm.validateFields();
     swaggerService.addSwaggerUrl(value);
   };
+
+  useEffect(() => {
+    addForm.resetFields();
+  }, [swaggerUrlList]);
 
   return (
     <Select

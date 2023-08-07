@@ -10,7 +10,7 @@ function useSwaggerUrlService(props: UseSwaggerUrlServiceProps = {}) {
   const { setExtSetting } = useGlobalState();
 
   const addSwaggerUrl = useMemoizedFn(async (item: Omit<SwaggerUrlConfigItem, 'id'>) => {
-    const resp = await apiAddSwaggerUrl({ ...item, id: Date.now() });
+    const resp = await apiAddSwaggerUrl({ ...item, key: Date.now() });
     if (resp.success) {
       setExtSetting({
         swaggerUrlList: resp.data ?? [],
