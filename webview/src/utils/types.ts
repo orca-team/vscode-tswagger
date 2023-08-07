@@ -2,7 +2,7 @@ import { OpenAPIV2 } from 'openapi-types';
 import { HttpMethod } from '../../../src/types';
 
 export type SwaggerUrlConfigItem = {
-  id: number;
+  key: number | string;
   url: string;
   name?: string;
 };

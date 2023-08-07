@@ -1,21 +1,26 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import styles from './UrlConfigForm.less';
 import { Form, FormProps, Input } from 'antd';
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { useGlobalState } from '@/states/globalState';
+import { useMount } from 'ahooks';
 
-export interface UrlConfigFormProps extends FormProps {
-  editMode?: boolean;
-}
+export interface UrlConfigFormProps extends FormProps {}
 
 const UrlConfigForm: React.FC<UrlConfigFormProps> = (props) => {
-  const { className = '', editMode, ...otherProps } = props;
+  const { className = '', form, ...otherProps } = props;
 
   const { extSetting } = useGlobalState();
   const { swaggerUrlList } = extSetting;
+  const originalValueRef = useRef<SwaggerUrlConfigItem>();
+
+  useMount(() => {
+    originalValueRef.current = form?.getFieldsValue();
+  });
 
   return (
     <Form<SwaggerUrlConfigItem>
+      form={form}
       layout="horizontal"
       labelAlign="left"
       labelCol={{ span: 8 }}
@@ -28,27 +33,24 @@ const UrlConfigForm: React.FC<UrlConfigFormProps> = (props) => {
       <Form.Item
         label="文档接口地址"
         name="url"
-        rules={
-          !editMode
-            ? [
-                {
-                  required: true,
-                  validator(rule, value, callback) {
-                    if (!value) {
-                      callback('文档接口地址不能为空');
-                    }
-                    if (swaggerUrlList.find((it) => it.url === value)) {
-                      callback('重复的文档接口地址');
-                    }
+        rules={[
+          {
+            required: true,
+            validator(rule, value, callback) {
+              if (!value) {
+                callback('文档接口地址不能为空');
+              }
+              const otherUrlList = swaggerUrlList.filter((it) => it.url !== originalValueRef.current?.url);
+              if (otherUrlList.find(({ url }) => url === value)) {
+                callback('重复的文档接口地址');
+              }
 
-                    callback();
-                  },
-                },
-              ]
-            : []
-        }
+              callback();
+            },
+          },
+        ]}
       >
-        <Input placeholder="请输入接口地址" disabled={!!editMode} />
+        <Input placeholder="请输入接口地址" />
       </Form.Item>
     </Form>
   );

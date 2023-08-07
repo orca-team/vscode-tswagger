@@ -71,14 +71,14 @@ export const addSwaggerUrl = async (data: any) => {
 
 export const delSwaggerUrl = async (data: any) => {
   const swaggerUrlList = getConfiguration('swaggerUrlList');
-  const newSwaggerUrlList = swaggerUrlList.filter((it: any) => it.id !== data.id && it.url !== data.url);
+  const newSwaggerUrlList = swaggerUrlList.filter((it: any) => it.key !== data.key && it.url !== data.url);
   setConfiguration('swaggerUrlList', newSwaggerUrlList);
   return newSwaggerUrlList;
 };
 
 export const updateSwaggerUrl = async (data: any) => {
   const swaggerUrlList = getConfiguration('swaggerUrlList');
-  const targetIndex = swaggerUrlList.findIndex((it: any) => it.id === data.id && it.url === data.url);
+  const targetIndex = swaggerUrlList.findIndex((it: any) => it.key === data.key);
   if (targetIndex > -1) {
     swaggerUrlList[targetIndex] = data;
     setConfiguration('swaggerUrlList', swaggerUrlList);

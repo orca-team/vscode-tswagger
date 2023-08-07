@@ -19,7 +19,8 @@ export interface CustomLabelProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const CustomLabel: React.FC<CustomLabelProps> = (props) => {
   const { className = '', value, ...otherProps } = props;
-  const { name, url } = value;
+
+  console.log('valuuu', value);
 
   const [form] = Form.useForm();
   const swaggerService = useSwaggerUrlService();
@@ -33,7 +34,7 @@ const CustomLabel: React.FC<CustomLabelProps> = (props) => {
       icon: null,
       title: '修改接口地址信息',
       zIndex: 9999,
-      content: <UrlConfigForm form={form} editMode />,
+      content: <UrlConfigForm form={form} />,
       onOk: async () => {
         const updatedValue = await form.validateFields();
         swaggerService.updateSwaggerUrl({ ...value, ...updatedValue });
