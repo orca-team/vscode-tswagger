@@ -26,10 +26,11 @@ const ConfigJsonForm = (props: ConfigJsonFormProps) => {
             },
           },
         ]}
+        help="约定以别名 @ 开头，@ 表示 src 目录"
       >
         <Input placeholder="请输入" />
       </Form.Item>
-      <Form.Item label="自动添加接口路径前缀" name="addBasePathPrefix" rules={[{ required: true }]}>
+      <Form.Item label="自动添加接口路径前缀" name="addBasePathPrefix" rules={[{ required: true }]} style={{ paddingTop: 8 }}>
         <Radio.Group>
           <Radio value={true}>是</Radio>
           <Radio value={false}>否</Radio>
