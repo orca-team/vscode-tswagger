@@ -126,7 +126,9 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
   let requestOptionsStr = '';
   let url = addBasePathPrefix && basePath ? `${basePath}${path}` : path;
-  if (pathParam) {
+  const hasPathParam = !!pathParam;
+
+  if (hasPathParam) {
     url = url.replace(/\{(\w+)\}/g, (_, $1) => `\${${$1}}`);
   }
   if (pathQuery) {
@@ -141,9 +143,9 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
     requestOptionsStr += `data`;
   }
 
-  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<FetchResult<${response ?? 'any'}>>(\`${url}\`${
-    requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''
-  })`;
+  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<FetchResult<${response ?? 'any'}>>(${
+    hasPathParam ? `\`${url}\`` : `'${url}'`
+  }${requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''})`;
 
   return `
 ${serviceDescription}
