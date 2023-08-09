@@ -2,13 +2,10 @@
     <img width="160" height="160" src="./assets/images/logo.png">
 </p>
 
-<div style="display: flex; flex-direction: column; align-items: center">
-<div>
-一款能将 Swagger 文档转换成 Typescript 接口文件的 vscode 插件</div>
-<div>
+<p align="center">
+一款能将 Swagger 文档转换成 Typescript 接口文件的 vscode 插件 <br />
 ⭐ 如果对您有帮助的话，不妨给我们一颗小星星鼓励一下
-</div>
-</div>
+</p>
 
 ## ✨ 特点
 
