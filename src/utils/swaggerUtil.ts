@@ -91,9 +91,8 @@ export const getTSwaggerConfigJSON = (): TSwaggerConfig | null => {
   }
 
   const configJSON = readJSONSync(configJSONPath, { encoding: 'utf-8' }) as TSwaggerConfig;
-  const mergedConfigJSON = { ...DEFAULT_CONFIG_JSON, ...(configJSON ?? {}) };
 
-  return mergedConfigJSON;
+  return configJSON ?? {};
 };
 
 const addZero = (value: number) => (value < 10 ? `0${value}` : value);

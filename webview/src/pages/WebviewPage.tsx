@@ -214,7 +214,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   useMessageListener((vscodeMsg) => {
     if (vscodeMsg.method === 'webview-genFetchFile') {
-      notification.info('检测到当前项目不存在 fetch 文件，已自动为您生成模板 fetch 文件，请在 src/utils 下查看');
+      notification.info('检测到当前项目未配置 fetch 文件路径，已自动为您生成模板 fetch 文件，请在 src/utils 下查看');
     }
   });
 
