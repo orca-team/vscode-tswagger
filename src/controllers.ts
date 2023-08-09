@@ -23,6 +23,7 @@ import { getGlobalContext } from './globalContext';
 import YAML from 'yaml';
 import { join } from 'path';
 import { currentTime, getConfigJSONPath, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
+import { DEFAULT_CONFIG_JSON } from './constants';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
   const allSetting = getAllConfiguration(['swaggerUrlList']);
@@ -305,17 +306,19 @@ export const generateV2ServiceFile = async (webview: vscode.Webview, params: { s
   }
 
   const checkFetchFile = () => {
+    const configJSON = getTSwaggerConfigJSON();
+    if (configJSON?.fetchFilePath) {
+      return;
+    }
     const workspaceFolders = vscode.workspace.workspaceFolders;
     // 默认取第一个 (TODO: 多层工作空间)
     const first = workspaceFolders?.[0];
-    // TODO: 配置化
     const fetchPath = first ? join(first.uri.fsPath, '/src/utils/fetch.ts') : '';
-    if (first && !pathExistsSync(fetchPath)) {
-      // TODO: 多模板
-      const template = templateAxios;
-      outputFileSync(fetchPath, template, { encoding: 'utf-8' });
-      sendFetchFileGenMsg(webview, true);
-    }
+    // TODO: 多模板
+    const template = templateAxios;
+    outputFileSync(fetchPath, template, { encoding: 'utf-8' });
+    saveConfigJSON({ ...(configJSON ?? {}), fetchFilePath: DEFAULT_CONFIG_JSON.fetchFilePath });
+    sendFetchFileGenMsg(webview, true);
   };
 
   serviceResult.forEach((result) => {
@@ -345,6 +348,6 @@ export const generateV2ServiceFile = async (webview: vscode.Webview, params: { s
     });
   });
 
-  // 检查是否存在对应的 fetch 文件，若没有则自动生成
+  // 检查是否存在对应的 fetch 文件配置，若没有则自动生成
   checkFetchFile();
 };
