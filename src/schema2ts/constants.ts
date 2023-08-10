@@ -8,7 +8,7 @@ export const FILE_DESCRIPTION = `/* eslint-disable */
  * ## THIS FILE WAS GENERATED VIA TSWAGGER VSCODE EXTENSION     ##
  * ## DO NOT MODIFY THIS FILE                                   ##
  * ##                                                           ##
- * ## GITHUB: https://github.com/Orchardxyz/vscode-tswagger     ##
+ * ## GITHUB: https://github.com/orca-team/vscode-tswagger.git  ##
  * ---------------------------------------------------------------
  */
 
