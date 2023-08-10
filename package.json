@@ -7,7 +7,7 @@
   "private": "true",
   "author": "Orchard",
   "publisher": "Orchard",
-  "repository": "https://github.com/Orchardxyz/vscode-tswagger.git",
+  "repository": "https://github.com/orca-team/vscode-tswagger.git",
   "license": "MIT",
   "keywords": [
     "vscode",
