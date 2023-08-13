@@ -102,14 +102,18 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
     stopParseLoading();
     resetPageWhenChange();
-    // TODO: `暂不支持大于 OpenAPIV2 版本解析`的提示
-    if (!resp.success) {
+    const swaggerDocs = resp.data;
+    if (!resp.success || !resp.data) {
       notification.error(resp.errMsg ?? 'Swagger 文档解析失败, 请稍后再试');
+      return;
+    }
+    if (!('swagger' in swaggerDocs)) {
+      notification.warning('暂不支持大于 OpenAPIV2 版本的 swagger 文档解析，敬请期待后续更新！');
       return;
     }
     const currentApiName = options.find((option) => option.value === currentSwaggerUrl)?.label;
     notification.success(`【${currentApiName}】 Swagger 文档解析成功`);
-    handleV2DocumentData(resp.data as OpenAPIV2.Document);
+    handleV2DocumentData(swaggerDocs as OpenAPIV2.Document);
   });
 
   const handleSearch = useMemoizedFn((searchKey: string) => {
