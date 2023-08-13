@@ -20,8 +20,6 @@ export interface CustomLabelProps extends React.HTMLAttributes<HTMLDivElement> {
 const CustomLabel: React.FC<CustomLabelProps> = (props) => {
   const { className = '', value, ...otherProps } = props;
 
-  console.log('valuuu', value);
-
   const [form] = Form.useForm();
   const swaggerService = useSwaggerUrlService();
 
