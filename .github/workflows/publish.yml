@@ -29,7 +29,7 @@ jobs:
       - name: Package Extension
         run: pnpm run package
       - name: Publish Extension
-        run: pnpm run publish --packagePath ./${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}.vsix --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }}
+        run: pnpm run publish --packagePath ./${{ env.PACKAGE_NAME }}.vsix --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }}
       - name: Generate Changelog
         id: changelog
         uses: mindsers/changelog-reader-action@v2
@@ -47,4 +47,4 @@ jobs:
           body: ${{ steps.changelog.outputs.changes }}
           draft: false
           prerelease: false
-          files: ./${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}.vsix
+          files: ./${{ env.PACKAGE_NAME }}.vsix
