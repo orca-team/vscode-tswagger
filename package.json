@@ -71,11 +71,12 @@
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV='development'",
     "test-compile": "tsc -p ./",
-    "publish:patch": "npm version patch -m \"build: update patch version and publish extension\"",
-    "publish:minor": "npm version minor -m \"build: update minor version and publish extension\"",
-    "publish:major": "npm version major -m \"build: update major version and publish extension\"",
     "package": "npm run webview-build && npm run esbuild-build -- --minify && vsce package --no-dependencies",
     "publish": "vsce publish --no-dependencies",
+    "release": "standard-version",
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
@@ -96,6 +97,7 @@
     "glob": "^7.1.6",
     "mocha": "^8.2.1",
     "openapi-types": "^12.1.0",
+    "standard-version": "^9.5.0",
     "typescript": "^4.1.3",
     "vscode-test": "^1.5.0"
   },
