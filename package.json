@@ -75,7 +75,7 @@
     "publish:minor": "npm version minor -m \"build: update minor version and publish extension\"",
     "publish:major": "npm version major -m \"build: update major version and publish extension\"",
     "package": "npm run webview-build && npm run esbuild-build -- --minify && vsce package --no-dependencies",
-    "publish": "pnpm run package && vsce publish --no-dependencies",
+    "publish": "vsce publish --no-dependencies",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
