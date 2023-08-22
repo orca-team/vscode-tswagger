@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Keep-a-changelog plugin added.
+
 ## [1.0.2]
 
 ### Added
