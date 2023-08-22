@@ -73,15 +73,13 @@
     "test-compile": "tsc -p ./",
     "package": "npm run webview-build && npm run esbuild-build -- --minify && vsce package --no-dependencies",
     "publish": "vsce publish --no-dependencies",
-    "release": "standard-version",
-    "release:patch": "standard-version --release-as patch",
-    "release:minor": "standard-version --release-as minor",
-    "release:major": "standard-version --release-as major",
+    "release": "release-it",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@release-it/keep-a-changelog": "^4.0.0",
     "@types/fs-extra": "^11.0.1",
     "@types/glob": "^7.1.3",
     "@types/lodash-es": "^4.17.7",
@@ -97,7 +95,7 @@
     "glob": "^7.1.6",
     "mocha": "^8.2.1",
     "openapi-types": "^12.1.0",
-    "standard-version": "^9.5.0",
+    "release-it": "^16.1.5",
     "typescript": "^4.1.3",
     "vscode-test": "^1.5.0"
   },
