@@ -48,6 +48,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
+  const [searchPanelKey, setSearchPanelKey] = useState<string>(PARSE_METHOD_DOCS);
   const _this = useRef<{ apiGroup?: ApiGroupByTag[]; V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
@@ -166,7 +167,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   );
 
   const generateTypescript = useMemoizedFn(async () => {
-    await form.validateFields();
+    if (searchPanelKey === PARSE_METHOD_DOCS) {
+      await form.validateFields();
+    }
     startGenerateLoading();
     const result = await generateV2Typescript();
     stopGenerateLoading();
@@ -226,6 +229,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     refreshSwaggerSchema();
   }, [currentSwaggerUrl]);
 
+  useEffect(() => {
+    if (searchPanelKey) {
+      resetPageWhenChange();
+    }
+  }, [searchPanelKey]);
+
   useMount(() => {
     handleExtInfo();
     form.setFieldValue('outputOptions', ['responseBody', 'requestParams', 'service']);
@@ -249,7 +258,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
                   <Tabs
                     defaultActiveKey={PARSE_METHOD_DOCS}
-                    onChange={resetPageWhenChange}
+                    onChange={(key) => {
+                      setSearchPanelKey(key);
+                    }}
                     items={[
                       {
                         key: PARSE_METHOD_DOCS,
