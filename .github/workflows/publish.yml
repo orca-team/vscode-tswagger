@@ -25,7 +25,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install pnpm -g
-          pnpm install
+          pnpm install --no-frozen-lockfile
       - name: Package Extension
         run: pnpm run package
       - name: Publish Extension
