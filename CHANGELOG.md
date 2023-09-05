@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Generated interface name does not match ([#2](https://github.com/orca-team/vscode-tswagger/issues/2)).
+
 ## [1.0.4] - 2023-09-04
 
 ### Fixed

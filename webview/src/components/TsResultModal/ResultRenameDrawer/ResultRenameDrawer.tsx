@@ -18,10 +18,16 @@ const { Text } = Typography;
 const allDefNameMappingFormKey = 'allDefNameMapping';
 const nameGroupFormKey = 'nameGroup';
 
-const renameReg = new RegExp(/^[a-zA-Z][a-zA-Z0-9]+$/);
-const renameRule: Rule = {
-  pattern: renameReg,
-  message: '只能包含英文和数字, 且必须以英文开头',
+const serviceNameReg = new RegExp(/^[a-zA-Z][a-zA-Z0-9]+$/);
+const serviceRenameRule: Rule = {
+  pattern: serviceNameReg,
+  message: '接口名称只能包含英文和数字, 且必须以英文开头',
+};
+
+const tsTypeNameReg = new RegExp(/^[A-Z][a-zA-Z0-9]+$/);
+const tsTypeRenameRule: Rule = {
+  pattern: tsTypeNameReg,
+  message: '类型名称只能包含英文和数字, 且首字母必须大写',
 };
 
 const convertNameMappingList = (nameMappingList: ApiGroupNameMapping[]) => {
@@ -150,7 +156,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                     <Form.Item
                       className={styles.formItem}
                       name={[allDefNameMappingFormKey, defName]}
-                      rules={[{ required: true, message: `请输入新的 ${defName} 名称` }, renameRule]}
+                      rules={[{ required: true, message: `请输入新的 ${defName} 名称` }, tsTypeRenameRule]}
                     >
                       <RenameText />
                     </Form.Item>
@@ -223,6 +229,15 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                       const renameValue = apiNameMapping[nameField];
                                       const isRelatedDefName = !!relatedDefInfo; // 是否关联实体名称
 
+                                      const validationRule: Rule[] = [];
+
+                                      if (!isRelatedDefName) {
+                                        validationRule.push(
+                                          { required: true, message: `请输入新的${label}` },
+                                          nameField === 'serviceName' ? serviceRenameRule : tsTypeRenameRule,
+                                        );
+                                      }
+
                                       return apiNameMapping[nameField] ? (
                                         <Descriptions.Item key={nameField} label={label} span={3}>
                                           <div className={styles.serviceDescItem}>
@@ -235,7 +250,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                               name={[itemName, nameField]}
                                               className={styles.formItem}
                                               dependencies={[allDefNameMappingFormKey, relatedDefInfo?.originRefName ?? '']}
-                                              rules={[{ required: true, message: `请输入新的${label}` }, renameRule]}
+                                              rules={validationRule}
                                               style={{ width: '100%' }}
                                             >
                                               {isRelatedDefName ? <RenameText underline={false} disabled /> : <RenameText />}
