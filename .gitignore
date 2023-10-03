@@ -21,3 +21,6 @@ dist
 **/src/.umi-test
 **/.env.local
 # yarn.lock
+
+# test
+out-test
