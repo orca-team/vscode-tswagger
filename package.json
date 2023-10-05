@@ -76,8 +76,8 @@
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint-staged": "lint-staged",
-    "test-compile": "rimraf ./out-test && esbuild ./src/test/**/*.ts --outdir=out-test --resolve-extensions=.ts,.js --format=cjs --platform=node",
-    "test": "node ./out-test/runTest.js",
+    "test-compile": "rimraf ./out-test && esbuild ./src/**/*.ts --bundle --outdir=out-test --external:vscode --format=cjs --platform=node",
+    "test": "node ./out-test/test/runTest.js",
     "prepare": "husky install"
   },
   "devDependencies": {
