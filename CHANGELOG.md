@@ -4,6 +4,14 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+## [1.0.6] - 2023-12-12
+
+### Fixed
+
+- Convert recursive array items failed.
+
 ## [1.0.5] - 2023-09-05
 
 ### Fixed
