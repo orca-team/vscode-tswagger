@@ -6,8 +6,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-## [1.0.6] - 2023-12-12
-
 ### Fixed
 
 - Convert recursive array items failed.
