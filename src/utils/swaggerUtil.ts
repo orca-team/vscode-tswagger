@@ -182,7 +182,7 @@ const collectV2AllDepDefs = (defQueue: DepDefListItem[], entireDefs: OpenAPIV2.D
   new Array(length).fill(0).map(() => {
     const current = defQueue.shift();
     const defList = collectRefName(entireDefs[current!]);
-    if (defList.size) {
+    if (defList.size && !defList.has(current!)) {
       batchAdd2Set(resultSet, ...defList);
       defQueue.push(...defList);
     }
@@ -199,6 +199,8 @@ const collectV2AllDepDefs = (defQueue: DepDefListItem[], entireDefs: OpenAPIV2.D
 export const shakeV2RefsInSchema = (schema: OpenAPIV2.SchemaObject, entireDefs: OpenAPIV2.DefinitionsObject) => {
   // 先收集 schema 中的所有 $ref 实体名称
   const schemaRefNameSet = collectRefName({ ...schema, definitions: null });
+  console.log('******schemaRefNameSet', schemaRefNameSet);
+  console.log('******entireDefs', entireDefs);
   // 再根据从 schema 中收集到的实体类对 definitions 进行二次收集
   const defNameSet = new Set<string>();
   schemaRefNameSet.forEach((ref) => {

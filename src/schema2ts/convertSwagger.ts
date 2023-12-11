@@ -11,14 +11,22 @@ const filterStringByMapping = async (text: string | string[]) =>
 
 export const swaggerSchemaBasicTypes = ['string', 'boolean', 'number', 'integer'];
 
-export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
+export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject, isArrayItems = false): Promise<JSONSchema> => {
   const { $ref: $schemaRef, type: schemaType = '', title: schemaTitle, description, ...otherProps } = swaggerSchema;
   const mergeCommonJSONSchema = (additionalSchema: JSONSchema): JSONSchema => ({ title: schemaTitle, description, ...additionalSchema });
 
+  // 处理 $ref 引用类型
   if ($schemaRef) {
     const refClassName = match$RefClassName($schemaRef);
+    const currentClassName = await filterStringByMapping(refClassName);
+
+    // 引用类型数组直接定义 tsType
+    if (isArrayItems) {
+      return { tsType: currentClassName };
+    }
+
     return {
-      $ref: `#/definitions/${await filterStringByMapping(refClassName)}`,
+      $ref: `#/definitions/${currentClassName}`,
     };
   }
 
@@ -48,7 +56,7 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
     const { items: arrayItems } = swaggerSchema;
     return mergeCommonJSONSchema({
       type: 'array',
-      items: await convertAPIV2ToJSONSchema(arrayItems ?? {}),
+      items: await convertAPIV2ToJSONSchema(arrayItems ?? {}, null, true),
     });
   }
 
@@ -78,8 +86,12 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
   return mergeCommonJSONSchema(buildAnyTypeSchema());
 };
 
-export const convertAPIV2ToJSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject, V2Document?: OpenAPIV2.Document): Promise<JSONSchema> => {
-  const JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
+export const convertAPIV2ToJSONSchema = async (
+  swaggerSchema: OpenAPIV2.SchemaObject,
+  V2Document?: OpenAPIV2.Document | null,
+  isArrayItems = false,
+): Promise<JSONSchema> => {
+  const JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema, isArrayItems);
   JSONSchema.definitions = await convertAPIV2Definitions(
     (swaggerSchema.definitions ? (swaggerSchema.definitions as OpenAPIV2.DefinitionsObject) : V2Document?.definitions) ?? {},
   );
