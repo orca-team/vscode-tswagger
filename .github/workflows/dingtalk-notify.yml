@@ -2,7 +2,7 @@ name: DingTalk Notify
 on:
   workflow_dispatch: # manual trigger
   release:
-    types: [published]
+    types: [created]
 
 jobs:
     build:
