@@ -48,3 +48,18 @@ jobs:
           draft: false
           prerelease: false
           files: ./${{ env.PACKAGE_NAME }}.vsix
+      - name: Dingtalk Notify
+        uses: zcong1993/actions-ding@master
+        with:
+          dingToken: ${{ secrets.DING_TALK_ACCESS_TOKEN}}
+          body: |
+            {
+                "msgtype": "markdown",
+                "markdown": {
+                    "title":"👏👏 TSwagger Release Successful",
+                    "text": "### vscode-tswagger \n\n**tswagger@${{ env.PACKAGE_VERSION }}** had been published. These are the changes:\n\n${{ steps.changelog.outputs.changes }}"
+                },
+                "at": {
+                    "isAtAll": false
+                }
+            }
