@@ -254,12 +254,14 @@ const mergeServiceMapJSONByGroup = (
   serviceList.forEach((result) => {
     const { path, method } = result;
     const originalNameMappingIndex = originalServiceMapJSON.nameMappingList.findIndex((it) => it.path === path && it.method === method);
+    const currentNameMapping = currentServiceMapJSON.nameMappingList.find((it) => it.path === path && it.method === method);
     // 更新 nameMappingList
     if (originalNameMappingIndex > -1) {
-      const currentNameMapping = currentServiceMapJSON.nameMappingList.find((it) => it.path === path && it.method === method);
       const originalServiceName = originalServiceMapJSON.nameMappingList[originalNameMappingIndex].serviceName!;
       mergedServiceMapJSON.nameMappingList[originalNameMappingIndex] = currentNameMapping!;
       changedServiceList.push(originalServiceName);
+    } else {
+      mergedServiceMapJSON.nameMappingList.push(currentNameMapping!);
     }
   });
 
