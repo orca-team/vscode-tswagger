@@ -57,7 +57,7 @@ jobs:
                 "msgtype": "markdown",
                 "markdown": {
                     "title":"👏👏 TSwagger Release Successful",
-                    "text": "### vscode-tswagger \n\n**tswagger@${{ env.PACKAGE_VERSION }}** had been published. These are the changes:\n\n${{ steps.changelog.outputs.changes }}"
+                    "text": "### vscode-tswagger \n\n**tswagger@${{ env.PACKAGE_VERSION }}** had been published. You can see it on the [market](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger)**(might wait a few minutes)**. \n\nThese are the changes:\n\n${{ steps.changelog.outputs.changes }}"
                 },
                 "at": {
                     "isAtAll": false
