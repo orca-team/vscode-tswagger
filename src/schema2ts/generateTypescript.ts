@@ -70,7 +70,7 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
   }
 
   return `${FILE_DESCRIPTION}import { ${[...usedMethods].join(', ')} } from '${sourcePath || ''}';
-import type { FetchResult } from '${sourcePath || ''}'\n\n`;
+import type { FetchResult } from '${sourcePath || ''}';\n\n`;
 };
 
 /**
@@ -150,7 +150,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   return `
 ${serviceDescription}
 export const ${serviceName} = (${requestParams.join(', ')}) => {
-  ${formDataBody ? `${JSON_TO_FORM_DATA}  ${serviceReturnStr}` : serviceReturnStr}
+  ${formDataBody ? `${JSON_TO_FORM_DATA}  ${serviceReturnStr}` : serviceReturnStr};
 }
 `;
 };
