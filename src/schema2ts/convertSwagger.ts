@@ -66,7 +66,7 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
     }
     for (const [key, value] of Object.entries(swaggerSchema.properties ?? {})) {
       properties[key] = await convertAPIV2ToJSONSchema(value);
-      if (value.required) {
+      if (isArray(value.required) && value.required.length > 0) {
         requiredSet.add(key);
       }
     }
