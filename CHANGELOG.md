@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Changed
+
+- Compatible with the `post` and `put` method which has the query params.
+
 ## [1.0.9] - 2023-12-13
 
 ### Fixed

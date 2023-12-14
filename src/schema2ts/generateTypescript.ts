@@ -76,7 +76,7 @@ import type { FetchResult } from '${sourcePath || ''}';\n\n`;
 /**
  * 简化接口生成方式:
  * get 和 delete 请求默认只有 query 没有 body
- * post 和 pust 请求默认只要 body 没有 query
+ * post 和 put 请求默认只要 body 没有 query，特殊情况下携带了 query 参数，生成结果会为 path 添加和转换参数
  * @param method 请求方式
  * @param isFormData 是否是 FormData 类型的数据
  * @returns 接口默认请求参数
@@ -99,6 +99,20 @@ const formatServiceDescription = (serviceInfo: SwaggerCollectionGroupItem) => {
  * @method ${toUpper(method)}
  * @path ${path}
  */`;
+};
+
+const formatServicePath = (url: string, method: string, options = { hasPathParam: false, hasPathQuery: false }) => {
+  const { hasPathParam, hasPathQuery } = options;
+  const isCompatibleMethod = ['post', 'put'].includes(method);
+
+  // 路径存在参数则替换为模板字符串
+  const replacedPathParamUrl = hasPathParam ? url.replace(/\{(\w+)\}/g, (_, $1) => `\${${$1}}`) : '';
+  // 路径存在查询参数则增加 URLSearchParams（仅对非 get 和 delete 请求又有携带路径参数的情况进行兼容）
+  const replacedPathParamUrlQuery = isCompatibleMethod && hasPathQuery ? `?\${new URLSearchParams(query).toString()}` : '';
+  // 是否添加模板字符串：1. 路径中存在参数；2. 需要兼容的 method 请求中携带查询参数
+  const isAddTemplateString = hasPathParam || (isCompatibleMethod && hasPathQuery);
+
+  return isAddTemplateString ? `\`${(replacedPathParamUrl || url) + replacedPathParamUrlQuery}\`` : `'${url}'`;
 };
 
 /**
@@ -127,10 +141,8 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   let requestOptionsStr = '';
   let url = addBasePathPrefix && basePath ? `${basePath}${path}` : path;
   const hasPathParam = !!pathParam;
+  const hasPathQuery = !!pathQuery;
 
-  if (hasPathParam) {
-    url = url.replace(/\{(\w+)\}/g, (_, $1) => `\${${$1}}`);
-  }
   if (pathQuery) {
     requestParams.push(`query: ${pathQuery}`);
     requestOptionsStr += `params: query, `;
@@ -143,9 +155,11 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
     requestOptionsStr += `data`;
   }
 
-  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<FetchResult<${response ?? 'any'}>>(${
-    hasPathParam ? `\`${url}\`` : `'${url}'`
-  }${requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''})`;
+  const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<FetchResult<${response ?? 'any'}>>(${formatServicePath(
+    url,
+    currentMethod,
+    { hasPathParam, hasPathQuery },
+  )}${requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''})`;
 
   return `
 ${serviceDescription}
