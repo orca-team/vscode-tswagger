@@ -221,7 +221,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                       </div>
                                     }
                                     size="small"
-                                    labelStyle={{ width: 160 }}
+                                    labelStyle={{ width: 200 }}
                                     bordered
                                   >
                                     {apiGroupItemConfigs.map(({ key: nameField, label }) => {

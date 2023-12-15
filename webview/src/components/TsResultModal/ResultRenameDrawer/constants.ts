@@ -2,7 +2,7 @@ import { ApiGroupNameMapping } from '../../../../../src/types';
 
 export type ApiGroupItemConfigType = {
   label: string;
-  key: keyof Pick<ApiGroupNameMapping, 'serviceName' | 'pathParamName' | 'pathQueryName' | 'requestBodyName' | 'responseBodyName'>;
+  key: keyof Pick<ApiGroupNameMapping, 'serviceName' | 'pathParamName' | 'pathQueryName' | 'requestBodyName' | 'responseBodyName' | 'formDataName'>;
 };
 
 export const apiGroupItemConfigs: ApiGroupItemConfigType[] = [
@@ -25,5 +25,9 @@ export const apiGroupItemConfigs: ApiGroupItemConfigType[] = [
   {
     label: '返回体数据类型名称',
     key: 'responseBodyName',
+  },
+  {
+    label: 'FormData 数据类型名称',
+    key: 'formDataName',
   },
 ];

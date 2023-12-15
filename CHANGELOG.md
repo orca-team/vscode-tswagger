@@ -13,6 +13,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 
 - Duplicate generated interface name because of the same `operationId`.
+- Missing `FormData` type in the rename modal.
 
 ## [1.0.9] - 2023-12-13
 
