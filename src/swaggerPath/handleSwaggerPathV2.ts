@@ -9,7 +9,8 @@ const generateTsName = async (apiPath: ApiPathTypeV2, type: string) => {
   const { method, pathInfo, path } = apiPath;
   const { operationId } = pathInfo;
   if (operationId) {
-    return composeNameByAPIPath('', await filterString(operationId), '');
+    // add type 'cause may have the same operationId
+    return composeNameByAPIPath('', await filterString(operationId), type);
   }
   return composeNameByAPIPath(method, path, type);
 };

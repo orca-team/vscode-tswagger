@@ -10,6 +10,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Compatible with the `post` and `put` method which has the query params.
 
+### Fixed
+
+- Duplicate generated interface name because of the same `operationId`.
+
 ## [1.0.9] - 2023-12-13
 
 ### Fixed
