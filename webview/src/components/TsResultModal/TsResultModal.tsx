@@ -68,20 +68,24 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
         ),
         key: groupName,
         selectable: false,
-        children: serviceList.map(({ serviceName }, pathIndex) => ({
+        children: serviceList.map(({ serviceName }, serviceIndex) => ({
           title: (
             <Text ellipsis={{ tooltip: true }} style={{ fontSize: 14, maxWidth: 180, letterSpacing: 1 }}>
               {serviceName}
             </Text>
           ),
-          // 增加 index 作为唯一性 key
-          // 可能存在相同的 serviceName (如：当后端设置了相同的 operationId)
-          key: [groupName, serviceName, pathIndex].join(','),
+          key: [groupName, serviceIndex].join(','),
         })),
       });
     });
     setApiPathTree(newTreeData);
-    setPathKey(newTreeData?.[0]?.children?.[0]?.key?.toString());
+    const firstKey = newTreeData?.[0]?.children?.[0]?.key?.toString();
+    if (firstKey === pathKey) {
+      // 手动触发一下
+      handleEditContent(firstKey);
+    } else {
+      setPathKey(firstKey);
+    }
   });
 
   const handleAftreRenameTs = useMemoizedFn((result: V2TSGenerateResult) => {
@@ -106,20 +110,24 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     }
   });
 
-  useEffect(() => {
-    if (!pathKey) {
+  const handleEditContent = (latestPathKey?: Key) => {
+    if (!latestPathKey) {
       return;
     }
-    const [groupName, serviceName] = pathKey.toString().split(',');
-    const originalContent =
-      originalServiceResult.find((it) => it.groupName === groupName)?.serviceList.find((it) => it.serviceName === serviceName)?.tsDefs ?? '';
-    const modifiedContent = _this.latestTsResult.serviceResult
-      .find((it) => it.groupName === groupName)
-      ?.serviceList.find((it) => it.serviceName === serviceName)?.tsDefs;
+    const [groupName, index] = latestPathKey.toString().split(',');
+    const serviceIndex = Number(index);
+    const originalContent = originalServiceResult.find((it) => it.groupName === groupName)?.serviceList?.[serviceIndex]?.tsDefs ?? '';
+    const modifiedContent = _this.latestTsResult.serviceResult.find((it) => it.groupName === groupName)?.serviceList?.[serviceIndex]?.tsDefs;
     setEditorContent({
       originalContent,
       modifiedContent,
     });
+  };
+
+  useEffect(() => {
+    if (pathKey) {
+      handleEditContent(pathKey);
+    }
   }, [pathKey]);
 
   useMount(() => {

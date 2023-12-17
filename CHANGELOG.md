@@ -4,6 +4,18 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Cannot show the diff content after renaming the interface.
+
+## [1.1.1] - 2023-12-15
+
+### Fixed
+
+- Cannot rename the interface.
+
 ## [1.1.0] - 2023-12-15
 
 ### Changed
