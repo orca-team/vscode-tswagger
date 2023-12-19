@@ -12,6 +12,8 @@ import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, Ren
 import { collectAllDefNameMapping } from '@/utils';
 import type { DataNode } from 'antd/es/tree';
 import notification from '@/utils/notification';
+import { OpenAPIV2 } from 'openapi-types';
+import { useGlobalState } from '@/states/globalState';
 
 const { Text } = Typography;
 
@@ -27,11 +29,13 @@ export interface TsResultModalProps extends ModalProps, V2TSGenerateResult {
     newNameMappingList: ApiGroupNameMapping[],
     newDefNameMappingList: ApiGroupDefNameMapping[],
   ) => Promise<FetchResult<boolean>>;
+  V2Docs?: OpenAPIV2.Document;
 }
 
 const TsResultModal: React.FC<TsResultModalProps> = (props) => {
   const {
     className = '',
+    V2Docs,
     serviceResult: originalServiceResult,
     nameMappingList,
     defNameMappingList,
@@ -41,7 +45,10 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     ...otherProps
   } = props;
 
+  const currentBasePath = V2Docs?.basePath ?? '';
   const drawer = usePromisifyDrawer();
+  const { tswaggerConfig } = useGlobalState();
+  const mappedBasePathList = Object.keys(tswaggerConfig.basePathMapping ?? {});
   const [renameDrawerProps, setRenameDrawerProps] = useSetState<Partial<ResultRenameDrawerProps>>({});
   const [apiPathTree, setApiPathTree] = useState<DataNode[]>([]);
   const [pathKey, setPathKey] = useState<Key>();
@@ -141,7 +148,16 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
   return (
     <Modal
       className={`${styles.root} ${className}`}
-      title="Typescript 结果预览"
+      title={
+        <div className={styles.title}>
+          <Text>生成结果预览</Text>
+          {mappedBasePathList.includes(currentBasePath) && tswaggerConfig.addBasePathPrefix ? (
+            <Text type="warning">
+              （检测到路径前缀映射文件，已自动将 {currentBasePath} 替换为 {tswaggerConfig?.basePathMapping?.[currentBasePath]} ）`
+            </Text>
+          ) : null}
+        </div>
+      }
       width="95%"
       wrapClassName={styles.wrap}
       maskClosable={false}

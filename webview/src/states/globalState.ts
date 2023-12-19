@@ -1,6 +1,7 @@
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { useSetState } from 'ahooks';
 import { createGlobalStore } from 'hox';
+import { TSwaggerConfig } from '../../../src/types';
 
 export type ExtSettingType = {
   /**
@@ -18,9 +19,13 @@ export const [useGlobalState] = createGlobalStore(() => {
   const [extSetting, setExtSetting] = useSetState<ExtSettingType>({
     swaggerUrlList: [],
   });
+  // 当前项目配置
+  const [tswaggerConfig, setTswaggerConfig] = useSetState<TSwaggerConfig>({});
 
   return {
     extSetting,
     setExtSetting,
+    tswaggerConfig,
+    setTswaggerConfig,
   };
 });

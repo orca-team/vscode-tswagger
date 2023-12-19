@@ -22,14 +22,16 @@ import templateAxios from './requestTemplates/axios';
 import { getGlobalContext } from './globalContext';
 import YAML from 'yaml';
 import { join } from 'path';
-import { currentTime, getConfigJSONPath, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
+import { currentTime, getConfigJSONPath, getMappedBasePath, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
 import { DEFAULT_CONFIG_JSON } from './constants';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
   const allSetting = getAllConfiguration(['swaggerUrlList']);
-  const globalState = getGlobalState(context);
+  const globalState = getGlobalState(context); // 插件配置
+  const config = getTSwaggerConfigJSON();
   return {
     setting: allSetting,
+    config,
     globalState,
   };
 };
@@ -92,10 +94,11 @@ export const updateSwaggerUrl = async (data: any) => {
 const readServiceMappingFile = (config: GenerateTypescriptConfig): RenameMapping => {
   const { V2Document, collection } = config;
   const { basePath } = V2Document;
+  const mappedBasePath = getMappedBasePath(basePath);
   const tagList = collection.map((it) => it.tag);
 
   const renameMapping: RenameMapping = { nameGroup: [], allDefNameMapping: {} };
-  const baseTargetPath = getServiceMapPath(basePath);
+  const baseTargetPath = getServiceMapPath(mappedBasePath);
 
   if (!baseTargetPath || !existsSync(baseTargetPath)) {
     return renameMapping;
@@ -220,6 +223,7 @@ const getServiceMapInfoJSON = (
   defNameMappingList: ApiGroupDefNameMapping[],
 ): ServiceMapInfoYAMLJSONType => {
   const { basePath } = swaggerInfo;
+  const mappedBasePath = getMappedBasePath(basePath);
   const context = getGlobalContext();
   // 插件版本号
   const tswagger = context.extension.packageJSON.version;
@@ -228,7 +232,7 @@ const getServiceMapInfoJSON = (
 
   const json: ServiceMapInfoYAMLJSONType = {
     tswagger,
-    basePath,
+    basePath: mappedBasePath,
     groupName,
     createTime,
     nameMappingList,
@@ -241,10 +245,10 @@ const getServiceMapInfoJSON = (
 const mergeServiceMapJSONByGroup = (
   groupResult: ApiGroupServiceResult,
   currentServiceMapJSON: ServiceMapInfoYAMLJSONType,
-  basePath?: string,
+  mappedBasePath?: string,
 ): { mergedServiceMapJSON: ServiceMapInfoYAMLJSONType; changedServiceList: string[] } => {
   const { groupName, serviceList } = groupResult;
-  const originalServiceMapJSON = getServiceMapJSON(groupName, basePath);
+  const originalServiceMapJSON = getServiceMapJSON(groupName, mappedBasePath);
   const changedServiceList: string[] = [];
   if (!originalServiceMapJSON) {
     return { mergedServiceMapJSON: currentServiceMapJSON, changedServiceList };
@@ -301,8 +305,9 @@ export const generateV2ServiceFile = async (webview: vscode.Webview, params: { s
   const { serviceResult, nameMappingList, defNameMappingList } = data;
   // 文档基本信息
   const { basePath } = swaggerInfo;
+  const mappedBasePath = getMappedBasePath(basePath);
   // 基本路径
-  const baseTargetPath = getServiceMapPath(basePath);
+  const baseTargetPath = getServiceMapPath(mappedBasePath);
   if (!baseTargetPath) {
     return null;
   }
@@ -329,7 +334,7 @@ export const generateV2ServiceFile = async (webview: vscode.Webview, params: { s
     const groupDefNameMappingList = defNameMappingList.filter((it) => it.groupName === groupName);
     // 接口名称映射文件
     const currentServiceMapJSON = getServiceMapInfoJSON(swaggerInfo, groupName, groupNameMappingList, groupDefNameMappingList);
-    const { mergedServiceMapJSON, changedServiceList } = mergeServiceMapJSONByGroup(result, currentServiceMapJSON, basePath);
+    const { mergedServiceMapJSON, changedServiceList } = mergeServiceMapJSONByGroup(result, currentServiceMapJSON, mappedBasePath);
     const mergedServiceMapYaml = YAML.stringify(mergedServiceMapJSON);
     // 名称映射文件
     outputFileSync(join(baseTargetPath, groupName, 'service.map.yaml'), mergedServiceMapYaml, { encoding: 'utf-8' });

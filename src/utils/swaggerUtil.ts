@@ -278,3 +278,15 @@ export const groupV2Parameters = (parameters: OpenAPIV2.Parameters) => {
     bodyParameter,
   };
 };
+
+/**
+ * 获取映射后的文档路径前缀
+ * @param basePath 原文档路径前缀
+ * @returns 映射后的路径前缀
+ */
+export const getMappedBasePath = (basePath?: string) => {
+  const tswaggerConfig = getTSwaggerConfigJSON();
+  const mappedBasePath = basePath ? tswaggerConfig?.basePathMapping?.[basePath] ?? basePath : basePath;
+
+  return mappedBasePath;
+};

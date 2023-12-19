@@ -55,7 +55,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [configForm] = useForm();
   const currentSwaggerUrl = useWatch<string>('swaggerUrl', form);
 
-  const { extSetting, setExtSetting } = useGlobalState();
+  const { extSetting, setExtSetting, setTswaggerConfig } = useGlobalState();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
   const modalController = usePromisifyModal();
@@ -85,6 +85,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const handleExtInfo = useMemoizedFn(async () => {
     const extInfoResp = await apiQueryExtInfo();
     setExtSetting({ swaggerUrlList: extInfoResp.data.setting.swaggerUrlList ?? [] });
+    setTswaggerConfig(extInfoResp.data.config ?? {});
   });
 
   const handleV2DocumentData = (apiDocs: OpenAPIV2.Document) => {
@@ -174,7 +175,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     const result = await generateV2Typescript();
     stopGenerateLoading();
     if (result.success) {
-      modalController.show(<TsResultModal {...result.data} renameTypescript={generateV2Typescript} saveTypescript={saveTypescript} />);
+      modalController.show(
+        <TsResultModal {...result.data} V2Docs={swaggerDocs} renameTypescript={generateV2Typescript} saveTypescript={saveTypescript} />,
+      );
     } else {
       notification.error(result.errMsg ?? 'Typescript 生成失败，请稍后再试');
     }

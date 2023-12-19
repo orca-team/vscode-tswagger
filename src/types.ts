@@ -222,4 +222,6 @@ export type TSwaggerConfig = Partial<{
   fetchFilePath: string;
   /** 是否自动为生成的接口文件增加前缀，默认为 true */
   addBasePathPrefix: boolean;
+  /** 路径前缀名称映射 */
+  basePathMapping?: Record<string, string>;
 }>;

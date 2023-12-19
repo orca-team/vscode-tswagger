@@ -116,6 +116,25 @@ const formatServicePath = (url: string, method: string, options = { hasPathParam
 };
 
 /**
+ * 为接口路径添加前缀
+ * @param path 路径
+ * @param basePath 路径前缀
+ * @param config tswagger 配置信息
+ * @returns 拼接前缀后的路径
+ */
+const addBasePathPrefixUrl = (path: string, basePath?: string, config: TSwaggerConfig = {}) => {
+  const { addBasePathPrefix, basePathMapping } = config;
+  if (!addBasePathPrefix || !basePath) {
+    return path;
+  }
+  if (basePathMapping?.[basePath]) {
+    return `${basePathMapping[basePath]}${path}`;
+  }
+
+  return `${basePath}${path}`;
+};
+
+/**
  * 生成接口
  * @param serviceInfo 入参、出参、接口名称映射信息
  * @returns service 字符串
@@ -139,7 +158,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const isDeleteMethod = currentMethod === 'delete';
   const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
   let requestOptionsStr = '';
-  let url = addBasePathPrefix && basePath ? `${basePath}${path}` : path;
+  let url = addBasePathPrefixUrl(path, basePath, config);
   const hasPathParam = !!pathParam;
   const hasPathQuery = !!pathQuery;
 
