@@ -10,6 +10,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Support to map the `basePath` by adding `basePathMapping` config.
 
+### Fixed
+
+- Cannot generate correct request ts type of the `array` schema type.
+
 ## [1.1.1] - 2023-12-17
 
 ### Fixed

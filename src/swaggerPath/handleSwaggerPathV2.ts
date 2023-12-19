@@ -102,16 +102,29 @@ export const handleV2Request = async (
       collection.push({
         type: 'body',
         name: finalName,
-        schemaList: [
-          {
-            definitions: V2Document.definitions,
-            type: 'object',
-            title: finalName,
-            description: bodySchema.description ?? generateTsDefDesc(apiPath, '请求体'),
-            properties: bodySchema.properties,
-            required: bodySchema.required,
-          },
-        ],
+        schemaList:
+          bodySchema.type === 'array'
+            ? [
+                {
+                  definitions: V2Document.definitions,
+                  type: 'array',
+                  title: finalName,
+                  items: bodySchema.items,
+                  description: bodySchema.description ?? generateTsDefDesc(apiPath, '请求体'),
+                  properties: bodySchema.properties,
+                  required: bodySchema.required,
+                },
+              ]
+            : [
+                {
+                  definitions: V2Document.definitions,
+                  type: 'object',
+                  title: finalName,
+                  description: bodySchema.description ?? generateTsDefDesc(apiPath, '请求体'),
+                  properties: bodySchema.properties,
+                  required: bodySchema.required,
+                },
+              ],
       });
     }
   }
