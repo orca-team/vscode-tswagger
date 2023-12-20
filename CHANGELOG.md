@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Changed
+
+- Modify the result modal title.
+
 ## [1.2.0] - 2023-12-19
 
 ### Added

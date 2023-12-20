@@ -153,7 +153,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
           <Text>生成结果预览</Text>
           {mappedBasePathList.includes(currentBasePath) && tswaggerConfig.addBasePathPrefix ? (
             <Text type="warning">
-              （检测到路径前缀映射文件，已自动将 {currentBasePath} 替换为 {tswaggerConfig?.basePathMapping?.[currentBasePath]} ）`
+              （检测到路径前缀映射配置，已自动将 {currentBasePath} 替换为 {tswaggerConfig?.basePathMapping?.[currentBasePath]} ）
             </Text>
           ) : null}
         </div>
