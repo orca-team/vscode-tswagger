@@ -15,7 +15,7 @@ import {
 } from './types';
 import { OpenAPIV2 } from 'openapi-types';
 import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from './schema2ts/generateTypescript';
-import { existsSync, outputFileSync, pathExistsSync, readFileSync, removeSync } from 'fs-extra';
+import { existsSync, outputFileSync, readFileSync, readdirSync, removeSync, statSync } from 'fs-extra';
 import { sendCurrTsGenProgressMsg, sendFetchFileGenMsg } from './serverSentEvents';
 import { flatMap, omit } from 'lodash-es';
 import templateAxios from './requestTemplates/axios';
@@ -299,6 +299,24 @@ export const saveConfigJSON = async (configJSON: TSwaggerConfig) => {
   return true;
 };
 
+// 生成接口入口文件 index.ts
+export const generateEntryServiceFile = (targetDir: string) => {
+  const serviceFileNameList: string[] = [];
+  const entries = readdirSync(targetDir);
+  entries.forEach((entry) => {
+    const entryPath = join(targetDir, entry);
+    if (entry === 'index.ts') {
+      return;
+    }
+    // 检测到 {service}.ts 文件
+    if (!statSync(entryPath).isDirectory() && entry.endsWith('.ts')) {
+      serviceFileNameList.push(/^(.*)\.ts$/.exec(entry)?.[1]!);
+    }
+  });
+  const serviceIndexContent = serviceFileNameList.map((serviceName) => `export { ${serviceName} } from './${serviceName}.ts';`).join('\n\n') + '\n';
+  outputFileSync(join(targetDir, 'index.ts'), serviceIndexContent, { encoding: 'utf-8' });
+};
+
 // 生成 ts 文件至项目中，生成路径：src/.tswagger
 export const generateV2ServiceFile = async (webview: vscode.Webview, params: { swaggerInfo: OpenAPIV2.Document; data: V2TSGenerateResult }) => {
   const { swaggerInfo, data } = params;
@@ -342,17 +360,14 @@ export const generateV2ServiceFile = async (webview: vscode.Webview, params: { s
     changedServiceList.forEach((originalServiceName) => {
       removeSync(join(baseTargetPath, groupName, `${originalServiceName}.ts`));
     });
-    // 生成 index.ts 文件
-    const serviceIndexContent = mergedServiceMapJSON.nameMappingList
-      .map((it) => `export { ${it.serviceName} } from './${it.serviceName}';\n`)
-      .join('\n');
-    outputFileSync(join(baseTargetPath, groupName, 'index.ts'), serviceIndexContent, { encoding: 'utf-8' });
     // 写入接口文件
     serviceList.forEach((service) => {
       const { tsDefs, serviceName } = service;
       // 接口文件
       outputFileSync(join(baseTargetPath, groupName, `${serviceName}.ts`), tsDefs, { encoding: 'utf-8' });
     });
+    // 生成 index.ts 入口文件
+    generateEntryServiceFile(join(baseTargetPath, groupName));
   });
 
   // 检查是否存在对应的 fetch 文件配置，若没有则自动生成
