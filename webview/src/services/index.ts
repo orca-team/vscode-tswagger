@@ -1,7 +1,7 @@
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { FetchResult, callService } from '@/utils/vscode';
 import { OpenAPI, OpenAPIV2 } from 'openapi-types';
-import { GenerateTypescriptConfig, TSwaggerConfig } from '../../../src/types';
+import { GenerateTypescriptConfig, ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '../../../src/types';
 import { V2TSGenerateResult } from '../../../src/controllers';
 import directoryTree from 'directory-tree';
 
@@ -36,3 +36,7 @@ export const apiCheckConfigJSON = async () => callService<FetchResult<boolean | 
 
 // 写入配置文件
 export const apiSaveConfigJSON = async (configJSON: TSwaggerConfig) => callService<FetchResult<boolean | null>>('webview-saveConfigJSON', configJSON);
+
+// 读取本地对应分组下的 service.map.yaml 文件
+export const apiReadServiceMapInfo = async (params: { mappedBasePath: string; groupNameList: string[] }) =>
+  callService<FetchResult<ServiceMapInfoYAMLJSONType[]>>('webview-readLocalServiceInfo', params);

@@ -12,6 +12,7 @@ import {
   parseSwaggerUrl,
   queryCwd,
   queryExtInfo,
+  readLocalServiceInfoByGroup,
   saveConfigJSON,
   updateSwaggerUrl,
   writeTsFile,
@@ -75,6 +76,8 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-checkConfigJSON', checkConfigJSON);
       // 写入 config.json
       registerService('webview-saveConfigJSON', saveConfigJSON);
+      // 获取不同分组下的 service.map.yaml 文件信息
+      registerService('webview-readLocalServiceInfo', readLocalServiceInfoByGroup);
 
       // 开始监听 ts 文件变化
       listenTsFileChange(umiPanel.webview);

@@ -1,19 +1,20 @@
 import React, { Key, useEffect, useState } from 'react';
 import styles from './TsResultModal.less';
 import MonacoEditor, { DiffEditor } from '@monaco-editor/react';
-import { Button, Modal, ModalProps, Space, Tooltip, Tree, Typography } from 'antd';
+import { Badge, Button, Empty, Modal, ModalProps, Space, Tooltip, Tree, Typography, theme } from 'antd';
 import { useBoolean, useMemoizedFn, useMount, useSetState } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
-import { CheckCircleOutlined, FormOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, FormOutlined, QuestionCircleFilled } from '@ant-design/icons';
 import { usePromisifyDrawer } from '@orca-fe/hooks';
 import ResultRenameDrawer, { ResultRenameDrawerProps } from './ResultRenameDrawer';
 import { V2TSGenerateResult } from '../../../../src/controllers';
-import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../../src/types';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping, ServiceMapInfoYAMLJSONType } from '../../../../src/types';
 import { collectAllDefNameMapping } from '@/utils';
 import type { DataNode } from 'antd/es/tree';
 import notification from '@/utils/notification';
 import { OpenAPIV2 } from 'openapi-types';
 import { useGlobalState } from '@/states/globalState';
+import { apiReadServiceMapInfo } from '@/services';
 
 const { Text } = Typography;
 
@@ -46,27 +47,41 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
   } = props;
 
   const currentBasePath = V2Docs?.basePath ?? '';
+  const { token } = theme.useToken();
   const drawer = usePromisifyDrawer();
   const { tswaggerConfig } = useGlobalState();
   const mappedBasePathList = Object.keys(tswaggerConfig.basePathMapping ?? {});
+  // 是否映射了 basePath
+  const hasMappedBasePath = mappedBasePathList.includes(currentBasePath) && tswaggerConfig.addBasePathPrefix;
+  // 映射后的 basePath
+  const mappedBasePath = tswaggerConfig?.basePathMapping?.[currentBasePath] ?? currentBasePath;
   const [renameDrawerProps, setRenameDrawerProps] = useSetState<Partial<ResultRenameDrawerProps>>({});
   const [apiPathTree, setApiPathTree] = useState<DataNode[]>([]);
   const [pathKey, setPathKey] = useState<Key>();
   const [editorContent, setEditorContent] = useSetState<EditorContent>({ originalContent: '' });
   const [diffState, { setTrue: showTsDefDiff, setFalse: hideTsDefDiff }] = useBoolean(false);
   const [saving, { setTrue: startSaving, setFalse: stopSaving }] = useBoolean(false);
-  const [_this] = useState<{ latestTsResult: V2TSGenerateResult }>({
+  const [_this] = useState<{ latestTsResult: V2TSGenerateResult; localServiceInfo: ServiceMapInfoYAMLJSONType[] }>({
     latestTsResult: {
       nameMappingList,
       defNameMappingList,
       serviceResult: originalServiceResult,
     },
+    localServiceInfo: [],
   });
 
-  const handleApiPathTree = useMemoizedFn((serviceResult: ApiGroupServiceResult[]) => {
+  const handleLocalServiceInfo = useMemoizedFn(async () => {
+    const groupNameList: string[] = originalServiceResult.map((item) => item.groupName);
+    const response = await apiReadServiceMapInfo({ mappedBasePath, groupNameList });
+    _this.localServiceInfo = response.data ?? [];
+  });
+
+  const handleApiPathTree = useMemoizedFn(async (serviceResult: ApiGroupServiceResult[]) => {
     const newTreeData: DataNode[] = [];
+    await handleLocalServiceInfo();
     serviceResult.forEach((result) => {
       const { groupName, serviceList } = result;
+
       newTreeData.push({
         title: (
           <Text ellipsis={{ tooltip: true }} style={{ fontSize: 16, maxWidth: 200 }}>
@@ -75,14 +90,24 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
         ),
         key: groupName,
         selectable: false,
-        children: serviceList.map(({ serviceName }, serviceIndex) => ({
-          title: (
-            <Text ellipsis={{ tooltip: true }} style={{ fontSize: 14, maxWidth: 180, letterSpacing: 1 }}>
-              {serviceName}
-            </Text>
-          ),
-          key: [groupName, serviceIndex].join(','),
-        })),
+        children: serviceList.map(({ serviceName, path, method }, serviceIndex) => {
+          // 本地是否已生成过
+          const isLocalGenerated = _this.localServiceInfo.some(
+            (item) => item.groupName === groupName && item.nameMappingList.some((service) => service.path === path && service.method === method),
+          );
+
+          return {
+            title: (
+              <div className={styles.serviceTitle}>
+                {isLocalGenerated ? <Badge color="green" className={styles.tipIcon} /> : <Badge color="red" className={styles.tipIcon} />}
+                <Text ellipsis={{ tooltip: true }} className={styles.text}>
+                  {serviceName}
+                </Text>
+              </div>
+            ),
+            key: [groupName, serviceIndex].join(','),
+          };
+        }),
       });
     });
     setApiPathTree(newTreeData);
@@ -150,10 +175,29 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
       className={`${styles.root} ${className}`}
       title={
         <div className={styles.title}>
-          <Text>生成结果预览</Text>
-          {mappedBasePathList.includes(currentBasePath) && tswaggerConfig.addBasePathPrefix ? (
+          <Tooltip
+            overlayClassName={styles.statusTipContainer}
+            title={
+              <div className={styles.statusTip}>
+                <Text strong>状态说明：</Text>
+                <br />
+                <div className={styles.statusItem}>
+                  <Badge color="green" className={styles.statusBadge} />
+                  <Text>本地已被记录过的接口</Text>
+                </div>
+                <div className={styles.statusItem}>
+                  <Badge color="red" className={styles.statusBadge} />
+                  <Text>本地未被记录过的接口</Text>
+                </div>
+              </div>
+            }
+          >
+            <QuestionCircleFilled style={{ cursor: 'pointer', marginRight: 6, color: token.colorPrimary }} />
+          </Tooltip>
+          <Text>结果预览</Text>
+          {hasMappedBasePath ? (
             <Text type="warning">
-              （检测到路径前缀映射配置，已自动将 {currentBasePath} 替换为 {tswaggerConfig?.basePathMapping?.[currentBasePath]} ）
+              （检测到路径前缀映射配置，已自动将 {currentBasePath} 替换为 {mappedBasePath} ）
             </Text>
           ) : null}
         </div>
@@ -186,15 +230,19 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
       </Space>
       <div className={styles.container}>
         <div className={styles.pathTree}>
-          <Tree
-            showLine
-            defaultExpandAll
-            selectedKeys={pathKey ? [pathKey] : []}
-            onSelect={(selectedKeys) => {
-              setPathKey(selectedKeys[0]);
-            }}
-            treeData={apiPathTree}
-          />
+          {apiPathTree.length ? (
+            <Tree
+              showLine
+              defaultExpandAll
+              selectedKeys={pathKey ? [pathKey] : []}
+              onSelect={(selectedKeys) => {
+                setPathKey(selectedKeys[0]);
+              }}
+              treeData={apiPathTree}
+            />
+          ) : (
+            <Empty />
+          )}
         </div>
         <div className={styles.editor}>
           {!diffState && (

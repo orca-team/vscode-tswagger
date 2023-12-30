@@ -25,9 +25,39 @@
       width: 250px;
       max-height: 70vh;
       overflow: auto;
+
+      .serviceTitle {
+        display: flex;
+        align-items: center;
+
+        .tipIcon {
+          margin-right: 4px;
+        }
+
+        .text {
+          font-size: 14px;
+          max-width: 160px;
+          letter-spacing: 1px;
+        }
+      }
     }
     .editor {
       flex: 1;
+    }
+  }
+}
+
+.statusTipContainer {
+  .statusTip {
+    position: relative;
+
+    .statusItem {
+      display: flex;
+      align-items: center;
+
+      .statusBadge {
+        margin-right: 4px;
+      }
     }
   }
 }

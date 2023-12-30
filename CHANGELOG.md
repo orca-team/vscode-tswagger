@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Support displaying whether the api has been recorded locally.
+
 ### Fixed
 
 - Export repetitive service files in the `index.ts` file.

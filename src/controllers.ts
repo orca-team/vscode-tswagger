@@ -373,3 +373,30 @@ export const generateV2ServiceFile = async (webview: vscode.Webview, params: { s
   // 检查是否存在对应的 fetch 文件配置，若没有则自动生成
   checkFetchFile();
 };
+
+// 读取对应分组下的 service.map.yaml 文件信息
+export const readLocalServiceInfoByGroup = async (params: {
+  mappedBasePath: string;
+  groupNameList: string[];
+}): Promise<ServiceMapInfoYAMLJSONType[]> => {
+  const { mappedBasePath, groupNameList } = params;
+  // 基本路径
+  const baseTargetPath = getServiceMapPath(mappedBasePath);
+
+  if (!baseTargetPath) {
+    return [];
+  }
+
+  const result: ServiceMapInfoYAMLJSONType[] = [];
+  groupNameList.forEach((groupName) => {
+    const serviceMapPath = join(baseTargetPath, groupName, 'service.map.yaml');
+    if (!existsSync(serviceMapPath)) {
+      return;
+    }
+    const serviceMapYaml = readFileSync(serviceMapPath, { encoding: 'utf-8' });
+    const serviceMapJSON = YAML.parse(serviceMapYaml);
+    result.push(serviceMapJSON);
+  });
+
+  return result;
+};
