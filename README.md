@@ -67,7 +67,7 @@
 | 配置项              | 说明                                                       | 类型                     | 默认值          | 版本    |
 | ------------------- | ---------------------------------------------------------- | ------------------------ | --------------- | ------- |
 | `fetchFilePath`     | `fetch` 文件地址，约定必须以 `@` 开头，`@` 表示 `src` 目录 | `string`                 | `@/utils/fetch` |         |
-| `addBasePathPrefix` | 是否自动为生成的接口文件增加前缀                           | `boolean`                | `true`          |         |
+| `addBasePathPrefix` | 是否为生成的接口路径添加前缀                               | `boolean`                | `true`          |         |
 | `basePathMapping`   | 接口前缀映射，如：`/api-v1` 映射为 `/api`，可配置多个      | `Record<string, string>` | -               | `1.2.0` |
 
 ### fetch 文件
