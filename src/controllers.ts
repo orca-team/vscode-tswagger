@@ -313,7 +313,7 @@ export const generateEntryServiceFile = (targetDir: string) => {
       serviceFileNameList.push(/^(.*)\.ts$/.exec(entry)?.[1]!);
     }
   });
-  const serviceIndexContent = serviceFileNameList.map((serviceName) => `export { ${serviceName} } from './${serviceName}.ts';`).join('\n\n') + '\n';
+  const serviceIndexContent = serviceFileNameList.map((serviceName) => `export { ${serviceName} } from './${serviceName}';`).join('\n\n') + '\n';
   outputFileSync(join(targetDir, 'index.ts'), serviceIndexContent, { encoding: 'utf-8' });
 };
 
