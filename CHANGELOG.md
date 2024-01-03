@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Compatible with the `get` and `delete` method which has the request body params.
+
 ## [1.2.3] - 2024-01-01
 
 ### Fixed

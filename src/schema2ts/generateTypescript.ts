@@ -75,15 +75,16 @@ import type { FetchResult } from '${sourcePath || ''}';\n\n`;
 
 /**
  * 简化接口生成方式:
- * get 和 delete 请求默认只有 query 没有 body
+ * get 和 delete 请求默认只有 query 或 body
  * post 和 put 请求默认只要 body 没有 query，特殊情况下携带了 query 参数，生成结果会为 path 添加和转换参数
  * @param method 请求方式
  * @param isFormData 是否是 FormData 类型的数据
  * @returns 接口默认请求参数
  */
-const composeServiceParams = (method: string, isFormData?: boolean) => {
+const composeServiceParams = (method: string, options: { isFormData?: boolean; hasRequestBody?: boolean } = {}) => {
+  const { isFormData, hasRequestBody } = options;
   if (['get', 'delete'].includes(method)) {
-    return 'query';
+    return hasRequestBody ? 'data' : 'query';
   }
   return isFormData ? 'formData' : 'data';
 };
@@ -161,12 +162,13 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   let url = addBasePathPrefixUrl(path, basePath, config);
   const hasPathParam = !!pathParam;
   const hasPathQuery = !!pathQuery;
+  const hasRequestBody = !!requestBody;
 
   if (pathQuery) {
     requestParams.push(`query: ${pathQuery}`);
     requestOptionsStr += `params: query, `;
   }
-  if (requestBody) {
+  if (hasRequestBody) {
     requestParams.push(`data: ${requestBody}`);
     requestOptionsStr += `data`;
   } else if (formDataBody) {
@@ -178,7 +180,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
     url,
     currentMethod,
     { hasPathParam, hasPathQuery },
-  )}${requestOptionsStr ? `, ${composeServiceParams(currentMethod, !!formDataBody)}` : ''})`;
+  )}${requestOptionsStr ? `, ${composeServiceParams(currentMethod, { isFormData: !!formDataBody, hasRequestBody })}` : ''})`;
 
   return `
 ${serviceDescription}
