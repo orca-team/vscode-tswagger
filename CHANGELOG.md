@@ -4,7 +4,7 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [1.2.5] - 2024-01-10
+## [Unreleased]
 
 ### Changed
 
@@ -13,6 +13,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 
 - Generate interface failed beacuse of the definition which has the name with slash.
+
+## [1.2.5] - 2024-01-10
 
 ## [1.2.4] - 2024-01-03
 
