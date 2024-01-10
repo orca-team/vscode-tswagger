@@ -228,7 +228,7 @@ export const isLocalV2RefObject = (obj: any): obj is OpenAPIV2.ReferenceObject =
  * @param $ref 目标 $ref
  * @returns 实体类名称
  */
-export const match$RefClassName = ($ref: string) => $ref.split('/').slice(2);
+export const match$RefClassName = ($ref: string) => [$ref.slice($ref.indexOf('/', $ref.indexOf('/') + 1) + 1)];
 
 /**
  * 过滤并翻译文本
