@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### [Unreleased]
 
+### Changed
+
+- Error notification will be closed after 5 seconds.
+
 ### Fixed
 
 - Generate interface failed beacuse of the definition which has the name with slash.

@@ -20,9 +20,9 @@ const notification: Notification = {
   warning: (description, config) => {
     AntdNotification.warning({ message: '警告信息', description, duration: 5, ...config });
   },
-  // 错误信息默认不关闭
+  // 错误信息默认 5 秒后关闭
   error: (description, config) => {
-    AntdNotification.error({ message: '错误提示', description, duration: null, ...config });
+    AntdNotification.error({ message: '错误提示', description, duration: 5, ...config });
   },
 };
 
