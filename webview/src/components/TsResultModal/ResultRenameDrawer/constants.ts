@@ -2,17 +2,13 @@ import { ApiGroupNameMapping } from '../../../../../src/types';
 
 export type ApiGroupItemConfigType = {
   label: string;
-  key: keyof Pick<ApiGroupNameMapping, 'serviceName' | 'pathParamName' | 'pathQueryName' | 'requestBodyName' | 'responseBodyName' | 'formDataName'>;
+  key: keyof Pick<ApiGroupNameMapping, 'serviceName' | 'pathQueryName' | 'requestBodyName' | 'responseBodyName' | 'formDataName'>;
 };
 
 export const apiGroupItemConfigs: ApiGroupItemConfigType[] = [
   {
     label: '接口方法名称',
     key: 'serviceName',
-  },
-  {
-    label: '路径参数类型名称',
-    key: 'pathParamName',
   },
   {
     label: '携带参数类型名称',
