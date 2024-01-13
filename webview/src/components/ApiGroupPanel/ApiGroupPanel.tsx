@@ -1,13 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import styles from './ApiGroupPanel.less';
 import { Badge, Checkbox, Collapse, CollapsePanelProps, Space, Typography, theme } from 'antd';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import MethodTag from '@/components/MethodTag';
 import { useSelections } from 'ahooks';
 import { OpenAPIV2 } from 'openapi-types';
+import { WebviewPageContext } from '@/pages/context';
 
 const { Panel } = Collapse;
 const { Text } = Typography;
+
+const genSelectKey = (apiPathItem: ApiPathType) => {
+  const { method, path } = apiPathItem;
+
+  return `${method}_@@_${path}`;
+};
+
+const parseSelectKey = (selectedKey: string) => {
+  const [method, path] = selectedKey.split('_@@_');
+
+  return { method, path };
+};
 
 export interface ApiGroupPanelProps extends Omit<CollapsePanelProps, 'header'> {
   apiGroupItem: ApiGroupByTag;
@@ -16,10 +29,10 @@ export interface ApiGroupPanelProps extends Omit<CollapsePanelProps, 'header'> {
 
 const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   const { className = '', apiGroupItem, onChange, ...otherProps } = props;
+  const { refreshDocFlag } = useContext(WebviewPageContext);
   const { tag, apiPathList } = apiGroupItem;
-
   const { token } = theme.useToken();
-  const { selected, toggleAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList);
+  const { selected, toggleAll, unSelectAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList.map(genSelectKey));
 
   const displayPathInfo = (path: string, pathInfo: OpenAPIV2.OperationObject) => {
     const { summary } = pathInfo;
@@ -35,8 +48,18 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   };
 
   useEffect(() => {
-    onChange?.(tag, selected);
+    onChange?.(
+      tag,
+      selected.map((key) => {
+        const { method, path } = parseSelectKey(key);
+        return apiPathList.find((api) => api.method === method && api.path === path)!;
+      }),
+    );
   }, [selected]);
+
+  useEffect(() => {
+    unSelectAll();
+  }, [refreshDocFlag]);
 
   return (
     <Panel
@@ -47,7 +70,7 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
           <Checkbox
             checked={allSelected}
             indeterminate={partiallySelected}
-            onClick={(e) => {
+            onChange={(e) => {
               toggleAll();
               e.stopPropagation();
             }}
@@ -64,9 +87,9 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
           <div key={`${apiPath.path}-${index}`}>
             <Space size="small" className={styles.path}>
               <Checkbox
-                checked={isSelected(apiPath)}
-                onClick={() => {
-                  toggle(apiPath);
+                checked={isSelected(genSelectKey(apiPath))}
+                onChange={() => {
+                  toggle(genSelectKey(apiPath));
                 }}
               />
               <MethodTag method={apiPath.method} className={styles[`httpMethod-${apiPath.method}`]}>

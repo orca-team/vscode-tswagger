@@ -28,6 +28,7 @@ import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, Ren
 import notification from '@/utils/notification';
 import ConfigJsonForm from '@/components/ConfigJSONForm';
 import useMessageListener from '@/hooks/useMessageListener';
+import { WebviewPageContext } from './context';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -60,6 +61,8 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
   const modalController = usePromisifyModal();
   const [expand, { toggle: toggleExpand }] = useToggle(true);
+  // 是否重刷新解析文档
+  const [refreshDocFlag, { toggle: toggleRefreshDoc }] = useToggle(false);
   const [selectedApiMap, { set: setSelectedApiMap, remove: removeSelectedApiMap, reset: resetSelectedApiMap }] = useMap<
     OpenAPIV2.TagObject['name'],
     ApiPathType[]
@@ -102,6 +105,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     }
     startParseLoading();
     const resp = await apiParseSwaggerUrl(currentSwaggerUrl);
+    toggleRefreshDoc();
     stopParseLoading();
     resetPageWhenChange();
     const swaggerDocs = resp.data;
@@ -354,26 +358,28 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
               </Content>
             </Affix>
             <Spin spinning={parseLoading}>
-              {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
-              {!!currentApiGroup.length ? (
-                <Collapse className={styles.apiList}>
-                  {currentApiGroup.map((item, index) => (
-                    <ApiGroupPanel
-                      key={`${currentSwaggerUrl}-${index}`}
-                      onChange={(tag, selected) => {
-                        if (selected.length) {
-                          setSelectedApiMap(tag.name, selected);
-                        } else {
-                          removeSelectedApiMap(tag.name);
-                        }
-                      }}
-                      apiGroupItem={item}
-                    />
-                  ))}
-                </Collapse>
-              ) : (
-                <Empty className={styles.empty} />
-              )}
+              <WebviewPageContext.Provider value={{ refreshDocFlag }}>
+                {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
+                {!!currentApiGroup.length ? (
+                  <Collapse className={styles.apiList}>
+                    {currentApiGroup.map((item, index) => (
+                      <ApiGroupPanel
+                        key={`${currentSwaggerUrl}-${index}`}
+                        onChange={(tag, selected) => {
+                          if (selected.length) {
+                            setSelectedApiMap(tag.name, selected);
+                          } else {
+                            removeSelectedApiMap(tag.name);
+                          }
+                        }}
+                        apiGroupItem={item}
+                      />
+                    ))}
+                  </Collapse>
+                ) : (
+                  <Empty className={styles.empty} />
+                )}
+              </WebviewPageContext.Provider>
             </Spin>
           </Layout>
         </Layout>
