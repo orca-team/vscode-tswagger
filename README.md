@@ -39,21 +39,12 @@
 
 ### 3. 生成结果
 
-#### 3.1 选择所需的接口
+您可以选择相应的接口进行结果生成，可直接将结果保存至本地项目中。  
+如果对生成的结果命名不满意，还可以进行重命名操作。
 
-![首次生成需要补充配置文件](assets/images/readme/generateTypescript.png)
+![生成TS操作过程](assets/images/readme/generateTs.gif)
 
-#### 3.2 结果预览
-
-![结果预览](assets/images/readme/previewTypescript.png)
-
-### 4. 结果重命名
-
-![重命名](assets/images/readme/renameTsResult.png)
-
-### 5. 输出接口文件
-
-点击 “保存至项目” 即可生成接口文件。
+### 4. 查看接口文件
 
 ![生成结果](assets/images/readme/serviceFile.png)
 
