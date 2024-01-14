@@ -70,9 +70,11 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
           <Checkbox
             checked={allSelected}
             indeterminate={partiallySelected}
-            onChange={(e) => {
-              toggleAll();
+            onClick={(e) => {
               e.stopPropagation();
+            }}
+            onChange={() => {
+              toggleAll();
             }}
           />
           <Text strong style={{ fontSize: 16 }}>
