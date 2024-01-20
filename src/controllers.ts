@@ -159,6 +159,23 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
     return tsDefs;
   };
 
+  const getLocalServiceTsDefs = (groupName: string, serviceName: string) => {
+    const { basePath } = V2Document;
+    const mappedBasePath = getMappedBasePath(basePath);
+    if (!mappedBasePath) {
+      return;
+    }
+    const targetBasePath = getServiceMapPath(mappedBasePath);
+    if (!targetBasePath) {
+      return;
+    }
+    const servicePath = join(targetBasePath, groupName, `${serviceName}.ts`);
+    if (!existsSync(servicePath)) {
+      return;
+    }
+    return readFileSync(servicePath, { encoding: 'utf-8' });
+  };
+
   const { swaggerCollection, nameMappingList, associatedDefNameMappingList } = await handleSwaggerPathV2(config);
   const defNameMappingList: ApiGroupDefNameMapping[] = [...associatedDefNameMappingList];
   const serviceResult: ApiGroupServiceResult[] = [];
@@ -197,6 +214,7 @@ export const generateV2TypeScript = async (webview: vscode.Webview, config: Gene
         tag,
         method,
         tsDefs: serviceTsDefs,
+        localTsDefs: getLocalServiceTsDefs(tag, serviceName),
       });
     }
     serviceResult.push({

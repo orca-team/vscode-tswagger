@@ -65,7 +65,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     latestTsResult: {
       nameMappingList,
       defNameMappingList,
-      serviceResult: originalServiceResult,
+      serviceResult: [],
     },
     localServiceInfo: [],
   });
@@ -148,11 +148,18 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     }
     const [groupName, index] = latestPathKey.toString().split(',');
     const serviceIndex = Number(index);
-    const originalContent = originalServiceResult.find((it) => it.groupName === groupName)?.serviceList?.[serviceIndex]?.tsDefs ?? '';
-    const modifiedContent = _this.latestTsResult.serviceResult.find((it) => it.groupName === groupName)?.serviceList?.[serviceIndex]?.tsDefs;
+    const originalResult = originalServiceResult.find((it) => it.groupName === groupName)?.serviceList?.[serviceIndex];
+    const originalContent = originalResult?.tsDefs ?? '';
+    const localContent = originalResult?.localTsDefs ?? '';
+    const modifiedContent = _this.latestTsResult.serviceResult.find((it) => it.groupName === groupName)?.serviceList?.[serviceIndex]?.tsDefs ?? '';
+    if (localContent || modifiedContent) {
+      showTsDefDiff();
+    } else {
+      hideTsDefDiff();
+    }
     setEditorContent({
-      originalContent,
-      modifiedContent,
+      originalContent: localContent || originalContent,
+      modifiedContent: modifiedContent || originalContent,
     });
   };
 

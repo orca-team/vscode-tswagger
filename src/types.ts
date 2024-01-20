@@ -159,6 +159,11 @@ export type ServiceResult = {
    * 结果定义
    */
   tsDefs: string;
+
+  /**
+   * 本地已生成过的结果定义
+   */
+  localTsDefs?: string;
 };
 
 /**

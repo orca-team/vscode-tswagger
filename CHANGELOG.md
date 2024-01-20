@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Compare the local result and latest result in the result modal.
+
 ### Changed
 
 - Compatible with more situations of the api definition.
