@@ -120,7 +120,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     }
   });
 
-  const handleAftreRenameTs = useMemoizedFn((result: V2TSGenerateResult) => {
+  const handleAfterRenameTs = useMemoizedFn((result: V2TSGenerateResult) => {
     const { serviceResult: newServiceResult, nameMappingList, defNameMappingList } = result;
     _this.latestTsResult = result;
     handleApiPathTree(newServiceResult);
@@ -218,7 +218,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
             type="dashed"
             disabled={saving}
             onClick={() => {
-              drawer.show(<ResultRenameDrawer {...renameDrawerProps} renameTypescript={renameTypescript} onAfterRenameTs={handleAftreRenameTs} />);
+              drawer.show(<ResultRenameDrawer {...renameDrawerProps} renameTypescript={renameTypescript} onAfterRenameTs={handleAfterRenameTs} />);
             }}
           >
             重命名
