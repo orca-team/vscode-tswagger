@@ -73,22 +73,6 @@ export const generateServiceImport = (serviceInfoMapCollection: SwaggerCollectio
 import type { FetchResult } from '${sourcePath || ''}';\n\n`;
 };
 
-/**
- * 简化接口生成方式:
- * get 和 delete 请求默认只有 query 或 body
- * post 和 put 请求默认只要 body 没有 query，特殊情况下携带了 query 参数，生成结果会为 path 添加和转换参数
- * @param method 请求方式
- * @param isFormData 是否是 FormData 类型的数据
- * @returns 接口默认请求参数
- */
-const composeServiceParams = (method: string, options: { isFormData?: boolean; hasRequestBody?: boolean } = {}) => {
-  const { isFormData, hasRequestBody } = options;
-  if (['get', 'delete'].includes(method)) {
-    return hasRequestBody ? 'data' : 'query';
-  }
-  return isFormData ? 'formData' : 'data';
-};
-
 const formatServiceDescription = (serviceInfo: SwaggerCollectionGroupItem) => {
   const { description, summary, tag, serviceName, method, path } = serviceInfo;
 
@@ -135,6 +119,39 @@ const addBasePathPrefixUrl = (path: string, basePath?: string, config: TSwaggerC
   return `${basePath}${path}`;
 };
 
+type ParamsType = {
+  /** 接口入参名称 */
+  inParamName: string;
+  /** 接口请求出参名称 */
+  outParamName: 'query' | 'data' | 'formData';
+  /** 参数 TS 类型 */
+  paramTsTypeName: string;
+};
+
+/**
+ * 生成接口语法糖请求所需的参数
+ * @param method method
+ * @param paramsConfig 接口方法出入参配置
+ * @param isFormData 是否是 formData
+ * @returns 语法糖接口入参
+ */
+const generateRequestParams = (method: string, paramsConfig: ParamsType[], isFormData?: boolean) => {
+  let result;
+  // 只有一条入参格式，那么不是路径携带参数就是请求体参数 (query | requestBody)
+  // 如果是 post 和 put 请求的数据只有 query，路径会自动进行拼接，无需处理
+  if (paramsConfig.length === 1) {
+    result = ['post', 'put'].includes(method) && paramsConfig[0].outParamName === 'query' ? undefined : paramsConfig[0].outParamName;
+  }
+  // 同时存在两条入参格式，那么说明既有路径携带参数也有请求体参数（query & requestBody)
+  // 这种情况只可能出现在 post 和 put 请求，路径携带参数将会在路径中进行处理
+  // 直接传入 formData 或 data
+  if (paramsConfig.length === 2) {
+    result = isFormData ? 'formData' : 'data';
+  }
+
+  return result ? `, ${result}` : '';
+};
+
 /**
  * 生成接口
  * @param serviceInfo 入参、出参、接口名称映射信息
@@ -142,7 +159,6 @@ const addBasePathPrefixUrl = (path: string, basePath?: string, config: TSwaggerC
  */
 export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGroupItem, config: TSwaggerConfig = {}) => {
   const { basePath, path, method, pathParamFields = [], serviceInfoList, serviceName } = serviceInfo;
-  const { addBasePathPrefix } = config;
   // 路径上参数 ts 名称
   const pathParam = serviceInfoList.find((info) => info.type === 'path')?.name;
   // 路径携带参数 ts 名称
@@ -157,34 +173,34 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const serviceDescription = formatServiceDescription(serviceInfo);
   const currentMethod = toLower(method);
   const isDeleteMethod = currentMethod === 'delete';
-  const requestParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
-  let requestOptionsStr = '';
+  const pathParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
   let url = addBasePathPrefixUrl(path, basePath, config);
   const hasPathParam = !!pathParam;
   const hasPathQuery = !!pathQuery;
   const hasRequestBody = !!requestBody;
 
+  const paramsConfig: ParamsType[] = [];
+
   if (pathQuery) {
-    requestParams.push(`query: ${pathQuery}`);
-    requestOptionsStr += `params: query, `;
+    paramsConfig.push({ inParamName: 'query', outParamName: 'query', paramTsTypeName: pathQuery });
   }
   if (hasRequestBody) {
-    requestParams.push(`data: ${requestBody}`);
-    requestOptionsStr += `data`;
+    paramsConfig.push({ inParamName: 'data', outParamName: 'data', paramTsTypeName: requestBody });
   } else if (formDataBody) {
-    requestParams.push(`data: ${formDataBody}`);
-    requestOptionsStr += `data`;
+    paramsConfig.push({ inParamName: 'data', outParamName: 'data', paramTsTypeName: formDataBody });
   }
 
   const serviceReturnStr = `return ${isDeleteMethod ? 'del' : currentMethod}<FetchResult<${response ?? 'any'}>>(${formatServicePath(
     url,
     currentMethod,
     { hasPathParam, hasPathQuery },
-  )}${requestOptionsStr ? `, ${composeServiceParams(currentMethod, { isFormData: !!formDataBody, hasRequestBody })}` : ''})`;
+  )}${generateRequestParams(currentMethod, paramsConfig, !!formDataBody)})`;
+
+  const allInParams = pathParams.concat(paramsConfig.map((p) => `${p.inParamName}: ${p.paramTsTypeName}`));
 
   return `
 ${serviceDescription}
-export const ${serviceName} = (${requestParams.join(', ')}) => {
+export const ${serviceName} = (${allInParams.join(', ')}) => {
   ${formDataBody ? `${JSON_TO_FORM_DATA}  ${serviceReturnStr}` : serviceReturnStr};
 }
 `;
