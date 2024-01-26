@@ -129,7 +129,8 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
   });
 
   const handleSave = useMemoizedFn(async () => {
-    const { serviceResult, nameMappingList, defNameMappingList } = _this.latestTsResult;
+    const { serviceResult: _serviceResult, nameMappingList, defNameMappingList } = _this.latestTsResult;
+    const serviceResult = _serviceResult.length > 0 ? _serviceResult : originalServiceResult;
     startSaving();
     const result = await saveTypescript(serviceResult, nameMappingList, defNameMappingList);
     stopSaving();
