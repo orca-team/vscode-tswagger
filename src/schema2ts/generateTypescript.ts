@@ -88,11 +88,11 @@ const formatServiceDescription = (serviceInfo: SwaggerCollectionGroupItem) => {
 
 const formatServicePath = (url: string, method: string, options = { hasPathParam: false, hasPathQuery: false }) => {
   const { hasPathParam, hasPathQuery } = options;
-  const isCompatibleMethod = ['post', 'put'].includes(method);
+  const isCompatibleMethod = ['post', 'put', 'delete'].includes(method);
 
   // 路径存在参数则替换为模板字符串
   const replacedPathParamUrl = hasPathParam ? url.replace(/\{(\w+)\}/g, (_, $1) => `\${${$1}}`) : '';
-  // 路径存在查询参数则增加 URLSearchParams（仅对非 get 和 delete 请求又有携带路径参数的情况进行兼容）
+  // 路径存在查询参数则增加 URLSearchParams（仅对非 get 请求又有携带路径参数的情况进行兼容）
   const replacedPathParamUrlQuery = isCompatibleMethod && hasPathQuery ? `?\${new URLSearchParams(query).toString()}` : '';
   // 是否添加模板字符串：1. 路径中存在参数；2. 需要兼容的 method 请求中携带查询参数
   const isAddTemplateString = hasPathParam || (isCompatibleMethod && hasPathQuery);
@@ -138,9 +138,9 @@ type ParamsType = {
 const generateRequestParams = (method: string, paramsConfig: ParamsType[], isFormData?: boolean) => {
   let result;
   // 只有一条入参格式，那么不是路径携带参数就是请求体参数 (query | requestBody)
-  // 如果是 post 和 put 请求的数据只有 query，路径会自动进行拼接，无需处理
+  // 如果是 post 、put、delete 请求的数据只有 query，路径会自动进行拼接，无需处理
   if (paramsConfig.length === 1) {
-    result = ['post', 'put'].includes(method) && paramsConfig[0].outParamName === 'query' ? undefined : paramsConfig[0].outParamName;
+    result = ['post', 'put', 'delete'].includes(method) && paramsConfig[0].outParamName === 'query' ? undefined : paramsConfig[0].outParamName;
   }
   // 同时存在两条入参格式，那么说明既有路径携带参数也有请求体参数（query & requestBody)
   // 这种情况只可能出现在 post 和 put 请求，路径携带参数将会在路径中进行处理
