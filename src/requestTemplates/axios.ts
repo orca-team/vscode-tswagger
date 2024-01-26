@@ -41,11 +41,11 @@ export const put = <T>(
 
 export const del = <T>(
   url: string,
-  params: Record<string, any>,
-  options?: Omit<AxiosRequestConfig, "params">
+  data: Record<string, any>,
+  options?: Omit<AxiosRequestConfig, "data">
 ) =>
   axios
-    .delete<T>(url, { ...options, params })
+    .delete<T>(url, { ...options, data })
     .then((response) => response.data)
     .catch((error) => {
       console.error(error);
