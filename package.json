@@ -36,7 +36,7 @@
     "commands": [
       {
         "command": "tswagger.generateTypescript",
-        "title": "Generate Typescript For Swagger"
+        "title": "<TSwagger> Generate Typescript For Swagger"
       }
     ],
     "menus": {
