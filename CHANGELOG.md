@@ -10,6 +10,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Validate the same service name within the same group.
 
+### Changed
+
+- Modify start command title.
+
 ## [1.3.3] - 2024-01-28
 
 ### Changed
