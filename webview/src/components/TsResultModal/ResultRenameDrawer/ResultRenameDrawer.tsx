@@ -12,6 +12,7 @@ import { V2TSGenerateResult } from '../../../../../src/controllers';
 import { Rule } from 'antd/es/form';
 import { apiGroupItemConfigs } from './constants';
 import notification from '@/utils/notification';
+import { NamePath } from 'antd/es/form/interface';
 
 const { Text } = Typography;
 
@@ -84,6 +85,23 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
       notification.error(resp.errMsg ?? 'Typescript 重新生成失败，请稍后再试');
     }
   });
+
+  /**
+   * 验证同一分组下的接口方法名称是否重复
+   * @param groupNamePath - 分组路径
+   * @param serviceName - 接口方法名称
+   * @returns {Promise<void>} - 返回一个Promise对象，如果同一分组下的接口方法名称重复则抛出错误，否则解析为void
+   */
+  const validateSameServiceName = (groupNamePath: NamePath, serviceName?: string) => {
+    const currentGroup = (form.getFieldValue(groupNamePath) ?? []) as ApiGroupNameMapping[];
+    const hasSameServiceName = currentGroup.filter((item) => item.serviceName === serviceName).length > 1;
+
+    if (serviceName && hasSameServiceName) {
+      return Promise.reject(new Error('同一分组下的接口方法名称不能重复'));
+    }
+
+    return Promise.resolve();
+  };
 
   // 关联实体类的名称同步进行修改
   useEffect(() => {
@@ -227,15 +245,22 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                     {apiGroupItemConfigs.map(({ key: nameField, label }) => {
                                       const relatedDefInfo = paramRefDefNameList.find((it) => it.type === nameField);
                                       const renameValue = apiNameMapping[nameField];
-                                      const isRelatedDefName = !!relatedDefInfo; // 是否关联实体名称
 
                                       const validationRule: Rule[] = [];
 
+                                      const isRelatedDefName = !!relatedDefInfo; // 是否关联实体名称
                                       if (!isRelatedDefName) {
                                         validationRule.push(
                                           { required: true, message: `请输入新的${label}` },
                                           nameField === 'serviceName' ? serviceRenameRule : tsTypeRenameRule,
                                         );
+                                      }
+
+                                      const isServiceName = nameField === 'serviceName'; // 是否接口名称
+                                      if (isServiceName) {
+                                        validationRule.push({
+                                          validator: (_, value) => validateSameServiceName([nameGroupFormKey, groupIndex, 'group'], value),
+                                        });
                                       }
 
                                       return apiNameMapping[nameField] ? (

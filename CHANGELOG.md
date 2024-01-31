@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Added
+
+- Validate the same service name within the same group.
+
 ## [1.3.3] - 2024-01-28
 
 ### Changed
