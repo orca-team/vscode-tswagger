@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Added
+
+- Support to collapse and expand every group in the rename drawer.
+
 ## [1.3.4] - 2024-01-31
 
 ### Added

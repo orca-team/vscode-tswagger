@@ -2,17 +2,18 @@ import React, { useEffect } from 'react';
 import styles from './ResultRenameDrawer.less';
 import { Typography, Collapse, Drawer, DrawerProps, Space, Button, Descriptions, Empty, Form, theme, Divider, Popconfirm, Tooltip } from 'antd';
 import { ApiGroupNameMapping, NameMappingByGroup, RenameMapping } from '../../../../../src/types';
-import { ExclamationCircleOutlined, SyncOutlined, TagFilled } from '@ant-design/icons';
+import { CheckCircleFilled, DownOutlined, ExclamationCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import MethodTag from '../../MethodTag';
 import { isPlainObject } from 'lodash-es';
 import RenameText from '../RenameText';
-import { useBoolean, useMemoizedFn } from 'ahooks';
+import { useBoolean, useMemoizedFn, useSetState } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
 import { V2TSGenerateResult } from '../../../../../src/controllers';
 import { Rule } from 'antd/es/form';
 import { apiGroupItemConfigs } from './constants';
 import notification from '@/utils/notification';
 import { NamePath } from 'antd/es/form/interface';
+import { OpenBox } from '@orca-fe/pocket';
 
 const { Text } = Typography;
 
@@ -70,6 +71,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
   const latestDefNameMapping = Form.useWatch(allDefNameMappingFormKey, form);
 
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
+  const [groupCloseState, setGroupCloseState] = useSetState<Record<number, boolean>>({});
 
   const handleReGenTypescript = useMemoizedFn(async () => {
     const renameMapping = await form.validateFields();
@@ -206,90 +208,99 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
 
                     return (
                       <div className={styles.tagGroup} {...groupField}>
-                        <Divider>
+                        <Divider orientation="left">
                           <div
                             className={styles.tagHeader}
                             style={{ border: `1px solid ${token.colorBorder}`, backgroundColor: token.colorBgTextActive }}
                           >
-                            <TagFilled style={{ fontSize: 20 }} />
-                            <Text strong style={{ fontSize: 18, marginLeft: 4 }}>
+                            <CheckCircleFilled style={{ color: token.colorSuccess, fontSize: 18 }} />
+                            <Text strong style={{ fontSize: 18, marginLeft: 6 }}>
                               {groupName}
                             </Text>
+                            <DownOutlined
+                              className={styles.openIcon}
+                              style={{ color: token.colorTextSecondary, transform: groupCloseState[groupIndex] ? 'rotate(-90deg)' : undefined }}
+                              onClick={() => {
+                                setGroupCloseState({ [groupIndex]: !groupCloseState[groupIndex] });
+                              }}
+                            />
                           </div>
                         </Divider>
-                        <Form.List name={[groupIndex, 'group']}>
-                          {(fields) => (
-                            <>
-                              {fields.map((field) => {
-                                const itemName = field.name;
-                                const { path, method, description, paramRefDefNameList, ...apiNameMapping } = form.getFieldValue([
-                                  ...childApiGroupName,
-                                  itemName,
-                                ]) as ApiGroupNameMapping;
+                        <OpenBox open={!groupCloseState[groupIndex]}>
+                          <Form.List name={[groupIndex, 'group']}>
+                            {(fields) => (
+                              <>
+                                {fields.map((field) => {
+                                  const itemName = field.name;
+                                  const { path, method, description, paramRefDefNameList, ...apiNameMapping } = form.getFieldValue([
+                                    ...childApiGroupName,
+                                    itemName,
+                                  ]) as ApiGroupNameMapping;
 
-                                return (
-                                  <Descriptions
-                                    {...field}
-                                    className={styles.serviceGroup}
-                                    title={
-                                      <div className={styles.apiPath}>
-                                        <MethodTag method={method} />
-                                        <Text style={{ fontSize: 16 }}>{`<路径> ${path}`}</Text>
-                                        {description && <Text style={{ fontSize: 14, opacity: 0.85 }}>{`（${description}）`}</Text>}
-                                      </div>
-                                    }
-                                    size="small"
-                                    labelStyle={{ width: 200 }}
-                                    bordered
-                                  >
-                                    {apiGroupItemConfigs.map(({ key: nameField, label }) => {
-                                      const relatedDefInfo = paramRefDefNameList.find((it) => it.type === nameField);
-                                      const renameValue = apiNameMapping[nameField];
-
-                                      const validationRule: Rule[] = [];
-
-                                      const isRelatedDefName = !!relatedDefInfo; // 是否关联实体名称
-                                      if (!isRelatedDefName) {
-                                        validationRule.push(
-                                          { required: true, message: `请输入新的${label}` },
-                                          nameField === 'serviceName' ? serviceRenameRule : tsTypeRenameRule,
-                                        );
+                                  return (
+                                    <Descriptions
+                                      {...field}
+                                      className={styles.serviceGroup}
+                                      title={
+                                        <div className={styles.apiPath}>
+                                          <MethodTag method={method} />
+                                          <Text style={{ fontSize: 16 }}>{`<路径> ${path}`}</Text>
+                                          {description && <Text style={{ fontSize: 14, opacity: 0.85 }}>{`（${description}）`}</Text>}
+                                        </div>
                                       }
+                                      size="small"
+                                      labelStyle={{ width: 200 }}
+                                      bordered
+                                    >
+                                      {apiGroupItemConfigs.map(({ key: nameField, label }) => {
+                                        const relatedDefInfo = paramRefDefNameList.find((it) => it.type === nameField);
+                                        const renameValue = apiNameMapping[nameField];
 
-                                      const isServiceName = nameField === 'serviceName'; // 是否接口名称
-                                      if (isServiceName) {
-                                        validationRule.push({
-                                          validator: (_, value) => validateSameServiceName([nameGroupFormKey, groupIndex, 'group'], value),
-                                        });
-                                      }
+                                        const validationRule: Rule[] = [];
 
-                                      return apiNameMapping[nameField] ? (
-                                        <Descriptions.Item key={nameField} label={label} span={3}>
-                                          <div className={styles.serviceDescItem}>
-                                            {isRelatedDefName && (
-                                              <Tooltip title={`${renameValue} 直接关联实体类，请在依赖实体名称映射中进行名称修改`}>
-                                                <ExclamationCircleOutlined className={styles.infoIcon} style={{ color: token.colorWarning }} />
-                                              </Tooltip>
-                                            )}
-                                            <Form.Item
-                                              name={[itemName, nameField]}
-                                              className={styles.formItem}
-                                              dependencies={[allDefNameMappingFormKey, relatedDefInfo?.originRefName ?? '']}
-                                              rules={validationRule}
-                                              style={{ width: '100%' }}
-                                            >
-                                              {isRelatedDefName ? <RenameText underline={false} disabled /> : <RenameText />}
-                                            </Form.Item>
-                                          </div>
-                                        </Descriptions.Item>
-                                      ) : null;
-                                    })}
-                                  </Descriptions>
-                                );
-                              })}
-                            </>
-                          )}
-                        </Form.List>
+                                        const isRelatedDefName = !!relatedDefInfo; // 是否关联实体名称
+                                        if (!isRelatedDefName) {
+                                          validationRule.push(
+                                            { required: true, message: `请输入新的${label}` },
+                                            nameField === 'serviceName' ? serviceRenameRule : tsTypeRenameRule,
+                                          );
+                                        }
+
+                                        const isServiceName = nameField === 'serviceName'; // 是否接口名称
+                                        if (isServiceName) {
+                                          validationRule.push({
+                                            validator: (_, value) => validateSameServiceName([nameGroupFormKey, groupIndex, 'group'], value),
+                                          });
+                                        }
+
+                                        return apiNameMapping[nameField] ? (
+                                          <Descriptions.Item key={nameField} label={label} span={3}>
+                                            <div className={styles.serviceDescItem}>
+                                              {isRelatedDefName && (
+                                                <Tooltip title={`${renameValue} 直接关联实体类，请在依赖实体名称映射中进行名称修改`}>
+                                                  <ExclamationCircleOutlined className={styles.infoIcon} style={{ color: token.colorWarning }} />
+                                                </Tooltip>
+                                              )}
+                                              <Form.Item
+                                                name={[itemName, nameField]}
+                                                className={styles.formItem}
+                                                dependencies={[allDefNameMappingFormKey, relatedDefInfo?.originRefName ?? '']}
+                                                rules={validationRule}
+                                                style={{ width: '100%' }}
+                                              >
+                                                {isRelatedDefName ? <RenameText underline={false} disabled /> : <RenameText />}
+                                              </Form.Item>
+                                            </div>
+                                          </Descriptions.Item>
+                                        ) : null;
+                                      })}
+                                    </Descriptions>
+                                  );
+                                })}
+                              </>
+                            )}
+                          </Form.List>
+                        </OpenBox>
                       </div>
                     );
                   })}
