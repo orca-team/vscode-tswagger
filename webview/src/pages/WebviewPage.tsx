@@ -13,10 +13,10 @@ import {
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import { DownOutlined, FolderAddOutlined, LinkOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownOutlined, FolderAddOutlined, LinkOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import { Affix, Button, Collapse, Empty, FloatButton, Form, Input, Layout, Modal, Space, Spin, Tabs, Tooltip, Typography, Upload } from 'antd';
+import { Affix, Button, Collapse, Empty, FloatButton, Form, Input, Layout, Modal, Space, Spin, Tabs, Tooltip, Typography, Upload, theme } from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
@@ -29,6 +29,8 @@ import notification from '@/utils/notification';
 import ConfigJsonForm from '@/components/ConfigJSONForm';
 import useMessageListener from '@/hooks/useMessageListener';
 import { WebviewPageContext } from './context';
+import SettingModal from '@/components/SettingModal';
+import { pick } from 'lodash-es';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -47,6 +49,7 @@ export interface WebviewPageProps extends React.HTMLAttributes<HTMLDivElement> {
 const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const { className = '', ...otherProps } = props;
 
+  const { token } = theme.useToken();
   const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
   const [searchPanelKey, setSearchPanelKey] = useState<string>(PARSE_METHOD_DOCS);
@@ -87,7 +90,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const handleExtInfo = useMemoizedFn(async () => {
     const extInfoResp = await apiQueryExtInfo();
-    setExtSetting({ swaggerUrlList: extInfoResp.data.setting.swaggerUrlList ?? [] });
+    setExtSetting(pick(extInfoResp.data.setting ?? {}, ['swaggerUrlList', 'translation']));
     setTswaggerConfig(extInfoResp.data.config ?? {});
   });
 
@@ -320,14 +323,18 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                         ),
                       },
                     ]}
+                    tabBarExtraContent={
+                      <Tooltip title="设置">
+                        <SettingOutlined
+                          className={styles.settingIcon}
+                          style={{ color: token.colorPrimary }}
+                          onClick={() => {
+                            modalController.show(<SettingModal />);
+                          }}
+                        />
+                      </Tooltip>
+                    }
                   />
-                  {/* <Form.Item name="outputOptions" label="输出配置：" required rules={[{ required: true, message: '请至少选择一项输出配置' }]}>
-                    <Checkbox.Group>
-                      <Checkbox value="requestParams">生成 RequestParams</Checkbox>
-                      <Checkbox value="responseBody">生成 ResponseBody</Checkbox>
-                      <Checkbox value="service">生成 Service</Checkbox>
-                    </Checkbox.Group>
-                  </Form.Item> */}
                   <Form.Item label="模糊查询" name="searchKey">
                     <Input
                       allowClear

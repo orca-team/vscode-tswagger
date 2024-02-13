@@ -1,11 +1,17 @@
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { FetchResult, callService } from '@/utils/vscode';
 import { OpenAPI, OpenAPIV2 } from 'openapi-types';
-import { GenerateTypescriptConfig, ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '../../../src/types';
+import { GenerateTypescriptConfig, LocalTranslationType, ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '../../../src/types';
 import { V2TSGenerateResult } from '../../../src/controllers';
 import directoryTree from 'directory-tree';
+import { ExtTranslationConfig } from '@/states/globalState';
 
 export const apiQueryExtInfo = async () => callService<FetchResult<any>>('webview-queryExtInfo');
+
+export const apiQueryLocalTranslation = async () => callService<FetchResult<LocalTranslationType[]>>('webview-queryLocalTranslation');
+
+export const apiUpdateTranslationConfig = async (data: ExtTranslationConfig) =>
+  callService<FetchResult<void>>('webview-updateTranslationConfig', data);
 
 export const apiQueryCwd = async () => callService<FetchResult<directoryTree.DirectoryTree[]>>('webview-queryCwd');
 

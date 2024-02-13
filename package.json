@@ -61,6 +61,31 @@
               "url": "https://petstore.swagger.io/v2/swagger.json"
             }
           ]
+        },
+        "tswagger.translation": {
+          "type": "object",
+          "description": "翻译配置",
+          "properties": {
+            "engine": {
+              "type": "string",
+              "description": "翻译引擎",
+              "enum": [
+                "Bing",
+                "Microsoft",
+                "PrivateMicrosoft"
+              ],
+              "default": "Bing"
+            },
+            "Ocp-Apim-Subscription-Key": {
+              "type": "string"
+            },
+            "Authorization": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "engine": "Bing"
+          }
         }
       }
     }

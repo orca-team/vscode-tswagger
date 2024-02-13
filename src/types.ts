@@ -14,7 +14,7 @@ export type HandleSwaggerPathOptions = {
 
 export type GlobalStateKey = 'localTranslation';
 
-export type TranslateEngine = 'Bing';
+export type TranslateEngine = 'Bing' | 'Microsoft' | 'PrivateMicrosoft';
 
 export type LocalTranslationMap = Record<string, string>;
 
@@ -22,8 +22,6 @@ export type LocalTranslationType = {
   engine: TranslateEngine;
   translation: LocalTranslationMap;
 };
-
-// TODO: webview types 统一管理
 
 export type HttpMethod = Lowercase<'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'PATCH'>;
 

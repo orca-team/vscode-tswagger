@@ -24,9 +24,10 @@ import YAML from 'yaml';
 import { join } from 'path';
 import { currentTime, getConfigJSONPath, getMappedBasePath, getServiceMapJSON, getServiceMapPath, getTSwaggerConfigJSON } from './utils/swaggerUtil';
 import { DEFAULT_CONFIG_JSON } from './constants';
+import { getLocalTranslation } from './utils/localTranslate';
 
 export const queryExtInfo = async (context: vscode.ExtensionContext) => {
-  const allSetting = getAllConfiguration(['swaggerUrlList']);
+  const allSetting = getAllConfiguration(['swaggerUrlList', 'translation']);
   const globalState = getGlobalState(context); // 插件配置
   const config = getTSwaggerConfigJSON();
   return {
@@ -34,6 +35,16 @@ export const queryExtInfo = async (context: vscode.ExtensionContext) => {
     config,
     globalState,
   };
+};
+
+export const queryLocalTranslation = async () => {
+  const result = getLocalTranslation();
+
+  return result;
+};
+
+export const updateTranslationConfig = async (data: any) => {
+  setConfiguration('translation', data);
 };
 
 export const queryCwd = async () => {

@@ -9,6 +9,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 
 - Support to collapse and expand every group in the rename drawer.
+- Upgrade `bing-translate-api` to @4.x which supports using Microsoft to translate.
+- Add the `translation` configuration and GUI for `tswagger`.
+- Support to view the local translation cache of different translation engines.
 
 ## [1.3.4] - 2024-01-31
 

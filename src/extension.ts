@@ -12,9 +12,11 @@ import {
   parseSwaggerUrl,
   queryCwd,
   queryExtInfo,
+  queryLocalTranslation,
   readLocalServiceInfoByGroup,
   saveConfigJSON,
   updateSwaggerUrl,
+  updateTranslationConfig,
   writeTsFile,
 } from './controllers';
 import { isDev } from './utils/vscodeUtil';
@@ -54,6 +56,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       // 获取插件配置、全局状态等信息
       registerService('webview-queryExtInfo', async () => await queryExtInfo(context));
+      // 读取本地翻译缓存
+      registerService('webview-queryLocalTranslation', queryLocalTranslation);
+      // 更新翻译配置
+      registerService('webview-updateTranslationConfig', updateTranslationConfig);
       // 读取当前目录树
       registerService('webview-queryCwd', queryCwd);
       // 添加swagger接口

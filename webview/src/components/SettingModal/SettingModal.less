@@ -1,0 +1,31 @@
+.root {
+  position: relative;
+
+  .container {
+    display: flex;
+    width: 100%;
+
+    .menu {
+      width: 20%;
+      height: 70vh;
+
+      :global {
+        .ant-menu-item {
+          background-color: transparent;
+        }
+        .ant-menu-item-icon {
+          font-size: 16px;
+        }
+        .ant-menu-title-content {
+          font-size: 16px;
+        }
+      }
+    }
+    .content {
+      flex: 1;
+      padding: 12px 24px 0 24px;
+      height: 70vh;
+      overflow: auto;
+    }
+  }
+}
