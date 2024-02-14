@@ -2,12 +2,14 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
 import hotReloadWebview from './utils/hotReloadWebview';
+import { isDev } from './utils/vscodeUtil';
+import { setGlobalContext } from './globalContext';
+import { manageServicesFromPanel } from './utils/manageServices';
+import { listenTsFileChange } from './listeners';
 import {
   addSwaggerUrl,
   checkConfigJSON,
   delSwaggerUrl,
-  generateV2ServiceFile,
-  generateV2TypeScript,
   parseSwaggerJson,
   parseSwaggerUrl,
   queryCwd,
@@ -18,11 +20,8 @@ import {
   updateSwaggerUrl,
   updateTranslationConfig,
   writeTsFile,
-} from './controllers';
-import { isDev } from './utils/vscodeUtil';
-import { setGlobalContext } from './globalContext';
-import { manageServicesFromPanel } from './utils/manageServices';
-import { listenTsFileChange } from './listeners';
+} from './controllers/common';
+import { generateV2ServiceFile, generateV2TypeScript } from './controllers/generate/v2';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
