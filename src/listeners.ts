@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { sendTsFileChangeMsg } from './serverSentEvents';
-import { queryCwd } from './controllers';
+import { queryCwd } from './controllers/common';
 
 export const listenTsFileChange = (webview: vscode.Webview) => {
   console.log('[Start Listening Ts Files Change]');
