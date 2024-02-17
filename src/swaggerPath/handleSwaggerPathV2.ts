@@ -62,7 +62,6 @@ export const handleV2Parameters = (parameters: OpenAPIV2.Parameter[]) => {
 
 export const handleV2Request = async (
   apiPath: ApiPathTypeV2,
-  tag: string,
   V2Document: OpenAPIV2.Document,
   mappingInfo: {
     nameMapping: ApiGroupNameMapping;
@@ -264,7 +263,7 @@ const handleSwaggerPathV2 = async (
 
       // 处理入参
       if (options.requestParams && parameters) {
-        const parameterCollection = await handleV2Request(apiPath, tag, V2Document, {
+        const parameterCollection = await handleV2Request(apiPath, V2Document, {
           nameMapping,
           renameMapping: mapping,
           associatedDefNameMapping,
