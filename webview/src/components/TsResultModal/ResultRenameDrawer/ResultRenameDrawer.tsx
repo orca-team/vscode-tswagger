@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import styles from './ResultRenameDrawer.less';
-import { Typography, Collapse, Drawer, DrawerProps, Space, Button, Descriptions, Empty, Form, theme, Divider, Popconfirm, Tooltip } from 'antd';
+import { Typography, Collapse, Drawer, DrawerProps, Space, Button, Descriptions, Empty, Form, theme, Divider, Tooltip, Modal } from 'antd';
 import { ApiGroupNameMapping, NameMappingByGroup, RenameMapping } from '../../../../../src/types';
 import { CheckCircleFilled, DownOutlined, ExclamationCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import MethodTag from '../../MethodTag';
@@ -8,7 +8,7 @@ import { isPlainObject } from 'lodash-es';
 import RenameText from '../RenameText';
 import { useBoolean, useMemoizedFn, useSetState } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
-import { V2TSGenerateResult } from '../../../../../src/controllers';
+import { V2TSGenerateResult } from '../../../../../src/controllers/generate/v2';
 import { Rule } from 'antd/es/form';
 import { apiGroupItemConfigs } from './constants';
 import notification from '@/utils/notification';
@@ -138,14 +138,20 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
           <Button type="primary" icon={<SyncOutlined />} loading={generateLoading} onClick={handleReGenTypescript}>
             重新生成
           </Button>
-          <Popconfirm
-            title="确定取消重命名吗？已更改的名称将不会被保存。"
-            onConfirm={() => {
-              onClose?.();
+          <Button
+            onClick={() => {
+              Modal.confirm({
+                title: '提示',
+                content: '确定取消重命名吗？已更改的名称将不会被保存。',
+                centered: true,
+                onOk: () => {
+                  onClose?.();
+                },
+              });
             }}
           >
-            <Button>取消</Button>
-          </Popconfirm>
+            取消
+          </Button>
         </Space>
       }
       footerStyle={{ width: '100%', display: 'flex' }}
