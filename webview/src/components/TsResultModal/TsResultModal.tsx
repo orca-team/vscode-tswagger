@@ -7,7 +7,7 @@ import { FetchResult } from '@/utils/vscode';
 import { CheckCircleOutlined, FormOutlined, QuestionCircleFilled } from '@ant-design/icons';
 import { usePromisifyDrawer } from '@orca-fe/hooks';
 import ResultRenameDrawer, { ResultRenameDrawerProps } from './ResultRenameDrawer';
-import { V2TSGenerateResult } from '../../../../src/controllers';
+import { V2TSGenerateResult } from '../../../../src/controllers/generate/v2';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping, ServiceMapInfoYAMLJSONType } from '../../../../src/types';
 import { collectAllDefNameMapping } from '@/utils';
 import type { DataNode } from 'antd/es/tree';

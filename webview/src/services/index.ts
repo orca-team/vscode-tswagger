@@ -2,7 +2,7 @@ import { SwaggerUrlConfigItem } from '@/utils/types';
 import { FetchResult, callService } from '@/utils/vscode';
 import { OpenAPI, OpenAPIV2 } from 'openapi-types';
 import { GenerateTypescriptConfig, LocalTranslationType, ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '../../../src/types';
-import { V2TSGenerateResult } from '../../../src/controllers';
+import { V2TSGenerateResult } from '../../../src/controllers/generate/v2';
 import directoryTree from 'directory-tree';
 import { ExtTranslationConfig } from '@/states/globalState';
 
