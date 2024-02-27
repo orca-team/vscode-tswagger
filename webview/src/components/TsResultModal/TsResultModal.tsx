@@ -226,7 +226,14 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
             type="dashed"
             disabled={saving}
             onClick={() => {
-              drawer.show(<ResultRenameDrawer {...renameDrawerProps} renameTypescript={renameTypescript} onAfterRenameTs={handleAfterRenameTs} />);
+              drawer.show(
+                <ResultRenameDrawer
+                  {...renameDrawerProps}
+                  renameTypescript={renameTypescript}
+                  onAfterRenameTs={handleAfterRenameTs}
+                  localServiceInfo={_this.localServiceInfo}
+                />,
+              );
             }}
           >
             重命名

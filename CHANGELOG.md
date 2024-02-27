@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- The same service name conflict with the local file.
+
 ## [2.0.1] - 2024-02-17
 
 ### Changed
