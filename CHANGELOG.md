@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Cannot validate existed service name successfully in the rename modal.
+
 ## [2.0.2] - 2024-02-27
 
 ### Fixed

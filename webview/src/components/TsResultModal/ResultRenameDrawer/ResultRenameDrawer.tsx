@@ -32,6 +32,12 @@ const tsTypeRenameRule: Rule = {
   message: '类型名称只能包含英文和数字, 且首字母必须大写',
 };
 
+type ValidateServiceNameInfo = {
+  groupName: string;
+  method: string;
+  path: string;
+};
+
 const convertNameMappingList = (nameMappingList: ApiGroupNameMapping[]) => {
   const allGroupName = [...new Set(nameMappingList.map((name) => name.groupName))];
   const newGroup: NameMappingByGroup[] = [];
@@ -98,13 +104,8 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
     }
   });
 
-  /**
-   * 验证同一分组下的接口方法名称是否重复
-   * @param groupNamePath - 分组路径
-   * @param serviceName - 接口方法名称
-   * @returns {Promise<void>} - 返回一个Promise对象，如果同一分组下的接口方法名称重复则抛出错误，否则解析为void
-   */
-  const validateSameServiceName = (groupName: string, groupNamePath: NamePath, serviceName?: string) => {
+  const validateSameServiceName = (info: ValidateServiceNameInfo, groupNamePath: NamePath, serviceName?: string) => {
+    const { groupName, method, path } = info;
     const currentGroup = (form.getFieldValue(groupNamePath) ?? []) as ApiGroupNameMapping[];
     const hasSameServiceName = currentGroup.filter((item) => item.serviceName === serviceName).length > 1;
 
@@ -113,7 +114,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
     }
 
     const localGroup = localServiceInfo.find((item) => item.groupName === groupName);
-    if (localGroup && localGroup.nameMappingList.some((item) => item.serviceName === serviceName)) {
+    if (localGroup && localGroup.nameMappingList.some((item) => item.serviceName === serviceName && (item.method !== method || item.path !== path))) {
       return Promise.reject(new Error(`本地<${groupName}>分组下存在相同名称的接口文件，请重新命名`));
     }
 
