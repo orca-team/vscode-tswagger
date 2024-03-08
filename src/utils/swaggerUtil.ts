@@ -182,10 +182,10 @@ const collectV2AllDepDefs = (defQueue: DepDefListItem[], entireDefs: OpenAPIV2.D
   new Array(length).fill(0).map(() => {
     const current = defQueue.shift();
     const defList = collectRefName(entireDefs[current!]);
-    if (defList.size && !defList.has(current!)) {
-      batchAdd2Set(resultSet, ...defList);
+    if (!defList.has(current!)) {
       defQueue.push(...defList);
     }
+    batchAdd2Set(resultSet, ...defList);
   });
   collectV2AllDepDefs(defQueue, entireDefs, resultSet);
 };

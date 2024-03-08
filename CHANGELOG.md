@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Lost definitions in complex nested object arrays.
+
 ## [2.0.3] - 2024-02-28
 
 ### Fixed
