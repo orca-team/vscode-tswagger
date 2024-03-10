@@ -3,7 +3,7 @@
   "displayName": "tswagger",
   "icon": "assets/images/logo.png",
   "description": "Generate typescript for swagger.",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "private": "true",
   "author": "Orchard",
   "publisher": "OrcaTeam",
