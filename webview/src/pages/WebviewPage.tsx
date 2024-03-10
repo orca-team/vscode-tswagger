@@ -251,148 +251,142 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   });
 
   return (
-    <TsGenerateSpin spinning={generateLoading}>
-      <div className={`${styles.root} ${className}`} {...otherProps}>
-        {modalController.instance}
-        <Layout style={{ height: '100%' }}>
-          <Header className={styles.header}>Swagger To Typescript</Header>
-          <Layout className={styles.layout}>
-            <Affix>
-              <Content
-                className={styles.content}
-                style={{
-                  border: `1px solid var(--vscode-widget-border, #303031)`,
-                  backgroundColor: 'var(--vscode-editorHoverWidget-background, #252526)',
-                }}
-              >
-                <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
-                  <Tabs
-                    defaultActiveKey={PARSE_METHOD_DOCS}
-                    onChange={(key) => {
-                      setSearchPanelKey(key);
-                    }}
-                    items={[
-                      {
-                        key: PARSE_METHOD_DOCS,
-                        label: (
-                          <span>
-                            <LinkOutlined />
-                            Swagger 文档地址
-                          </span>
-                        ),
-                        children: (
-                          <Form.Item
-                            name="swaggerUrl"
-                            required
-                            rules={[{ required: true, message: '请选择一个 Swagger 地址' }]}
-                            style={{ marginTop: 4 }}
-                            label={
-                              <Space>
-                                <span>文档接口地址：</span>
-                                <Tooltip title="刷新当前 swagger 接口的路径数据">
-                                  <Button
-                                    type="link"
-                                    disabled={!currentSwaggerUrl}
-                                    style={{ display: 'inline-block' }}
-                                    onClick={refreshSwaggerSchema}
-                                  >
-                                    刷新
-                                  </Button>
-                                </Tooltip>
-                              </Space>
-                            }
-                          >
-                            <SwaggerUrlSelect showSearch disabled={parseLoading} />
-                          </Form.Item>
-                        ),
-                      },
-                      {
-                        key: PARSE_METHOD_LOCAL,
-                        label: (
-                          <span>
-                            <FolderAddOutlined />
-                            本地文件
-                          </span>
-                        ),
-                        children: (
-                          <Upload className={styles.localFileBtn} fileList={[]} beforeUpload={handleOpenLocalFile}>
-                            <Button type="primary" icon={<UploadOutlined />}>
-                              打开本地文件
-                            </Button>
-                          </Upload>
-                        ),
-                      },
-                    ]}
-                    tabBarExtraContent={
-                      <Tooltip title="设置">
-                        <SettingOutlined
-                          className={styles.settingIcon}
-                          style={{ color: token.colorPrimary }}
-                          onClick={() => {
-                            modalController.show(<SettingModal />);
-                          }}
-                        />
-                      </Tooltip>
-                    }
-                  />
-                  <Form.Item label="模糊查询" name="searchKey">
-                    <Input
-                      allowClear
-                      placeholder="请输入 标签名称 / API路径名称（按 Enter 键进行模糊查询）"
-                      onPressEnter={(e) => {
-                        // @ts-ignore
-                        handleSearch(e.target.value);
-                      }}
-                    />
-                  </Form.Item>
-                </Form>
-                <div style={{ textAlign: 'right' }}>
-                  <Space size="small">
-                    <Button
-                      type="primary"
-                      disabled={selectedApiMap.size === 0}
-                      onClick={() => {
-                        handleBeforeGenTs();
-                      }}
-                    >
-                      生成 Typescript
-                    </Button>
-                    <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
-                      {expand ? '收起' : '展开'}
-                    </Button>
-                  </Space>
-                </div>
-              </Content>
-            </Affix>
-            <Spin spinning={parseLoading}>
-              <WebviewPageContext.Provider value={{ refreshDocFlag }}>
-                {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
-                {!!currentApiGroup.length ? (
-                  <Collapse className={styles.apiList}>
-                    {currentApiGroup.map((item, index) => (
-                      <ApiGroupPanel
-                        key={`${currentSwaggerUrl}-${index}`}
-                        onChange={(tag, selected) => {
-                          if (selected.length) {
-                            setSelectedApiMap(tag.name, selected);
-                          } else {
-                            removeSelectedApiMap(tag.name);
+    <div className={`${styles.root} ${className}`} {...otherProps}>
+      <TsGenerateSpin spinning={generateLoading} />
+      {modalController.instance}
+      <Layout style={{ height: '100%' }}>
+        <Header className={styles.header}>Swagger To Typescript</Header>
+        <Layout className={styles.layout}>
+          <Affix>
+            <Content
+              className={styles.content}
+              style={{
+                border: `1px solid var(--vscode-widget-border, #303031)`,
+                backgroundColor: 'var(--vscode-editorHoverWidget-background, #252526)',
+              }}
+            >
+              <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
+                <Tabs
+                  defaultActiveKey={PARSE_METHOD_DOCS}
+                  onChange={(key) => {
+                    setSearchPanelKey(key);
+                  }}
+                  items={[
+                    {
+                      key: PARSE_METHOD_DOCS,
+                      label: (
+                        <span>
+                          <LinkOutlined />
+                          Swagger 文档地址
+                        </span>
+                      ),
+                      children: (
+                        <Form.Item
+                          name="swaggerUrl"
+                          required
+                          rules={[{ required: true, message: '请选择一个 Swagger 地址' }]}
+                          style={{ marginTop: 4 }}
+                          label={
+                            <Space>
+                              <span>文档接口地址：</span>
+                              <Tooltip title="刷新当前 swagger 接口的路径数据">
+                                <Button type="link" disabled={!currentSwaggerUrl} style={{ display: 'inline-block' }} onClick={refreshSwaggerSchema}>
+                                  刷新
+                                </Button>
+                              </Tooltip>
+                            </Space>
                           }
+                        >
+                          <SwaggerUrlSelect showSearch disabled={parseLoading} />
+                        </Form.Item>
+                      ),
+                    },
+                    {
+                      key: PARSE_METHOD_LOCAL,
+                      label: (
+                        <span>
+                          <FolderAddOutlined />
+                          本地文件
+                        </span>
+                      ),
+                      children: (
+                        <Upload className={styles.localFileBtn} fileList={[]} beforeUpload={handleOpenLocalFile}>
+                          <Button type="primary" icon={<UploadOutlined />}>
+                            打开本地文件
+                          </Button>
+                        </Upload>
+                      ),
+                    },
+                  ]}
+                  tabBarExtraContent={
+                    <Tooltip title="设置">
+                      <SettingOutlined
+                        className={styles.settingIcon}
+                        style={{ color: token.colorPrimary }}
+                        onClick={() => {
+                          modalController.show(<SettingModal />);
                         }}
-                        apiGroupItem={item}
                       />
-                    ))}
-                  </Collapse>
-                ) : (
-                  <Empty className={styles.empty} />
-                )}
-              </WebviewPageContext.Provider>
-            </Spin>
-          </Layout>
+                    </Tooltip>
+                  }
+                />
+                <Form.Item label="模糊查询" name="searchKey">
+                  <Input
+                    allowClear
+                    placeholder="请输入 标签名称 / API路径名称（按 Enter 键进行模糊查询）"
+                    onPressEnter={(e) => {
+                      // @ts-ignore
+                      handleSearch(e.target.value);
+                    }}
+                  />
+                </Form.Item>
+              </Form>
+              <div style={{ textAlign: 'right' }}>
+                <Space size="small">
+                  <Button
+                    type="primary"
+                    disabled={selectedApiMap.size === 0}
+                    onClick={() => {
+                      handleBeforeGenTs();
+                    }}
+                  >
+                    生成 Typescript
+                  </Button>
+                  <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
+                    {expand ? '收起' : '展开'}
+                  </Button>
+                </Space>
+              </div>
+            </Content>
+          </Affix>
+          <Spin spinning={parseLoading}>
+            <WebviewPageContext.Provider value={{ refreshDocFlag }}>
+              {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
+              {!!currentApiGroup.length ? (
+                <Collapse className={styles.apiList}>
+                  {currentApiGroup.map((item, index) => (
+                    <ApiGroupPanel
+                      key={`${currentSwaggerUrl}-${index}`}
+                      onChange={(tag, selected) => {
+                        if (selected.length) {
+                          setSelectedApiMap(tag.name, selected);
+                        } else {
+                          removeSelectedApiMap(tag.name);
+                        }
+                      }}
+                      apiGroupItem={item}
+                    />
+                  ))}
+                </Collapse>
+              ) : (
+                <Empty className={styles.empty} />
+              )}
+            </WebviewPageContext.Provider>
+          </Spin>
         </Layout>
-        <FloatButton.BackTop />
-      </div>
-    </TsGenerateSpin>
+      </Layout>
+      <FloatButton.BackTop />
+    </div>
   );
 };
 
