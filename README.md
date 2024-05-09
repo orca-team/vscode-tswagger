@@ -4,7 +4,7 @@
 
 <p align="center">
 一款能将 Swagger 文档转换成 Typescript 接口文件的 vscode 插件 <br />
-⭐ 如果对您有帮助的话，不妨给我们一颗小星星鼓励一下
+⭐ 如果对您有帮助的话，不妨给我们一颗小星星<a href="https://github.com/orca-team/vscode-tswagger" target="_blank">鼓励一下</a>
 </p>
 
 ## ✨ 特点
