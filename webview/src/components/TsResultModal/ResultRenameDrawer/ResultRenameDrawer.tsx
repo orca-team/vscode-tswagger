@@ -159,7 +159,6 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
               Modal.confirm({
                 title: '提示',
                 content: '确定取消重命名吗？已更改的名称将不会被保存。',
-                centered: true,
                 onOk: () => {
                   onClose?.();
                 },
