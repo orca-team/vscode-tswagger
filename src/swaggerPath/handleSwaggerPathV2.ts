@@ -2,7 +2,7 @@ import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiPathTypeV2, GenerateTypescriptConfig } from '../types';
 import { composeNameByAPIPath, getV2RefTargetSchema } from './helpers';
 import { filterString, groupV2Parameters, isLocal$ref, isV2RefObject } from '../utils/swaggerUtil';
-import { SwaggerCollectionGroupItem, SwaggerCollectionItem, SwaggerServiceInfoType } from './types';
+import { PathParamFieldType, SwaggerCollectionGroupItem, SwaggerCollectionItem, SwaggerServiceInfoType } from './types';
 import { upperCase } from 'lodash-es';
 
 const generateTsName = async (apiPath: ApiPathTypeV2, type: string) => {
@@ -196,11 +196,14 @@ export const handleV2ResponseBody = (responses: OpenAPIV2.ResponsesObject) => {
 };
 
 export const parsePathParamFields = (schema: OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject) => {
-  const pathParamFields: string[] = [];
+  const pathParamFields: PathParamFieldType[] = [];
   const { properties = {} } = schema;
   Object.entries(properties).forEach(([key, value]) => {
     if (!value.$ref) {
-      pathParamFields.push(key);
+      pathParamFields.push({
+        field: key,
+        schema: value,
+      });
     }
   });
 

@@ -173,7 +173,7 @@ export const generateServiceFromAPIV2 = async (serviceInfo: SwaggerCollectionGro
   const serviceDescription = formatServiceDescription(serviceInfo);
   const currentMethod = toLower(method);
   const isDeleteMethod = currentMethod === 'delete';
-  const pathParams: string[] = pathParamFields.map((field) => `${field}: number | string`);
+  const pathParams: string[] = pathParamFields.map((config) => `${config.field}: ${config.schema.type === 'string' ? 'string' : 'number'}`);
   let url = addBasePathPrefixUrl(path, basePath, config);
   const hasPathParam = !!pathParam;
   const hasPathQuery = !!pathQuery;

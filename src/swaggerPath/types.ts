@@ -52,6 +52,12 @@ export type SwaggerServiceInfoType = {
   schemaList?: OpenAPIV2.SchemaObject[] | OpenAPIV3.SchemaObject[];
 };
 
+export type PathParamFieldType = {
+  field: string;
+
+  schema: OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject;
+};
+
 export type SwaggerCollectionGroupItem = {
   basePath: string;
   path: string;
@@ -61,7 +67,7 @@ export type SwaggerCollectionGroupItem = {
   tag: string;
   description?: string;
   summary?: string;
-  pathParamFields?: string[];
+  pathParamFields?: PathParamFieldType[];
 };
 
 export type SwaggerCollectionItem = {
