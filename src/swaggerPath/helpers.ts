@@ -1,6 +1,7 @@
 import { camelCase, upperCase } from 'lodash-es';
 import { OpenAPIV2 } from 'openapi-types';
 import { filterString, match$RefClassName } from '../utils/swaggerUtil';
+import { customAlphabet } from 'nanoid';
 
 export const bracesReg = /{(\w+)}/g;
 
@@ -50,4 +51,19 @@ export const getV2RefTargetSchema = async (schema: OpenAPIV2.SchemaObject, V2Doc
   refSchema.title = schemaName;
 
   return { originRefName: originRefCls.join(''), refSchema };
+};
+
+const customNanoid = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
+
+/**
+ * 为接口名称生成一个哈希值。
+ *
+ * @param serviceName 待处理的接口名称。
+ * @returns 返回一个新的字符串，由原始接口名称和生成的哈希值组成，两者之间用下划线连接。
+ */
+export const hashServiceName = (serviceName: string) => {
+  // 使用customNanoid函数生成一个长度为5的唯一标识符
+  const hashValue = customNanoid(5);
+  // 将接口名称和哈希值连接起来形成新的字符串
+  return `${serviceName}_${hashValue}`;
 };

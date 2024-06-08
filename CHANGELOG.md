@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Generate hash for the same service name within the same group.
+
 ### Fixed
 
 - Fix incorrect ts type of path parameter.

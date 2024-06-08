@@ -140,6 +140,7 @@
     "fuzzysort": "^2.0.4",
     "json-schema-to-typescript": "^12.0.0",
     "lodash-es": "^4.17.21",
+    "nanoid": "^5.0.7",
     "yaml": "^2.3.1"
   },
   "gitHooks": {

@@ -1,6 +1,6 @@
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiPathTypeV2, GenerateTypescriptConfig } from '../types';
-import { composeNameByAPIPath, getV2RefTargetSchema } from './helpers';
+import { composeNameByAPIPath, getV2RefTargetSchema, hashServiceName } from './helpers';
 import { filterString, groupV2Parameters, isLocal$ref, isV2RefObject } from '../utils/swaggerUtil';
 import { PathParamFieldType, SwaggerCollectionGroupItem, SwaggerCollectionItem, SwaggerServiceInfoType } from './types';
 import { upperCase } from 'lodash-es';
@@ -242,13 +242,16 @@ const handleSwaggerPathV2 = async (
       // 当前接口名称
       const currentServiceName =
         mapping?.serviceName ?? (pathInfo.operationId ? await filterString(pathInfo.operationId) : composeNameByAPIPath(method, path, 'API'));
+      const uniqueServiceName = !!collectionItemGroup.find((it) => it.serviceName === currentServiceName)
+        ? hashServiceName(currentServiceName)
+        : currentServiceName;
 
       // 接口各类型名称映射
       const nameMapping: ApiGroupNameMapping = {
         path,
         method,
         groupName: tag,
-        serviceName: currentServiceName,
+        serviceName: uniqueServiceName,
         paramRefDefNameList: [],
         description: summary,
       };
@@ -260,7 +263,7 @@ const handleSwaggerPathV2 = async (
         description,
         summary,
         tag,
-        serviceName: currentServiceName,
+        serviceName: uniqueServiceName,
         serviceInfoList: [],
       };
 
