@@ -13,6 +13,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 
 - Fix incorrect ts type of path parameter.
+- Invalid validation for the same service name.
 
 ## [2.0.5] - 2024-03-10
 

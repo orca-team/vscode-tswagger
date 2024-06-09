@@ -291,7 +291,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                                         if (isServiceName) {
                                           validationRule.push({
                                             validator: (_, value) =>
-                                              validateSameServiceName(groupName, [nameGroupFormKey, groupIndex, 'group'], value),
+                                              validateSameServiceName({ method, groupName, path }, [nameGroupFormKey, groupIndex, 'group'], value),
                                           });
                                         }
 
