@@ -1,5 +1,6 @@
 import { OpenAPIV2 } from 'openapi-types';
-import { ApiGroupByTag, ApiPathType, HttpMethod } from './types';
+import { ApiGroupByTag, ApiPathType } from './types';
+import { HttpMethod } from '../../../src/types';
 
 export const parseOpenAPIV2 = (doc: OpenAPIV2.Document) => {
   // 相同 tag 名称的 api 集合映射
@@ -17,6 +18,12 @@ export const parseOpenAPIV2 = (doc: OpenAPIV2.Document) => {
     Object.entries(apiPathItem).forEach(([method, pathInfo]) => {
       const { tags: currentTags = [] } = pathInfo as OpenAPIV2.OperationObject;
       currentTags.forEach((currentTag) => {
+        if (!apiMapByTag.has(currentTag)) {
+          apiMapByTag.set(currentTag, []);
+          tagInfoMap.set(currentTag, {
+            name: currentTag,
+          });
+        }
         const groupPath = apiMapByTag.get(currentTag) ?? [];
         groupPath.push({
           method: method as HttpMethod,
