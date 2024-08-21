@@ -80,7 +80,7 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
           <Text strong style={{ fontSize: 16 }}>
             {tag.name}
           </Text>
-          <Badge count={apiPathList.length} style={{ backgroundColor: token.colorSuccess }} />
+          <Badge count={apiPathList.length} overflowCount={999} style={{ backgroundColor: token.colorSuccess }} />
         </Space>
       }
     >
