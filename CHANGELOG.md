@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Adjust the style to indicate deprecated api.
+
 ### Changed
 
 - Increase the maximum apis number indicator from 99+ to 999+.

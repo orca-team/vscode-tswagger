@@ -35,11 +35,11 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   const { selected, toggleAll, unSelectAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList.map(genSelectKey));
 
   const displayPathInfo = (path: string, pathInfo: OpenAPIV2.OperationObject) => {
-    const { summary } = pathInfo;
+    const { summary, deprecated } = pathInfo;
 
     return (
       <>
-        <Text style={{ fontSize: 14 }} strong>
+        <Text style={{ fontSize: 14 }} type={deprecated ? 'secondary' : undefined} strong delete={deprecated}>
           {path}
         </Text>
         {summary && <Text style={{ fontSize: 14, opacity: 0.85 }}>{`（${summary}）`}</Text>}
