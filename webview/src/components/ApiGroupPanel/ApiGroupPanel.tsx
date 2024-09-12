@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import styles from './ApiGroupPanel.less';
-import { Badge, Checkbox, Collapse, CollapsePanelProps, Space, Typography, theme } from 'antd';
+import { Badge, Checkbox, Collapse, CollapsePanelProps, Empty, Space, Typography, theme } from 'antd';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import MethodTag from '@/components/MethodTag';
 import { useSelections } from 'ahooks';
@@ -84,24 +84,28 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
         </Space>
       }
     >
-      <Space direction="vertical" size="middle">
-        {apiPathList.map((apiPath, index) => (
-          <div key={`${apiPath.path}-${index}`}>
-            <Space size="small" className={styles.path}>
-              <Checkbox
-                checked={isSelected(genSelectKey(apiPath))}
-                onChange={() => {
-                  toggle(genSelectKey(apiPath));
-                }}
-              />
-              <MethodTag method={apiPath.method} className={styles[`httpMethod-${apiPath.method}`]}>
-                {apiPath.method}
-              </MethodTag>
-              <Text style={{ fontSize: 14 }}>{displayPathInfo(apiPath.path, apiPath.pathInfo)}</Text>
-            </Space>
-          </div>
-        ))}
-      </Space>
+      {apiPathList.length ? (
+        <Space direction="vertical" size="middle">
+          {apiPathList.map((apiPath, index) => (
+            <div key={`${apiPath.path}-${index}`}>
+              <Space size="small" className={styles.path}>
+                <Checkbox
+                  checked={isSelected(genSelectKey(apiPath))}
+                  onChange={() => {
+                    toggle(genSelectKey(apiPath));
+                  }}
+                />
+                <MethodTag method={apiPath.method} className={styles[`httpMethod-${apiPath.method}`]}>
+                  {apiPath.method}
+                </MethodTag>
+                <Text style={{ fontSize: 14 }}>{displayPathInfo(apiPath.path, apiPath.pathInfo)}</Text>
+              </Space>
+            </div>
+          ))}
+        </Space>
+      ) : (
+        <Empty className={styles.empty} />
+      )}
     </Panel>
   );
 };

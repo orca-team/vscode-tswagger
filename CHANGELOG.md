@@ -13,6 +13,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Changed
 
 - Increase the maximum apis number indicator from 99+ to 999+.
+- Change style for empty group.
 
 ## [2.1.1] - 2024-06-13
 
