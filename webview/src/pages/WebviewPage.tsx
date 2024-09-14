@@ -15,12 +15,11 @@ import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, FolderAddOutlined, LinkOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyModal } from '@orca-fe/hooks';
-import { useBoolean, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import { Affix, Button, Collapse, Empty, FloatButton, Form, Input, Layout, Modal, Space, Spin, Tabs, Tooltip, Typography, Upload, theme } from 'antd';
+import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
+import { Affix, Button, Collapse, Empty, FloatButton, Form, Layout, Modal, Space, Spin, Tabs, Tooltip, Typography, Upload, theme } from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
-import fuzzysort from 'fuzzysort';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
@@ -31,6 +30,7 @@ import useMessageListener from '@/hooks/useMessageListener';
 import { WebviewPageContext } from './context';
 import SettingModal from '@/components/SettingModal';
 import { pick } from 'lodash-es';
+import SearchSuite, { SearchValue } from '@/components/SearchSuite';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -50,14 +50,16 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const { className = '', ...otherProps } = props;
 
   const { token } = theme.useToken();
+  const [allApiGroup, setAllApiGroup] = useState<ApiGroupByTag[]>([]);
   const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
   const [searchPanelKey, setSearchPanelKey] = useState<string>(PARSE_METHOD_DOCS);
-  const _this = useRef<{ apiGroup?: ApiGroupByTag[]; V2Document?: OpenAPIV2.Document }>({}).current;
+  const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
   const [configForm] = useForm();
   const currentSwaggerUrl = useWatch<string>('swaggerUrl', form);
+  const searchParams = useWatch<SearchValue | undefined>('searchParams', form);
 
   const { extSetting, setExtSetting, setTswaggerConfig } = useGlobalState();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
@@ -85,7 +87,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     setSwaggerDocs(undefined);
     setCurrentApiGroup([]);
     resetSelectedApiMap();
-    form.setFieldValue('searchKey', '');
+    form.resetFields(['searchParams']);
   });
 
   const handleExtInfo = useMemoizedFn(async () => {
@@ -98,7 +100,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     const apiGroup = parseOpenAPIV2(apiDocs);
     setSwaggerDocs(apiDocs);
     setCurrentApiGroup(apiGroup);
-    _this.apiGroup = apiGroup;
+    setAllApiGroup(apiGroup);
     _this.V2Document = apiDocs;
   };
 
@@ -125,14 +127,30 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     handleV2DocumentData(swaggerDocs as OpenAPIV2.Document);
   });
 
-  const handleSearch = useMemoizedFn((searchKey: string) => {
-    resetSelectedApiMap();
-    setCurrentApiGroup(
-      searchKey
-        ? fuzzysort.go(searchKey, _this.apiGroup ?? [], { keys: ['apiPathList.path', 'tag.name'] }).map((it) => it.obj)
-        : _this.apiGroup ?? [],
-    );
-  });
+  useDebounceEffect(
+    () => {
+      resetSelectedApiMap();
+      toggleRefreshDoc();
+      const { tagNameList, keyword } = searchParams ?? {};
+      if (!tagNameList?.length && !keyword) {
+        setCurrentApiGroup(allApiGroup);
+        return;
+      }
+      let filteredGroup: ApiGroupByTag[] = allApiGroup;
+      if ((tagNameList?.length ?? 0) > 0) {
+        filteredGroup = filteredGroup.filter((it) => tagNameList?.includes(it.tag.name));
+      }
+      if (keyword) {
+        filteredGroup = filteredGroup.map(({ apiPathList, ...rest }) => ({
+          ...rest,
+          apiPathList: apiPathList.filter((api) => api.path.includes(keyword) || api.pathInfo.summary?.includes(keyword)),
+        }));
+      }
+      setCurrentApiGroup(filteredGroup);
+    },
+    [searchParams],
+    { wait: 500 },
+  );
 
   const handleOpenLocalFile = useMemoizedFn(async (file: RcFile) => {
     const jsonContent = await file.text();
@@ -330,15 +348,25 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     </Tooltip>
                   }
                 />
-                <Form.Item label="模糊查询" name="searchKey">
-                  <Input
-                    allowClear
-                    placeholder="请输入 标签名称 / API路径名称（按 Enter 键进行模糊查询）"
-                    onPressEnter={(e) => {
-                      // @ts-ignore
-                      handleSearch(e.target.value);
-                    }}
-                  />
+                <Form.Item
+                  name="searchParams"
+                  label={
+                    <Space>
+                      <span>高级查询：</span>
+                      <Button
+                        type="link"
+                        disabled={Boolean(!searchParams?.tagNameList?.length && !searchParams?.keyword)}
+                        style={{ display: 'inline-block' }}
+                        onClick={() => {
+                          form.resetFields(['searchParams']);
+                        }}
+                      >
+                        重置
+                      </Button>
+                    </Space>
+                  }
+                >
+                  <SearchSuite allApiGroup={allApiGroup} />
                 </Form.Item>
               </Form>
               <div style={{ textAlign: 'right' }}>

@@ -2,10 +2,10 @@ import React, { useContext, useEffect } from 'react';
 import styles from './ApiGroupPanel.less';
 import { Badge, Checkbox, Collapse, CollapsePanelProps, Empty, Space, Typography, theme } from 'antd';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import MethodTag from '@/components/MethodTag';
 import { useSelections } from 'ahooks';
 import { OpenAPIV2 } from 'openapi-types';
 import { WebviewPageContext } from '@/pages/context';
+import PathInfoItem from '../PathInfoItem';
 
 const { Panel } = Collapse;
 const { Text } = Typography;
@@ -33,19 +33,6 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   const { tag, apiPathList } = apiGroupItem;
   const { token } = theme.useToken();
   const { selected, toggleAll, unSelectAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList.map(genSelectKey));
-
-  const displayPathInfo = (path: string, pathInfo: OpenAPIV2.OperationObject) => {
-    const { summary, deprecated } = pathInfo;
-
-    return (
-      <>
-        <Text style={{ fontSize: 14 }} type={deprecated ? 'secondary' : undefined} strong delete={deprecated}>
-          {path}
-        </Text>
-        {summary && <Text style={{ fontSize: 14, opacity: 0.85 }}>{`（${summary}）`}</Text>}
-      </>
-    );
-  };
 
   useEffect(() => {
     onChange?.(
@@ -95,10 +82,7 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
                     toggle(genSelectKey(apiPath));
                   }}
                 />
-                <MethodTag method={apiPath.method} className={styles[`httpMethod-${apiPath.method}`]}>
-                  {apiPath.method}
-                </MethodTag>
-                <Text style={{ fontSize: 14 }}>{displayPathInfo(apiPath.path, apiPath.pathInfo)}</Text>
+                <PathInfoItem apiPath={apiPath} />
               </Space>
             </div>
           ))}

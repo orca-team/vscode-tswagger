@@ -9,6 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 
 - Adjust the style to indicate deprecated api.
+- Advanced query for swagger api.
 
 ### Changed
 
