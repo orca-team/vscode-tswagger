@@ -54,6 +54,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
   const [searchPanelKey, setSearchPanelKey] = useState<string>(PARSE_METHOD_DOCS);
+  const [openApiPanelKeys, setOpenApiPanelKeys] = useState<string[]>([]);
   const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
 
   const [form] = useForm();
@@ -87,6 +88,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     setSwaggerDocs(undefined);
     setCurrentApiGroup([]);
     resetSelectedApiMap();
+    setOpenApiPanelKeys([]);
     form.resetFields(['searchParams']);
   });
 
@@ -391,7 +393,13 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
             <WebviewPageContext.Provider value={{ refreshDocFlag }}>
               {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
               {!!currentApiGroup.length ? (
-                <Collapse className={styles.apiList}>
+                <Collapse
+                  className={styles.apiList}
+                  activeKey={openApiPanelKeys}
+                  onChange={(key) => {
+                    setOpenApiPanelKeys(Array.isArray(key) ? key : [key]);
+                  }}
+                >
                   {currentApiGroup.map((item, index) => (
                     <ApiGroupPanel
                       key={`${currentSwaggerUrl}-${index}`}
