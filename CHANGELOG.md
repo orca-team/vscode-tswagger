@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Support to hide empty group.
+
 ### Fixed
 
 - Panel remains open after refreshing.

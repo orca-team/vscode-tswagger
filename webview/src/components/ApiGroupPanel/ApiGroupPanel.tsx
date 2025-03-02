@@ -6,6 +6,7 @@ import { useSelections } from 'ahooks';
 import { OpenAPIV2 } from 'openapi-types';
 import { WebviewPageContext } from '@/pages/context';
 import PathInfoItem from '../PathInfoItem';
+import { SEARCH_FILTER } from '@/pages/constants';
 
 const { Panel } = Collapse;
 const { Text } = Typography;
@@ -29,7 +30,7 @@ export interface ApiGroupPanelProps extends Omit<CollapsePanelProps, 'header'> {
 
 const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   const { className = '', apiGroupItem, onChange, ...otherProps } = props;
-  const { refreshDocFlag } = useContext(WebviewPageContext);
+  const { refreshDocFlag, filters } = useContext(WebviewPageContext);
   const { tag, apiPathList } = apiGroupItem;
   const { token } = theme.useToken();
   const { selected, toggleAll, unSelectAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList.map(genSelectKey));
@@ -47,6 +48,10 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   useEffect(() => {
     unSelectAll();
   }, [refreshDocFlag]);
+
+  if (filters?.includes(SEARCH_FILTER.HIDE_EMPTY_GROUP) && apiPathList.length === 0) {
+    return null;
+  }
 
   return (
     <Panel
