@@ -22,6 +22,9 @@ export const apiDelSwaggerUrl = async (data: SwaggerUrlConfigItem) => callServic
 export const apiUpdateSwaggerUrl = async (data: SwaggerUrlConfigItem) =>
   callService<FetchResult<SwaggerUrlConfigItem[]>>('webview-updateSwaggerUrl', data);
 
+export const apiUpdateSwaggerUrlList = async (list: SwaggerUrlConfigItem[]) =>
+  callService<FetchResult<SwaggerUrlConfigItem[]>>('webview-updateSwaggerUrlList', list);
+
 export const apiParseSwaggerUrl = async (remoteUrl: string) => callService<FetchResult<OpenAPI.Document>>('webview-parseSwaggerUrl', remoteUrl);
 
 export const apiParseSwaggerJson = async (swaggerJson: string) =>

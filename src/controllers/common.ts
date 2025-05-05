@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as vscode from 'vscode';
 import dirTree from 'directory-tree';
 import SwaggerParser from '@apidevtools/swagger-parser';
@@ -211,6 +212,16 @@ export async function updateSwaggerUrl(data: any) {
   }
 
   return null;
+}
+
+/**
+ * 全量更新 swagger 文档接口地址列表
+ * @param {any[]} list - 要更新的列表数据
+ * @returns {any[]} - 更新后的列表数据
+ */
+export async function updateSwaggerUrlList(list: any[]) {
+  setConfiguration('swaggerUrlList', list);
+  return list;
 }
 
 /**

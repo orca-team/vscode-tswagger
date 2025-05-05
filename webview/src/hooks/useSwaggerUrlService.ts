@@ -1,8 +1,12 @@
-import { apiAddSwaggerUrl, apiDelSwaggerUrl, apiUpdateSwaggerUrl } from '@/services';
+import { apiAddSwaggerUrl, apiDelSwaggerUrl, apiUpdateSwaggerUrl, apiUpdateSwaggerUrlList } from '@/services';
 import { useGlobalState } from '@/states/globalState';
 import notification from '@/utils/notification';
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { useMemoizedFn } from 'ahooks';
+
+const generateKey = () => {
+  return Date.now();
+};
 
 export interface UseSwaggerUrlServiceProps {}
 
@@ -10,7 +14,7 @@ function useSwaggerUrlService(props: UseSwaggerUrlServiceProps = {}) {
   const { setExtSetting } = useGlobalState();
 
   const addSwaggerUrl = useMemoizedFn(async (item: Omit<SwaggerUrlConfigItem, 'id'>) => {
-    const resp = await apiAddSwaggerUrl({ ...item, key: Date.now() });
+    const resp = await apiAddSwaggerUrl({ ...item, key: generateKey() });
     if (resp.success) {
       setExtSetting({
         swaggerUrlList: resp.data ?? [],
@@ -45,10 +49,25 @@ function useSwaggerUrlService(props: UseSwaggerUrlServiceProps = {}) {
     }
   });
 
+  const updateSwaggerUrlList = useMemoizedFn(async (list: SwaggerUrlConfigItem[]) => {
+    const mergedList = list.map((item) => ({ ...item, key: item.key ?? generateKey() }));
+    const resp = await apiUpdateSwaggerUrlList(mergedList);
+    if (resp.success) {
+      setExtSetting({
+        swaggerUrlList: resp.data ?? [],
+      });
+      notification.success('Swagger 文档地址列表更新成功');
+    } else {
+      notification.error('更新失败请稍后再试');
+    }
+  });
+
   return {
+    generateKey,
     addSwaggerUrl,
     delSwaggerUrl,
     updateSwaggerUrl,
+    updateSwaggerUrlList,
   };
 }
 

@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
 import styles from './SwaggerUrlSelect.less';
-import { Button, Divider, Form, Select, SelectProps, Space } from 'antd';
+import { Form, Select, SelectProps } from 'antd';
 import { useGlobalState } from '@/states/globalState';
-import { PlusOutlined } from '@ant-design/icons';
-import CustomLabel, { formatSwaggerConfigLabel } from './CustomLabel';
-import UrlConfigForm from './UrlConfigForm';
-import useSwaggerUrlService from './useSwaggerUrlService';
+import { SwaggerUrlConfigItem } from '@/utils/types';
+
+export const formatSwaggerConfigLabel = (item: SwaggerUrlConfigItem) => {
+  const { name, url } = item;
+
+  return name ? `${name} (${url})` : url;
+};
 
 export interface SwaggerUrlSelectProps extends SelectProps {}
 
@@ -16,12 +19,6 @@ const SwaggerUrlSelect: React.FC<SwaggerUrlSelectProps> = (props) => {
   const { swaggerUrlList } = extSetting;
 
   const [addForm] = Form.useForm();
-  const swaggerService = useSwaggerUrlService();
-
-  const handleAdd = async () => {
-    const value = await addForm.validateFields();
-    swaggerService.addSwaggerUrl(value);
-  };
 
   useEffect(() => {
     addForm.resetFields();
@@ -35,24 +32,10 @@ const SwaggerUrlSelect: React.FC<SwaggerUrlSelectProps> = (props) => {
       optionLabelProp="displayLabel"
       optionFilterProp="displayLabel"
       options={swaggerUrlList.map((config, index) => ({
-        label: <CustomLabel value={config} />,
+        label: formatSwaggerConfigLabel(config),
         value: config.url,
         displayLabel: formatSwaggerConfigLabel(config),
       }))}
-      dropdownRender={(menu) => {
-        return (
-          <>
-            {menu}
-            <Divider style={{ margin: '8px 0' }} />
-            <Space className={styles.dropdownForm}>
-              <UrlConfigForm form={addForm} layout="inline" labelCol={{ span: 9 }} />
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} style={{ marginLeft: 'auto' }}>
-                添加
-              </Button>
-            </Space>
-          </>
-        );
-      }}
     />
   );
 };

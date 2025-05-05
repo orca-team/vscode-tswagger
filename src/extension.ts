@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
@@ -18,6 +19,7 @@ import {
   readLocalServiceInfoByGroup,
   saveConfigJSON,
   updateSwaggerUrl,
+  updateSwaggerUrlList,
   updateTranslationConfig,
   writeTsFile,
 } from './controllers/common';
@@ -67,6 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-delSwaggerUrl', delSwaggerUrl);
       // 更新swagger接口
       registerService('webview-updateSwaggerUrl', updateSwaggerUrl);
+      // 全量更新swagger接口列表
+      registerService('webview-updateSwaggerUrlList', updateSwaggerUrlList);
       // 解析远程接口
       registerService('webview-parseSwaggerUrl', parseSwaggerUrl);
       // 解析 Swagger Json 字符串

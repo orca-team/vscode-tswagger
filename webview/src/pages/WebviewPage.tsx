@@ -14,9 +14,26 @@ import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { DownOutlined, FolderAddOutlined, LinkOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
-import { usePromisifyModal } from '@orca-fe/hooks';
-import { useBoolean, useDebounceEffect, useDebounceFn, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import { Affix, Button, Checkbox, Collapse, Empty, FloatButton, Form, Layout, Modal, Space, Spin, Tabs, Tooltip, Typography, Upload, theme } from 'antd';
+import { usePromisifyDrawer, usePromisifyModal } from '@orca-fe/hooks';
+import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
+import {
+  Affix,
+  Button,
+  Checkbox,
+  Collapse,
+  Empty,
+  FloatButton,
+  Form,
+  Layout,
+  Modal,
+  Space,
+  Spin,
+  Tabs,
+  Tooltip,
+  Typography,
+  Upload,
+  theme,
+} from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
@@ -33,6 +50,7 @@ import { pick } from 'lodash-es';
 import SearchSuite, { SearchValue } from '@/components/SearchSuite';
 import { ADVANCED_SEARCH_OPTIONS, PARSE_METHOD_DOCS, PARSE_METHOD_LOCAL, SEARCH_FILTER } from './constants';
 import { CheckboxValueType } from 'antd/es/checkbox/Group';
+import SwaggerDocDrawer from '@/components/SwaggerDocDrawer';
 
 const { Header, Content } = Layout;
 const { useForm, useWatch } = Form;
@@ -49,6 +67,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const { className = '', ...otherProps } = props;
 
   const { token } = theme.useToken();
+  const drawer = usePromisifyDrawer({ onOkField: 'onOk' });
   const [allApiGroup, setAllApiGroup] = useState<ApiGroupByTag[]>([]);
   const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
@@ -274,6 +293,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     <div className={`${styles.root} ${className}`} {...otherProps}>
       <TsGenerateSpin spinning={generateLoading} />
       {modalController.instance}
+      {drawer.instance}
       <Layout style={{ height: '100%' }}>
         <Header className={styles.header}>Swagger To Typescript</Header>
         <Layout className={styles.layout}>
@@ -314,6 +334,15 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                                   刷新
                                 </Button>
                               </Tooltip>
+                              <Button
+                                type="link"
+                                style={{ display: 'inline-block' }}
+                                onClick={() => {
+                                  drawer.show(<SwaggerDocDrawer />);
+                                }}
+                              >
+                                管理文档地址
+                              </Button>
                             </Space>
                           }
                         >
@@ -350,7 +379,12 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     </Tooltip>
                   }
                 />
-                  <Checkbox.Group value={filters} onChange={setFilters} options={ADVANCED_SEARCH_OPTIONS} style={{ margin: '8px 0 12px 0'}}></Checkbox.Group>
+                <Checkbox.Group
+                  value={filters}
+                  onChange={setFilters}
+                  options={ADVANCED_SEARCH_OPTIONS}
+                  style={{ margin: '8px 0 12px 0' }}
+                ></Checkbox.Group>
                 <Form.Item
                   name="searchParams"
                   label={
