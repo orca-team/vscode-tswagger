@@ -338,7 +338,14 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                                 type="link"
                                 style={{ display: 'inline-block' }}
                                 onClick={() => {
-                                  drawer.show(<SwaggerDocDrawer />);
+                                  drawer.show(
+                                    <SwaggerDocDrawer
+                                      onSaveSuccess={() => {
+                                        drawer.hide();
+                                        refreshSwaggerSchema();
+                                      }}
+                                    />,
+                                  );
                                 }}
                               >
                                 管理文档地址

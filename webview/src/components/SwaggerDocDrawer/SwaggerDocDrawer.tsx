@@ -13,10 +13,11 @@ import notification from '@/utils/notification';
 
 export interface SwaggerDocDrawerProps extends Omit<DrawerProps, 'onClose'> {
   onClose?: () => void;
+  onSaveSuccess?: () => void;
 }
 
 const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
-  const { className = '', onClose, ...otherProps } = props;
+  const { className = '', onClose, onSaveSuccess, ...otherProps } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const { extSetting } = useGlobalState();
   const [swaggerUrlList, setSwaggerUrlList] = useState<Partial<SwaggerUrlConfigItem>[]>(extSetting.swaggerUrlList);
@@ -43,6 +44,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
       return;
     }
     await swaggerService.updateSwaggerUrlList(swaggerUrlList as SwaggerUrlConfigItem[]);
+    onSaveSuccess?.();
     onClose?.();
   });
 
