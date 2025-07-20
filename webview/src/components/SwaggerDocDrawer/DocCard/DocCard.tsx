@@ -3,8 +3,7 @@ import styles from './DocCard.module.less';
 import { Card, CardProps, Form, Input, Space, Typography, Popconfirm, theme } from 'antd';
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { useControllableValue, useMemoizedFn } from 'ahooks';
-import { useGlobalState } from '@/states/globalState';
-import { EditOutlined, SaveOutlined, DeleteOutlined, HolderOutlined } from '@ant-design/icons';
+import { EditOutlined, SaveOutlined, DeleteOutlined, DragOutlined } from '@ant-design/icons';
 import ActionIcon from '@/components/ActionIcon';
 import { useSwaggerDocDrawerContext } from '../context';
 
@@ -16,7 +15,7 @@ export interface DocCardProps extends Omit<CardProps, 'extra'> {
   onEditingChange?: (editing?: boolean) => void;
   onDelete?: () => void;
 
-  onSave?: (data: SwaggerUrlConfigItem) => void;
+  onSave?: (data: SwaggerUrlConfigItem) => boolean | void;
 }
 
 const DocCard = (props: DocCardProps) => {
@@ -33,8 +32,11 @@ const DocCard = (props: DocCardProps) => {
 
   const handleSave = useMemoizedFn(async () => {
     const value = await form.validateFields();
-    onSave?.(value);
-    setEditing(false);
+    const saveResult = onSave?.(value);
+    // 只有保存成功时才退出编辑态
+    if (saveResult !== false) {
+      setEditing(false);
+    }
   });
 
   return (
@@ -44,27 +46,27 @@ const DocCard = (props: DocCardProps) => {
         className={`${styles.root} ${className}`}
         size="small"
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <HolderOutlined
-              style={{
-                color: editing ? '#d9d9d9' : '#999',
-                cursor: editing ? 'not-allowed' : 'grab',
-                fontSize: '12px',
-              }}
-            />
-            {editing ? (
-              <Form.Item name="name" style={{ margin: 0, flex: 1 }}>
-                <Input size="small" placeholder="请输入接口地址别名" />
-              </Form.Item>
-            ) : (
-              <Typography.Text className={styles.name} ellipsis={{ tooltip: true }} strong style={{ flex: 1 }}>
-                {data.name}
-              </Typography.Text>
-            )}
-          </div>
+          editing ? (
+            <Form.Item name="name" style={{ margin: 0 }}>
+              <Input size="small" placeholder="请输入接口地址别名" />
+            </Form.Item>
+          ) : (
+            <Typography.Text className={styles.name} ellipsis={{ tooltip: true }} strong>
+              {data.name}
+            </Typography.Text>
+          )
         }
         extra={
           <Space size="small">
+            <ActionIcon
+              icon={<DragOutlined />}
+              title="移动"
+              style={{
+                cursor: editing ? 'not-allowed' : 'grab',
+                color: editing ? '#d9d9d9' : token.yellow,
+              }}
+              disabled={editing}
+            />
             {editing ? (
               <ActionIcon icon={<SaveOutlined />} title="保存" onClick={handleSave}></ActionIcon>
             ) : (

@@ -5,28 +5,81 @@
     position: relative;
     cursor: grab;
     transition: all 0.2s ease;
-    
+
     &:active {
       cursor: grabbing;
     }
-    
+
     &.dragging {
       opacity: 0.5;
       transform: scale(0.95);
       cursor: grabbing;
     }
-    
+
     &.dragOver {
       border: 2px dashed #1890ff;
       border-radius: 6px;
       background-color: rgba(24, 144, 255, 0.05);
     }
-    
-    &[draggable="false"] {
+
+    &[draggable='false'] {
       cursor: default;
-      
+
       &:active {
         cursor: default;
+      }
+    }
+  }
+
+  // 分组相关样式
+  .container {
+    height: 100%;
+    overflow: auto;
+  }
+
+  .groupedContent {
+    .createGroup {
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px dashed;
+    }
+
+    .groupList {
+      .groupContent {
+        .docList {
+          .docItem {
+            margin-bottom: 8px;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+
+      .docCount {
+        color: #8c8c8c;
+        font-size: 12px;
+      }
+    }
+  }
+
+  .legacyContent {
+    .legacyTip {
+      padding: 12px;
+      background: #fff7e6;
+      border: 1px solid #ffd591;
+      border-radius: 6px;
+      color: #d46b08;
+      margin-bottom: 16px;
+    }
+
+    .docItem {
+      margin-bottom: 8px;
+
+      &:last-child {
+        margin-bottom: 0;
       }
     }
   }

@@ -30,6 +30,29 @@ export const apiParseSwaggerUrl = async (remoteUrl: string) => callService<Fetch
 export const apiParseSwaggerJson = async (swaggerJson: string) =>
   callService<FetchResult<OpenAPIV2.Document>>('webview-parseSwaggerJson', swaggerJson);
 
+// ==================== 分组文档相关 API ====================
+
+export const apiAddGroupSwaggerDoc = async (data: any) => 
+  callService<FetchResult<any>>('webview-addGroupSwaggerDoc', data);
+
+export const apiDelGroupSwaggerDoc = async (data: any) => 
+  callService<FetchResult<any>>('webview-delGroupSwaggerDoc', data);
+
+export const apiUpdateGroupSwaggerDoc = async (data: any) => 
+  callService<FetchResult<any>>('webview-updateGroupSwaggerDoc', data);
+
+export const apiUpdateSwaggerDocGroup = async (data: any) => 
+  callService<FetchResult<any>>('webview-updateSwaggerDocGroup', data);
+
+export const apiUpdateGroupSwaggerDocList = async (list: any[]) => 
+  callService<FetchResult<any>>('webview-updateGroupSwaggerDocList', list);
+
+export const apiCreateSwaggerDocGroup = async (data: any) => 
+  callService<FetchResult<any>>('webview-createSwaggerDocGroup', data);
+
+export const apiDeleteSwaggerDocGroup = async (groupId: string) => 
+  callService<FetchResult<any>>('webview-deleteSwaggerDocGroup', groupId);
+
 export const apiGenerateV2TypeScript = async (params: GenerateTypescriptConfig) =>
   callService<FetchResult<V2TSGenerateResult>>('webview-generateV2TypeScript', params);
 

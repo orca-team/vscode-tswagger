@@ -218,6 +218,31 @@ export type ServiceMapInfoYAMLJSONType = {
 };
 
 /**
+ * 分组文档项
+ * groupId 为可选，没有 groupId 的文档被认为是未分组
+ */
+export interface GroupedSwaggerDocItem {
+  key: string;
+  name: string;
+  url: string;
+  groupId?: string;
+}
+
+/**
+ * Swagger 文档分组
+ */
+export interface SwaggerDocGroup {
+  id: string;
+  name: string;
+  docs: GroupedSwaggerDocItem[];
+}
+
+/**
+ * 分组文档列表
+ */
+export type GroupedSwaggerDocList = SwaggerDocGroup[];
+
+/**
  * 项目插件配置文件
  */
 export type TSwaggerConfig = Partial<{

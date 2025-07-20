@@ -87,6 +87,11 @@
           "default": {
             "engine": "Bing"
           }
+        },
+        "tswagger.groupSwaggerDocList": {
+          "type": "array",
+          "description": "分组类型的 swagger 文档地址列表",
+          "default": []
         }
       }
     }

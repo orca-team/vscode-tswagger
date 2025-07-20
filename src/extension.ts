@@ -22,6 +22,14 @@ import {
   updateSwaggerUrlList,
   updateTranslationConfig,
   writeTsFile,
+  // 分组文档相关接口
+  addGroupSwaggerDoc,
+  delGroupSwaggerDoc,
+  updateGroupSwaggerDoc,
+  updateSwaggerDocGroup,
+  updateGroupSwaggerDocList,
+  createSwaggerDocGroup,
+  deleteSwaggerDocGroup,
 } from './controllers/common';
 import { generateV2ServiceFile, generateV2TypeScript } from './controllers/generate/v2';
 
@@ -87,6 +95,22 @@ export function activate(context: vscode.ExtensionContext) {
       registerService('webview-saveConfigJSON', saveConfigJSON);
       // 获取不同分组下的 service.map.yaml 文件信息
       registerService('webview-readLocalServiceInfo', readLocalServiceInfoByGroup);
+      
+      // ==================== 分组文档相关接口 ====================
+      // 添加分组文档
+      registerService('webview-addGroupSwaggerDoc', addGroupSwaggerDoc);
+      // 删除分组文档
+      registerService('webview-delGroupSwaggerDoc', delGroupSwaggerDoc);
+      // 更新分组文档
+      registerService('webview-updateGroupSwaggerDoc', updateGroupSwaggerDoc);
+      // 更新分组信息
+      registerService('webview-updateSwaggerDocGroup', updateSwaggerDocGroup);
+      // 全量更新分组文档列表
+      registerService('webview-updateGroupSwaggerDocList', updateGroupSwaggerDocList);
+      // 创建新分组
+      registerService('webview-createSwaggerDocGroup', createSwaggerDocGroup);
+      // 删除分组
+      registerService('webview-deleteSwaggerDocGroup', deleteSwaggerDocGroup);
 
       // 开始监听 ts 文件变化
       listenTsFileChange(umiPanel.webview);

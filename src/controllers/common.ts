@@ -17,11 +17,17 @@ import { join } from 'path';
  */
 export async function queryExtInfo(context: vscode.ExtensionContext) {
   // 获取所有配置信息
-  const allSetting = getAllConfiguration(['swaggerUrlList', 'translation']);
+  const allSetting = getAllConfiguration(['swaggerUrlList', 'groupSwaggerDocList', 'translation']);
   // 获取全局状态
   const globalState = getGlobalState(context);
   // 获取插件配置
   const config = getTSwaggerConfigJSON();
+  
+  // 兼容旧数据：如果 groupSwaggerDocList 不存在，初始化为空数组
+  if (!allSetting.groupSwaggerDocList) {
+    allSetting.groupSwaggerDocList = [];
+  }
+  
   // 返回配置信息
   return {
     setting: allSetting,
@@ -222,6 +228,145 @@ export async function updateSwaggerUrl(data: any) {
 export async function updateSwaggerUrlList(list: any[]) {
   setConfiguration('swaggerUrlList', list);
   return list;
+}
+
+// ==================== 分组文档相关接口 ====================
+
+/**
+ * 添加分组文档
+ */
+export async function addGroupSwaggerDoc(data: any) {
+  const groupSwaggerDocList = getConfiguration('groupSwaggerDocList') || [];
+  
+  // 只有当 groupId 存在时才处理分组逻辑
+  if (data.groupId) {
+    // 查找或创建分组
+    let targetGroup = groupSwaggerDocList.find((group: any) => group.id === data.groupId);
+    if (!targetGroup) {
+      targetGroup = {
+        id: data.groupId,
+        name: data.groupName || '未命名分组',
+        docs: []
+      };
+      groupSwaggerDocList.push(targetGroup);
+    }
+    
+    // 添加文档到分组
+    targetGroup.docs.push(data);
+    
+    setConfiguration('groupSwaggerDocList', groupSwaggerDocList);
+  }
+  // 没有 groupId 的文档不需要特殊处理，由前端管理未分组数据
+  
+  return groupSwaggerDocList;
+}
+
+/**
+ * 删除分组文档
+ */
+export async function delGroupSwaggerDoc(data: any) {
+  const groupSwaggerDocList = getConfiguration('groupSwaggerDocList') || [];
+  
+  // 只有当 groupId 存在时才处理分组逻辑
+  if (data.groupId) {
+    // 查找分组
+    const targetGroup = groupSwaggerDocList.find((group: any) => group.id === data.groupId);
+    if (targetGroup) {
+      // 从分组中删除文档
+      targetGroup.docs = targetGroup.docs.filter((doc: any) => doc.key !== data.key && doc.url !== data.url);
+      
+      // 如果分组为空，删除分组
+      if (targetGroup.docs.length === 0) {
+        const groupIndex = groupSwaggerDocList.findIndex((group: any) => group.id === data.groupId);
+        if (groupIndex > -1) {
+          groupSwaggerDocList.splice(groupIndex, 1);
+        }
+      }
+    }
+    
+    setConfiguration('groupSwaggerDocList', groupSwaggerDocList);
+  }
+  // 没有 groupId 的文档不需要特殊处理，由前端管理未分组数据
+  
+  return groupSwaggerDocList;
+}
+
+/**
+ * 更新分组文档
+ */
+export async function updateGroupSwaggerDoc(data: any) {
+  const groupSwaggerDocList = getConfiguration('groupSwaggerDocList') || [];
+  
+  // 只有当 groupId 存在时才处理分组逻辑
+  if (data.groupId) {
+    // 查找分组
+    const targetGroup = groupSwaggerDocList.find((group: any) => group.id === data.groupId);
+    if (targetGroup) {
+      // 查找并更新文档
+      const docIndex = targetGroup.docs.findIndex((doc: any) => doc.key === data.key);
+      if (docIndex > -1) {
+        targetGroup.docs[docIndex] = data;
+        setConfiguration('groupSwaggerDocList', groupSwaggerDocList);
+        return groupSwaggerDocList;
+      }
+    }
+  }
+  // 没有 groupId 的文档不需要特殊处理，由前端管理未分组数据
+  
+  return groupSwaggerDocList;
+}
+
+/**
+ * 更新分组信息
+ */
+export async function updateSwaggerDocGroup(data: any) {
+  const groupSwaggerDocList = getConfiguration('groupSwaggerDocList') || [];
+  
+  // 查找并更新分组
+  const groupIndex = groupSwaggerDocList.findIndex((group: any) => group.id === data.id);
+  if (groupIndex > -1) {
+    groupSwaggerDocList[groupIndex] = { ...groupSwaggerDocList[groupIndex], ...data };
+    setConfiguration('groupSwaggerDocList', groupSwaggerDocList);
+    return groupSwaggerDocList;
+  }
+  
+  return null;
+}
+
+/**
+ * 全量更新分组文档列表
+ */
+export async function updateGroupSwaggerDocList(list: any[]) {
+  setConfiguration('groupSwaggerDocList', list);
+  return list;
+}
+
+/**
+ * 创建新分组
+ */
+export async function createSwaggerDocGroup(data: any) {
+  const groupSwaggerDocList = getConfiguration('groupSwaggerDocList') || [];
+  
+  const newGroup = {
+    id: data.id || `group_${Date.now()}`,
+    name: data.name || '新分组',
+    docs: []
+  };
+  
+  groupSwaggerDocList.push(newGroup);
+  setConfiguration('groupSwaggerDocList', groupSwaggerDocList);
+  return groupSwaggerDocList;
+}
+
+/**
+ * 删除分组
+ */
+export async function deleteSwaggerDocGroup(groupId: string) {
+  const groupSwaggerDocList = getConfiguration('groupSwaggerDocList') || [];
+  
+  const newList = groupSwaggerDocList.filter((group: any) => group.id !== groupId);
+  setConfiguration('groupSwaggerDocList', newList);
+  return newList;
 }
 
 /**

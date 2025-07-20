@@ -1,4 +1,4 @@
-import { SwaggerUrlConfigItem } from '@/utils/types';
+import { SwaggerUrlConfigItem, GroupedSwaggerDocList } from '@/utils/types';
 import { useSetState } from 'ahooks';
 import { createGlobalStore } from 'hox';
 import { TSwaggerConfig, TranslateEngine } from '../../../src/types';
@@ -17,6 +17,11 @@ export type ExtSettingType = {
    */
   swaggerUrlList: SwaggerUrlConfigItem[];
 
+  /**
+   * 分组类型的 swagger 文档数据
+   */
+  groupSwaggerDocList: GroupedSwaggerDocList;
+
   /** 翻译配置信息 */
   translation: ExtTranslationConfig;
 };
@@ -29,6 +34,7 @@ export const [useGlobalState] = createGlobalStore(() => {
   // 插件 settings 配置
   const [extSetting, setExtSetting] = useSetState<ExtSettingType>({
     swaggerUrlList: [],
+    groupSwaggerDocList: [],
     translation: {
       engine: 'Bing',
     },
