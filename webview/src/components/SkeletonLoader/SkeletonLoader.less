@@ -1,0 +1,62 @@
+.skeletonContainer {
+  .skeletonCard {
+    background: var(--vscode-editorHoverWidget-background, #252526);
+    border: 1px solid var(--vscode-widget-border, #303031);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 20px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    :global(.ant-skeleton-element) {
+      .ant-skeleton-input {
+        background: var(--vscode-editorWidget-background, #2d2d30);
+        border-radius: 6px;
+      }
+
+      .ant-skeleton-button {
+        background: var(--vscode-editorWidget-background, #2d2d30);
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .skeletonHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vscode-widget-border, #303031);
+  }
+
+  .skeletonContent {
+    .skeletonApiItem {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  :global(.ant-skeleton.ant-skeleton-active) {
+    .ant-skeleton-content {
+      .ant-skeleton-title,
+      .ant-skeleton-paragraph > li {
+        background: linear-gradient(
+          90deg,
+          var(--vscode-editorWidget-background, #2d2d30) 25%,
+          var(--vscode-editor-background, #1e1e1e) 37%,
+          var(--vscode-editorWidget-background, #2d2d30) 63%
+        );
+        background-size: 400% 100%;
+        animation: ant-skeleton-loading 1.4s ease infinite;
+      }
+    }
+  }
+}
