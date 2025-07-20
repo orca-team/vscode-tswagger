@@ -9,6 +9,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 
 - Manage swagger doc URL in drawer.
+- Drag-and-drop reordering for swagger doc cards.
+- Support to group swagger doc.
 
 ## [2.2.1] - 2025-03-02
 
