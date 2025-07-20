@@ -88,15 +88,61 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
     setSwaggerUrlList(swaggerUrlList.filter((_, i) => i !== index));
   });
 
-  const moveItem = (index: number, direction: 'up' | 'down') => {
-    const newList = [...swaggerUrlList];
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= newList.length) {
-      return;
+  // 拖拽相关状态
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // 处理拖拽开始
+  const handleDragStart = useMemoizedFn((e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  // 处理拖拽结束
+  const handleDragEnd = useMemoizedFn(() => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  });
+
+  // 处理拖拽悬停
+  const handleDragOver = useMemoizedFn((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
     }
-    [newList[index], newList[newIndex]] = [newList[newIndex], newList[index]];
-    setSwaggerUrlList(newList);
-  };
+  });
+
+  // 处理拖拽离开
+  const handleDragLeave = useMemoizedFn(() => {
+    setDragOverIndex(null);
+  });
+
+  // 处理放置
+  const handleDrop = useMemoizedFn((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+      const newList = [...swaggerUrlList];
+      const draggedItem = newList[draggedIndex];
+      newList.splice(draggedIndex, 1);
+      newList.splice(dropIndex, 0, draggedItem);
+      setSwaggerUrlList(newList);
+
+      // 更新编辑状态的索引
+      const newEditingKeys = editingKeys.map((key) => {
+        if (key === draggedIndex) {
+          return dropIndex;
+        } else if (draggedIndex < dropIndex && key > draggedIndex && key <= dropIndex) {
+          return key - 1;
+        } else if (draggedIndex > dropIndex && key >= dropIndex && key < draggedIndex) {
+          return key + 1;
+        }
+        return key;
+      });
+      setEditingKeys(newEditingKeys);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  });
 
   return (
     <Drawer
@@ -124,33 +170,46 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
     >
       <Space direction="vertical" style={{ width: '100%', height: '100%', overflow: 'auto' }} size="small" ref={containerRef}>
         <SwaggerDocDrawerContext.Provider value={{ swaggerUrlList }}>
-          {swaggerUrlList.map((item, index) => (
-            <div className={styles.item} key={index}>
-              <DocCard
-                data={item}
-                editing={editingKeys.includes(index)}
-                onEditingChange={(editing) => {
-                  if (editing) {
-                    setEditingKeys([...editingKeys, index]);
-                  } else {
-                    setEditingKeys(editingKeys.filter((key) => key !== index));
+          <Space size="small" direction="vertical" style={{ width: '100%' }}>
+            {swaggerUrlList.map((item, index) => (
+              <div
+                className={`${styles.item} ${draggedIndex === index ? styles.dragging : ''} ${dragOverIndex === index ? styles.dragOver : ''}`}
+                key={index}
+                draggable={!editingKeys.includes(index)}
+                onDragStart={(e) => {
+                  if (editingKeys.includes(index)) {
+                    e.preventDefault();
+                    return;
                   }
+                  handleDragStart(e, index);
                 }}
-                moveUpDisabled={index === 0}
-                moveDownDisabled={index === swaggerUrlList.length - 1}
-                onMoveUp={() => moveItem(index, 'up')}
-                onMoveDown={() => moveItem(index, 'down')}
-                onSave={(data) => {
-                  setSwaggerUrlList((prev) => {
-                    const newList = [...prev];
-                    newList[index] = data;
-                    return newList;
-                  });
-                }}
-                onDelete={() => handleDelete(index)}
-              ></DocCard>
-            </div>
-          ))}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+              >
+                <DocCard
+                  data={item}
+                  editing={editingKeys.includes(index)}
+                  onEditingChange={(editing) => {
+                    if (editing) {
+                      setEditingKeys([...editingKeys, index]);
+                    } else {
+                      setEditingKeys(editingKeys.filter((key) => key !== index));
+                    }
+                  }}
+                  onSave={(data) => {
+                    setSwaggerUrlList((prev) => {
+                      const newList = [...prev];
+                      newList[index] = data;
+                      return newList;
+                    });
+                  }}
+                  onDelete={() => handleDelete(index)}
+                ></DocCard>
+              </div>
+            ))}
+          </Space>
         </SwaggerDocDrawerContext.Provider>
       </Space>
     </Drawer>

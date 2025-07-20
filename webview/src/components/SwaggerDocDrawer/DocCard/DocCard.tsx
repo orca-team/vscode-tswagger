@@ -1,10 +1,11 @@
 import React from 'react';
 import styles from './DocCard.module.less';
-import { Button, Card, CardProps, Form, Input, Space, Typography, Popconfirm } from 'antd';
+import { Card, CardProps, Form, Input, Space, Typography, Popconfirm, theme } from 'antd';
 import { SwaggerUrlConfigItem } from '@/utils/types';
 import { useControllableValue, useMemoizedFn } from 'ahooks';
 import { useGlobalState } from '@/states/globalState';
-import { ArrowDownOutlined, ArrowUpOutlined, EditOutlined, SaveOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, SaveOutlined, DeleteOutlined, HolderOutlined } from '@ant-design/icons';
+import ActionIcon from '@/components/ActionIcon';
 import { useSwaggerDocDrawerContext } from '../context';
 
 export interface DocCardProps extends Omit<CardProps, 'extra'> {
@@ -12,32 +13,16 @@ export interface DocCardProps extends Omit<CardProps, 'extra'> {
 
   editing?: boolean;
 
-  moveUpDisabled?: boolean;
-  moveDownDisabled?: boolean;
-
   onEditingChange?: (editing?: boolean) => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
   onDelete?: () => void;
 
   onSave?: (data: SwaggerUrlConfigItem) => void;
 }
 
 const DocCard = (props: DocCardProps) => {
-  const {
-    className = '',
-    data,
-    editing: _e,
-    onEditingChange: _onE,
-    moveDownDisabled,
-    moveUpDisabled,
-    onMoveUp,
-    onMoveDown,
-    onSave,
-    onDelete,
-    ...otherProps
-  } = props;
+  const { className = '', data, editing: _e, onEditingChange: _onE, onSave, onDelete, ...otherProps } = props;
   const [form] = Form.useForm();
+  const { token } = theme.useToken();
   const [editing, setEditing] = useControllableValue<boolean>(props, {
     defaultValue: false,
     valuePropName: 'editing',
@@ -57,39 +42,39 @@ const DocCard = (props: DocCardProps) => {
       <Form.Item name="key" hidden />
       <Card
         className={`${styles.root} ${className}`}
+        size="small"
         title={
-          editing ? (
-            <Form.Item name="name">
-              <Input placeholder="请输入接口地址别名" />
-            </Form.Item>
-          ) : (
-            <Typography.Text className={styles.name} ellipsis={{ tooltip: true }} strong>
-              {data.name}
-            </Typography.Text>
-          )
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <HolderOutlined
+              style={{
+                color: editing ? '#d9d9d9' : '#999',
+                cursor: editing ? 'not-allowed' : 'grab',
+                fontSize: '12px',
+              }}
+            />
+            {editing ? (
+              <Form.Item name="name" style={{ margin: 0, flex: 1 }}>
+                <Input size="small" placeholder="请输入接口地址别名" />
+              </Form.Item>
+            ) : (
+              <Typography.Text className={styles.name} ellipsis={{ tooltip: true }} strong style={{ flex: 1 }}>
+                {data.name}
+              </Typography.Text>
+            )}
+          </div>
         }
         extra={
-          <Space>
-            <Button type="link" icon={<ArrowUpOutlined />} disabled={moveUpDisabled} onClick={onMoveUp}>
-              上移
-            </Button>
-            <Button type="link" icon={<ArrowDownOutlined />} disabled={moveDownDisabled} onClick={onMoveDown}>
-              下移
-            </Button>
+          <Space size="small">
             {editing ? (
-              <Button type="link" icon={<SaveOutlined />} onClick={handleSave}>
-                保存
-              </Button>
+              <ActionIcon icon={<SaveOutlined />} title="保存" onClick={handleSave}></ActionIcon>
             ) : (
-              <Button
-                type="link"
+              <ActionIcon
                 icon={<EditOutlined />}
+                title="编辑"
                 onClick={() => {
                   setEditing(true);
                 }}
-              >
-                编辑
-              </Button>
+              ></ActionIcon>
             )}
             <Popconfirm
               title="确认删除"
@@ -99,9 +84,7 @@ const DocCard = (props: DocCardProps) => {
               cancelText="取消"
               okButtonProps={{ danger: true }}
             >
-              <Button type="link" danger icon={<DeleteOutlined />}>
-                删除
-              </Button>
+              <ActionIcon icon={<DeleteOutlined />} title="删除" danger></ActionIcon>
             </Popconfirm>
           </Space>
         }
@@ -129,10 +112,18 @@ const DocCard = (props: DocCardProps) => {
               },
             ]}
           >
-            <Input placeholder="请输入接口地址" />
+            <Input size="small" placeholder="请输入接口地址" />
           </Form.Item>
         ) : (
-          <Typography.Text className={styles.url} underline copyable>
+          <Typography.Text
+            className={styles.url}
+            underline
+            copyable
+            style={{ color: token.colorTextBase }}
+            ellipsis={{
+              tooltip: true,
+            }}
+          >
             {data.url}
           </Typography.Text>
         )}

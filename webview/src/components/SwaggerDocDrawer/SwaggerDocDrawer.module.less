@@ -3,5 +3,31 @@
 
   .item {
     position: relative;
+    cursor: grab;
+    transition: all 0.2s ease;
+    
+    &:active {
+      cursor: grabbing;
+    }
+    
+    &.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+      cursor: grabbing;
+    }
+    
+    &.dragOver {
+      border: 2px dashed #1890ff;
+      border-radius: 6px;
+      background-color: rgba(24, 144, 255, 0.05);
+    }
+    
+    &[draggable="false"] {
+      cursor: default;
+      
+      &:active {
+        cursor: default;
+      }
+    }
   }
 }
