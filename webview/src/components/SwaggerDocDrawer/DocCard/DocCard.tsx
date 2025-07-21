@@ -6,6 +6,7 @@ import { useControllableValue, useMemoizedFn } from 'ahooks';
 import { EditOutlined, SaveOutlined, DeleteOutlined, DragOutlined } from '@ant-design/icons';
 import ActionIcon from '@/components/ActionIcon';
 import { useSwaggerDocDrawerContext } from '../context';
+import { SortHandle } from '@orca-fe/dnd';
 
 export interface DocCardProps extends Omit<CardProps, 'extra'> {
   data: Partial<SwaggerUrlConfigItem>;
@@ -58,15 +59,17 @@ const DocCard = (props: DocCardProps) => {
         }
         extra={
           <Space size="small">
-            <ActionIcon
-              icon={<DragOutlined />}
-              title="移动"
-              style={{
-                cursor: editing ? 'not-allowed' : 'grab',
-                color: editing ? '#d9d9d9' : token.yellow,
-              }}
-              disabled={editing}
-            />
+            <SortHandle>
+              <ActionIcon
+                icon={<DragOutlined />}
+                title="移动"
+                style={{
+                  cursor: editing ? 'not-allowed' : 'grab',
+                  color: editing ? '#d9d9d9' : token.yellow,
+                }}
+                disabled={editing}
+              />
+            </SortHandle>
             {editing ? (
               <ActionIcon icon={<SaveOutlined />} title="保存" onClick={handleSave}></ActionIcon>
             ) : (

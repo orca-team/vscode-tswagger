@@ -12,6 +12,7 @@ import { SwaggerUrlConfigItem, GroupedSwaggerDocItem, SwaggerDocGroup, GroupedSw
 import { SwaggerDocDrawerContext } from './context';
 import { isEqual } from 'lodash-es';
 import notification from '@/utils/notification';
+import { SortableList } from '@orca-fe/dnd';
 
 const { Panel } = Collapse;
 
@@ -177,8 +178,6 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
       const docIndex = group ? group.docs.length : 0;
       setEditingKeys([...editingKeys, `${groupId}_${docIndex}`]);
     }
-
-
   });
 
   // 删除文档
@@ -246,7 +245,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
         }),
       );
     }
-    
+
     return true;
   });
 
@@ -261,26 +260,28 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
           {docs.length === 0 ? (
             <Empty description="暂无文档信息" />
           ) : (
-            docs.map((doc, index) => {
-              const editingKey = `${group.id}_${index}`;
-              return (
-                <div key={editingKey} className={styles.docItem}>
-                  <DocCard
-                    data={doc}
-                    editing={editingKeys.includes(editingKey)}
-                    onEditingChange={(editing) => {
-                      if (editing) {
-                        setEditingKeys([...editingKeys, editingKey]);
-                      } else {
-                        setEditingKeys(editingKeys.filter((key) => key !== editingKey));
-                      }
-                    }}
-                    onSave={(data) => handleSaveDoc(group.id, index, data)}
-                    onDelete={() => handleDeleteDoc(group.id, index)}
-                  />
-                </div>
-              );
-            })
+            <SortableList data={docs} customHandle>
+              {(doc, index) => {
+                const editingKey = `${group.id}_${index}`;
+                return (
+                  <div key={editingKey} className={styles.docItem} style={{ marginTop: index ? 8 : 0 }}>
+                    <DocCard
+                      data={doc}
+                      editing={editingKeys.includes(editingKey)}
+                      onEditingChange={(editing) => {
+                        if (editing) {
+                          setEditingKeys([...editingKeys, editingKey]);
+                        } else {
+                          setEditingKeys(editingKeys.filter((key) => key !== editingKey));
+                        }
+                      }}
+                      onSave={(data) => handleSaveDoc(group.id, index, data)}
+                      onDelete={() => handleDeleteDoc(group.id, index)}
+                    />
+                  </div>
+                );
+              }}
+            </SortableList>
           )}
         </div>
       </div>
