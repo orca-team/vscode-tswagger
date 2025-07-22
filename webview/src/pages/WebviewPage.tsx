@@ -49,7 +49,6 @@ import SettingModal from '@/components/SettingModal';
 import { pick } from 'lodash-es';
 import SearchSuite, { SearchValue } from '@/components/SearchSuite';
 import { ADVANCED_SEARCH_OPTIONS, PARSE_METHOD_DOCS, PARSE_METHOD_LOCAL, SEARCH_FILTER } from './constants';
-import { CheckboxValueType } from 'antd/es/checkbox/Group';
 import SwaggerDocDrawer from '@/components/SwaggerDocDrawer';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import { Img } from '@orca-fe/pocket';
@@ -75,7 +74,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [currentApiGroup, setCurrentApiGroup] = useState<ApiGroupByTag[]>([]);
   const [swaggerDocs, setSwaggerDocs] = useState<OpenAPIV2.Document>();
   const [searchPanelKey, setSearchPanelKey] = useState<string>(PARSE_METHOD_DOCS);
-  const [filters, setFilters] = useState<CheckboxValueType[]>([SEARCH_FILTER.HIDE_EMPTY_GROUP]);
+  const [filters, setFilters] = useState<string[]>([SEARCH_FILTER.HIDE_EMPTY_GROUP]);
   const [openApiPanelKeys, setOpenApiPanelKeys] = useState<string[]>([]);
   const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
 
