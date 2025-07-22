@@ -1,4 +1,5 @@
 import ApiGroupPanel from '@/components/ApiGroupPanel';
+import ActionIcon from '@/components/ActionIcon';
 import SwaggerInfo from '@/components/SwaggerInfo';
 import TsGenerateSpin from '@/components/TsGenerateSpin';
 import {
@@ -13,7 +14,7 @@ import {
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import { DownOutlined, FolderAddOutlined, LinkOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownOutlined, FolderAddOutlined, FormOutlined, LinkOutlined, ReloadOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyDrawer, usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
@@ -353,13 +354,16 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                         label={
                           <Space>
                             <span>文档接口地址：</span>
-                            <Tooltip title="刷新当前 swagger 接口的路径数据">
-                              <Button type="link" disabled={!currentSwaggerUrl} style={{ display: 'inline-block' }} onClick={refreshSwaggerSchema}>
-                                刷新
-                              </Button>
-                            </Tooltip>
-                            <Button
-                              type="link"
+                            <ActionIcon
+                              icon={<ReloadOutlined />}
+                              title="刷新当前 swagger 接口的路径数据"
+                              disabled={!currentSwaggerUrl}
+                              style={{ display: 'inline-block' }}
+                              onClick={refreshSwaggerSchema}
+                            />
+                            <ActionIcon
+                              icon={<FormOutlined />}
+                              title="管理文档地址"
                               style={{ display: 'inline-block' }}
                               onClick={() => {
                                 drawer.show(
@@ -371,9 +375,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                                   />,
                                 );
                               }}
-                            >
-                              管理文档地址
-                            </Button>
+                            ></ActionIcon>
                           </Space>
                         }
                       >
