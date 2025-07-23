@@ -14,7 +14,17 @@ import {
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import { ClearOutlined, CodeOutlined, DownOutlined, FolderAddOutlined, FormOutlined, LinkOutlined, ReloadOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  ClearOutlined,
+  CodeOutlined,
+  DownOutlined,
+  FolderAddOutlined,
+  FormOutlined,
+  LinkOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
 import { usePromisifyDrawer, usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
@@ -100,7 +110,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const options = useMemo(() => {
     const allOptions: Array<{ label: string; value: string }> = [];
-    
+
     // 添加分组数据
     if (extSetting.groupSwaggerDocList) {
       extSetting.groupSwaggerDocList.forEach((group) => {
@@ -112,7 +122,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
         });
       });
     }
-    
+
     // 添加未分组数据
     extSetting.swaggerUrlList.forEach(({ name, url }) => {
       allOptions.push({
@@ -120,7 +130,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
         value: url,
       });
     });
-    
+
     return allOptions;
   }, [extSetting.swaggerUrlList, extSetting.groupSwaggerDocList]);
 
@@ -486,7 +496,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
               </Space>
             </div>
             <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <SkeletonLoader loading={parseLoading}>
+              <SkeletonLoader loading={parseLoading} style={{ marginTop: 16 }}>
                 <WebviewPageContext.Provider value={{ refreshDocFlag, filters }}>
                   {hasSwaggerDocs && <SwaggerInfo className={styles.swaggerInfo} v2Doc={swaggerDocs} />}
                   {!!currentApiGroup.length ? (
