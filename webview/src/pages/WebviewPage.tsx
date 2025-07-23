@@ -99,11 +99,30 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const hasSwaggerDocs = !!swaggerDocs;
 
   const options = useMemo(() => {
-    return extSetting.swaggerUrlList.map(({ name, url }) => ({
-      label: name,
-      value: url,
-    }));
-  }, [extSetting.swaggerUrlList]);
+    const allOptions: Array<{ label: string; value: string }> = [];
+    
+    // 添加分组数据
+    if (extSetting.groupSwaggerDocList) {
+      extSetting.groupSwaggerDocList.forEach((group) => {
+        group.docs.forEach((doc) => {
+          allOptions.push({
+            label: doc.name || doc.url,
+            value: doc.url,
+          });
+        });
+      });
+    }
+    
+    // 添加未分组数据
+    extSetting.swaggerUrlList.forEach(({ name, url }) => {
+      allOptions.push({
+        label: name || url,
+        value: url,
+      });
+    });
+    
+    return allOptions;
+  }, [extSetting.swaggerUrlList, extSetting.groupSwaggerDocList]);
 
   // 切换 api 时重置页面状态
   const resetPageWhenChange = useMemoizedFn(() => {
@@ -116,7 +135,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
 
   const handleExtInfo = useMemoizedFn(async () => {
     const extInfoResp = await apiQueryExtInfo();
-    setExtSetting(pick(extInfoResp.data.setting ?? {}, ['swaggerUrlList', 'translation']));
+    setExtSetting(pick(extInfoResp.data.setting ?? {}, ['swaggerUrlList', 'groupSwaggerDocList', 'translation']));
     setTswaggerConfig(extInfoResp.data.config ?? {});
   });
 
