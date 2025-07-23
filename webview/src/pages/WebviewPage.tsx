@@ -14,7 +14,7 @@ import {
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import { DownOutlined, FolderAddOutlined, FormOutlined, LinkOutlined, ReloadOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
+import { ClearOutlined, DownOutlined, FolderAddOutlined, FormOutlined, LinkOutlined, ReloadOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyDrawer, usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
@@ -340,10 +340,10 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   {
                     key: PARSE_METHOD_DOCS,
                     label: (
-                      <span>
+                      <Space>
                         <LinkOutlined />
                         Swagger 文档地址
-                      </span>
+                      </Space>
                     ),
                     children: (
                       <Form.Item
@@ -353,7 +353,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                         style={{ marginTop: 4, marginBottom: 0 }}
                         label={
                           <Space>
-                            <span>文档接口地址：</span>
+                            <span>文档地址：</span>
                             <ActionIcon
                               icon={<ReloadOutlined />}
                               title="刷新当前 swagger 接口的路径数据"
@@ -364,7 +364,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                             <ActionIcon
                               icon={<FormOutlined />}
                               title="管理文档地址"
-                              style={{ display: 'inline-block' }}
+                              style={{ display: 'inline-block', color: '#fa8c16' }}
                               onClick={() => {
                                 drawer.show(
                                   <SwaggerDocDrawer
@@ -386,10 +386,10 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   {
                     key: PARSE_METHOD_LOCAL,
                     label: (
-                      <span>
+                      <Space>
                         <FolderAddOutlined />
                         本地文件
-                      </span>
+                      </Space>
                     ),
                     children: (
                       <Upload className={styles.localFileBtn} fileList={[]} beforeUpload={handleOpenLocalFile}>
@@ -412,16 +412,15 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                 label={
                   <Space>
                     <span>高级查询：</span>
-                    <Button
-                      type="link"
+                    <ActionIcon
+                      icon={<ClearOutlined />}
+                      title="重置"
                       disabled={Boolean(!searchParams?.tagNameList?.length && !searchParams?.keyword)}
                       style={{ display: 'inline-block' }}
                       onClick={() => {
                         form.resetFields(['searchParams']);
                       }}
-                    >
-                      重置
-                    </Button>
+                    />
                   </Space>
                 }
               >
@@ -456,11 +455,14 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                     handleBeforeGenTs();
                   }}
                 >
-                  生成 TypeScript
+                  生成接口代码
                 </Button>
-                <Button type="link" icon={<DownOutlined rotate={expand ? 180 : 0} />} onClick={toggleExpand}>
-                  {expand ? '收起' : '展开'}
-                </Button>
+                <ActionIcon
+                  icon={<DownOutlined rotate={expand ? 180 : 0} />}
+                  onClick={toggleExpand}
+                  title={expand ? '收起' : '展开'}
+                  style={{ color: '#8c8c8c' }}
+                />
               </Space>
             </div>
             <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
