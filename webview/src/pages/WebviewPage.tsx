@@ -14,7 +14,7 @@ import {
 import { useGlobalState } from '@/states/globalState';
 import { parseOpenAPIV2 } from '@/utils/parseSwaggerDocs';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
-import { ClearOutlined, DownOutlined, FolderAddOutlined, FormOutlined, LinkOutlined, ReloadOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
+import { ClearOutlined, CodeOutlined, DownOutlined, FolderAddOutlined, FormOutlined, LinkOutlined, ReloadOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
 import { usePromisifyDrawer, usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
 import {
@@ -469,6 +469,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
               <Space size="small" style={{ marginLeft: 'auto' }}>
                 <Button
                   type="primary"
+                  icon={<CodeOutlined />}
                   disabled={selectedApiMap.size === 0}
                   onClick={() => {
                     handleBeforeGenTs();
