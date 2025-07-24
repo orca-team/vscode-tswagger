@@ -163,12 +163,20 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
   // 删除分组
   const handleDeleteGroup = useMemoizedFn((groupId: string) => {
     const group = groupSwaggerDocList.find((g) => g.id === groupId);
-    if (group && group.docs.length > 0) {
-      notification.warning('分组中还有文档，请先移除所有文档后再删除分组');
-      return;
-    }
+    const hasDocuments = group && group.docs.length > 0;
 
-    setGroupSwaggerDocList(groupSwaggerDocList.filter((g) => g.id !== groupId));
+    Modal.confirm({
+      title: '确认删除分组',
+      content: hasDocuments
+        ? `删除分组"${group.name}"后，分组中的 ${group.docs.length} 个文档也会一并删除，是否确认？`
+        : `是否确认删除分组"${group?.name}"？`,
+      okText: '确认删除',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: () => {
+        setGroupSwaggerDocList(groupSwaggerDocList.filter((g) => g.id !== groupId));
+      },
+    });
   });
 
   // 重命名分组
@@ -344,10 +352,9 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
 
   // 获取可移动的目标分组选项
   const getMoveTargetOptions = useMemoizedFn((sourceGroupId: string) => {
-    return [
-      { label: UNGROUPED_NAME, value: UNGROUPED_ID },
-      ...groupSwaggerDocList.map((group) => ({ label: group.name, value: group.id })),
-    ].filter((option) => option.value !== sourceGroupId);
+    return [{ label: UNGROUPED_NAME, value: UNGROUPED_ID }, ...groupSwaggerDocList.map((group) => ({ label: group.name, value: group.id }))].filter(
+      (option) => option.value !== sourceGroupId,
+    );
   });
 
   // 保存文档
@@ -549,15 +556,13 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
                               type="text"
                               style={{ color: '#52c41a' }}
                             />
-                            <Popconfirm title="确认删除此分组？" onConfirm={() => handleDeleteGroup(group.id)} disabled={group.docs.length > 0}>
-                              <ActionIcon
-                                icon={<DeleteOutlined />}
-                                title="删除分组"
-                                disabled={group.docs.length > 0}
-                                type="text"
-                                style={{ color: group.docs.length > 0 ? '#d9d9d9' : '#ff4d4f' }}
-                              />
-                            </Popconfirm>
+                            <ActionIcon
+                              icon={<DeleteOutlined />}
+                              title="删除分组"
+                              type="text"
+                              style={{ color: '#ff4d4f' }}
+                              onClick={() => handleDeleteGroup(group.id)}
+                            />
                           </>
                         )}
                       </Space>
