@@ -85,7 +85,7 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
       setExtSetting({
         groupSwaggerDocList: resp.data ?? [],
       });
-      notification.success('分组文档列表更新成功');
+      notification.success('文档列表更新成功');
     } else {
       notification.error('更新失败请稍后再试');
     }

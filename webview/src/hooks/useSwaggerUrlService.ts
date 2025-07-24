@@ -56,7 +56,7 @@ function useSwaggerUrlService(props: UseSwaggerUrlServiceProps = {}) {
       setExtSetting({
         swaggerUrlList: resp.data ?? [],
       });
-      notification.success('Swagger 文档地址列表更新成功');
+      notification.success('未分组的文档地址列表更新成功');
     } else {
       notification.error('更新失败请稍后再试');
     }

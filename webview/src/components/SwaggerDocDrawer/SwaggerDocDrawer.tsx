@@ -1,11 +1,12 @@
 import React, { useState, useRef, useMemo } from 'react';
 import styles from './SwaggerDocDrawer.module.less';
-import { Button, Drawer, DrawerProps, Space, Modal, Collapse, Input, Popconfirm, theme, Empty } from 'antd';
+import { Button, Drawer, DrawerProps, Space, Modal, Collapse, Input, Popconfirm, theme, Empty, Badge, Tooltip } from 'antd';
 import { useGlobalState } from '@/states/globalState';
 import { PlusOutlined, DeleteOutlined, EditOutlined, FolderAddOutlined } from '@ant-design/icons';
 import useSwaggerUrlService from '@/hooks/useSwaggerUrlService';
 import useGroupSwaggerDocService from '@/hooks/useGroupSwaggerDocService';
 import DocCard from './DocCard';
+import DocModal from './DocModal';
 import ActionIcon from '@/components/ActionIcon';
 import { useMemoizedFn } from 'ahooks';
 import { SwaggerUrlConfigItem, GroupedSwaggerDocItem, SwaggerDocGroup, GroupedSwaggerDocList } from '@/utils/types';
@@ -13,6 +14,14 @@ import { SwaggerDocDrawerContext } from './context';
 import { isEqual } from 'lodash-es';
 import notification from '@/utils/notification';
 import { SortableList } from '@orca-fe/dnd';
+import { usePromisifyModal } from '@orca-fe/hooks';
+
+type EditingDocData = {
+  groupId: string;
+  docIndex: number;
+  isNew?: boolean;
+  data?: Partial<SwaggerUrlConfigItem>;
+};
 
 const { Panel } = Collapse;
 
@@ -26,6 +35,7 @@ const UNGROUPED_NAME = '未分组';
 
 const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
   const { className = '', onClose, onSaveSuccess, ...otherProps } = props;
+  const modal = usePromisifyModal();
   const { token } = theme.useToken();
   const containerRef = useRef<HTMLDivElement>(null);
   const { extSetting } = useGlobalState();
@@ -33,10 +43,28 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
   // 状态管理
   const [groupSwaggerDocList, setGroupSwaggerDocList] = useState<GroupedSwaggerDocList>(extSetting.groupSwaggerDocList || []);
   const [swaggerUrlList, setSwaggerUrlList] = useState<Partial<SwaggerUrlConfigItem>[]>(extSetting.swaggerUrlList);
-  const [editingKeys, setEditingKeys] = useState<string[]>([]);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState('');
-  // 移除 activeTab 状态，不再需要 Tab 区分
+
+  // 当前编辑的文档信息
+  const [editingDoc, setEditingDoc] = useState<EditingDocData | null>(null);
+
+  // URL 验证逻辑
+  const validateUrl = useMemoizedFn((url: string, editingDocData: Pick<EditingDocData, 'groupId' | 'docIndex' | 'isNew'>) => {
+    const { groupId, docIndex, isNew } = editingDocData;
+
+    if (groupId === UNGROUPED_ID) {
+      const exists = swaggerUrlList.some((doc, index) => (isNew || index !== docIndex) && doc.url === url);
+      return exists ? '当前组中已存在相同地址的文档' : undefined;
+    } else {
+      const currentGroup = groupSwaggerDocList.find((group) => group.id === groupId);
+      if (currentGroup) {
+        const exists = currentGroup.docs.some((doc, index) => (isNew || index !== docIndex) && doc.url === url);
+        return exists ? '当前组中已存在相同地址的文档' : undefined;
+      }
+    }
+    return undefined;
+  });
 
   const swaggerService = useSwaggerUrlService();
   const groupService = useGroupSwaggerDocService();
@@ -72,7 +100,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
 
   // 检查是否有正在编辑的项
   const hasEditingItems = useMemoizedFn(() => {
-    return editingKeys.length > 0 || editingGroupId !== null;
+    return editingGroupId !== null;
   });
 
   // 处理保存
@@ -82,10 +110,18 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
       return;
     }
 
-    // 保存分组数据
-    await groupService.updateGroupSwaggerDocList(groupSwaggerDocList);
-    // 保存未分组数据
-    await swaggerService.updateSwaggerUrlList(swaggerUrlList as SwaggerUrlConfigItem[]);
+    // 检查分组数据是否有变更
+    const groupDataChanged = !isEqual(groupSwaggerDocList, originalGroupDataRef.current);
+    // 检查未分组数据是否有变更
+    const swaggerDataChanged = !isEqual(swaggerUrlList, originalSwaggerDataRef.current);
+
+    // 只保存有变更的数据
+    if (groupDataChanged) {
+      await groupService.updateGroupSwaggerDocList(groupSwaggerDocList);
+    }
+    if (swaggerDataChanged) {
+      await swaggerService.updateSwaggerUrlList(swaggerUrlList as SwaggerUrlConfigItem[]);
+    }
 
     onSaveSuccess?.();
     onClose?.();
@@ -147,36 +183,51 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
   });
 
   // 添加文档到分组
-  const handleAddDocToGroup = useMemoizedFn((groupId: string) => {
-    if (groupId === UNGROUPED_ID) {
-      // 添加到未分组，不设置 groupId
-      const newDoc: Partial<SwaggerUrlConfigItem> = {
-        key: groupService.generateKey(),
-        // 没有 groupId 就是未分组
-      };
-      setSwaggerUrlList([...swaggerUrlList, newDoc]);
-      setEditingKeys([...editingKeys, `${UNGROUPED_ID}_${swaggerUrlList.length}`]);
-    } else {
-      // 添加到分组，设置对应的 groupId
-      const newDoc: Partial<GroupedSwaggerDocItem> = {
-        key: groupService.generateKey(),
-        groupId,
-      };
-      setGroupSwaggerDocList(
-        groupSwaggerDocList.map((group) => {
-          if (group.id === groupId) {
-            return {
-              ...group,
-              docs: [...group.docs, newDoc as GroupedSwaggerDocItem],
-            };
-          }
-          return group;
-        }),
-      );
+  const handleAddDocToGroup = useMemoizedFn(async (groupId: string) => {
+    const newDoc: Partial<SwaggerUrlConfigItem> = {
+      key: groupService.generateKey(),
+    };
 
+    let editingDocData: EditingDocData;
+    if (groupId === UNGROUPED_ID) {
+      const docIndex = swaggerUrlList.length;
+      editingDocData = {
+        groupId,
+        docIndex,
+        data: newDoc,
+        isNew: true,
+      };
+    } else {
       const group = groupSwaggerDocList.find((g) => g.id === groupId);
       const docIndex = group ? group.docs.length : 0;
-      setEditingKeys([...editingKeys, `${groupId}_${docIndex}`]);
+      editingDocData = {
+        groupId,
+        docIndex,
+        data: { ...newDoc, groupId } as Partial<GroupedSwaggerDocItem>,
+        isNew: true,
+      };
+    }
+
+    setEditingDoc(editingDocData);
+
+    try {
+      const newDocData = await modal.show<SwaggerUrlConfigItem>(
+        <DocModal
+          title="添加文档"
+          data={editingDocData.data}
+          validateUrl={(url: string) =>
+            validateUrl(url, { groupId: editingDocData.groupId, docIndex: editingDocData.docIndex, isNew: editingDocData.isNew })
+          }
+        />,
+      );
+
+      if (newDocData && newDocData.key && newDocData.url) {
+        handleSaveDoc(newDocData);
+      }
+    } catch (error) {
+      // 用户取消了操作
+    } finally {
+      setEditingDoc(null);
     }
   });
 
@@ -199,51 +250,91 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
     }
   });
 
-  // 保存文档
-  const handleSaveDoc = useMemoizedFn((groupId: string, docIndex: number, data: any) => {
-    // 校验在当前组中是否存在相同地址的文档
-    const checkDuplicateUrl = (url: string, currentGroupId: string, currentIndex: number) => {
-      if (currentGroupId === UNGROUPED_ID) {
-        // 检查未分组中的重复
-        return swaggerUrlList.some((doc, index) => index !== currentIndex && doc.url === url);
-      } else {
-        // 检查当前分组中的重复
-        const currentGroup = groupSwaggerDocList.find((group) => group.id === currentGroupId);
-        if (currentGroup) {
-          return currentGroup.docs.some((doc, index) => index !== currentIndex && doc.url === url);
-        }
-      }
-      return false;
+  // 编辑文档
+  const handleEditDoc = useMemoizedFn(async (groupId: string, docIndex: number) => {
+    const isUngrouped = groupId === UNGROUPED_ID;
+    const docs = isUngrouped ? swaggerUrlList : groupSwaggerDocList.find((g) => g.id === groupId)?.docs || [];
+    const docData = docs[docIndex];
+
+    const editingDocData: EditingDocData = {
+      groupId,
+      docIndex,
+      data: docData,
+      isNew: false,
     };
 
-    // 如果存在重复地址，显示错误提示并返回 false 表示保存失败
-    if (data.url && checkDuplicateUrl(data.url, groupId, docIndex)) {
-      notification.error('当前组中已存在相同地址的文档');
+    setEditingDoc(editingDocData);
+
+    try {
+      const updatedDocData = await modal.show<SwaggerUrlConfigItem>(
+        <DocModal
+          title="编辑文档"
+          data={editingDocData.data}
+          validateUrl={(url: string) =>
+            validateUrl(url, { groupId: editingDocData.groupId, docIndex: editingDocData.docIndex, isNew: editingDocData.isNew })
+          }
+        />,
+      );
+
+      if (updatedDocData && updatedDocData.key && updatedDocData.url) {
+        handleSaveDoc(updatedDocData);
+      }
+    } catch (error) {
+      // 用户取消了操作
+    } finally {
+      setEditingDoc(null);
+    }
+  });
+
+  // 保存文档
+  const handleSaveDoc = useMemoizedFn((data: SwaggerUrlConfigItem) => {
+    if (!editingDoc) {
       return false;
     }
 
+    const { groupId, docIndex, isNew } = editingDoc;
+
     if (groupId === UNGROUPED_ID) {
       // 未分组文档不设置 groupId
-      setSwaggerUrlList((prev) => {
-        const newList = [...prev];
-        newList[docIndex] = data;
-        return newList;
-      });
+      if (isNew) {
+        setSwaggerUrlList([...swaggerUrlList, data]);
+      } else {
+        setSwaggerUrlList((prev) => {
+          const newList = [...prev];
+          newList[docIndex] = data;
+          return newList;
+        });
+      }
     } else {
       // 分组文档设置对应的 groupId
-      setGroupSwaggerDocList(
-        groupSwaggerDocList.map((group) => {
-          if (group.id === groupId) {
-            const newDocs = [...group.docs];
-            newDocs[docIndex] = { ...data, groupId };
-            return {
-              ...group,
-              docs: newDocs,
-            };
-          }
-          return group;
-        }),
-      );
+      const docWithGroupId = { ...data, groupId } as GroupedSwaggerDocItem;
+      if (isNew) {
+        setGroupSwaggerDocList(
+          groupSwaggerDocList.map((group) => {
+            if (group.id === groupId) {
+              return {
+                ...group,
+                docs: [...group.docs, docWithGroupId],
+              };
+            }
+            return group;
+          }),
+        );
+      } else {
+        setGroupSwaggerDocList(
+          groupSwaggerDocList.map((group) => {
+            if (group.id === groupId) {
+              const newDocs = [...group.docs];
+              newDocs[docIndex] = docWithGroupId;
+              return {
+                ...group,
+                docs: newDocs,
+              };
+            }
+            return group;
+          }),
+        );
+      }
     }
 
     return true;
@@ -265,19 +356,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
                 const editingKey = `${group.id}_${index}`;
                 return (
                   <div key={editingKey} className={styles.docItem} style={{ marginTop: index ? 8 : 0 }}>
-                    <DocCard
-                      data={doc}
-                      editing={editingKeys.includes(editingKey)}
-                      onEditingChange={(editing) => {
-                        if (editing) {
-                          setEditingKeys([...editingKeys, editingKey]);
-                        } else {
-                          setEditingKeys(editingKeys.filter((key) => key !== editingKey));
-                        }
-                      }}
-                      onSave={(data) => handleSaveDoc(group.id, index, data)}
-                      onDelete={() => handleDeleteDoc(group.id, index)}
-                    />
+                    <DocCard data={doc} onEdit={() => handleEditDoc(group.id, index)} onDelete={() => handleDeleteDoc(group.id, index)} />
                   </div>
                 );
               }}
@@ -288,10 +367,26 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
     );
   });
 
+  // 渲染标题栏
+  const renderTitle = () => {
+    const hasChanges = hasUnsavedChanges();
+    return (
+      <Space>
+        <span>Swagger 文档地址管理</span>
+        <Tooltip title={hasChanges ? '有未保存的更改' : '文档列表是最新的'}>
+          <Badge
+            status={hasChanges ? 'warning' : 'success'}
+            className={hasChanges ? styles.pulsingBadge : ''}
+          />
+        </Tooltip>
+      </Space>
+    );
+  };
+
   return (
     <Drawer
       className={`${styles.root} ${className}`}
-      title="Swagger 文档地址管理"
+      title={renderTitle()}
       width="80%"
       maskClosable={false}
       onClose={handleClose}
@@ -307,6 +402,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
       }
       {...otherProps}
     >
+      {modal.instance}
       <div className={styles.container} ref={containerRef}>
         <div className={styles.groupedContent}>
           {/* 创建新分组 */}
