@@ -27,24 +27,7 @@ import {
 } from '@ant-design/icons';
 import { usePromisifyDrawer, usePromisifyModal } from '@orca-fe/hooks';
 import { useBoolean, useDebounceEffect, useMap, useMemoizedFn, useMount, useToggle } from 'ahooks';
-import {
-  Affix,
-  Button,
-  Checkbox,
-  Collapse,
-  Empty,
-  FloatButton,
-  Form,
-  Layout,
-  Modal,
-  Space,
-  Spin,
-  Tabs,
-  Tooltip,
-  Typography,
-  Upload,
-  theme,
-} from 'antd';
+import { Affix, Button, Checkbox, Collapse, Empty, FloatButton, Form, Layout, Modal, Space, Tabs, Tooltip, Typography, Upload, theme } from 'antd';
 import { OpenAPIV2 } from 'openapi-types';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './WebviewPage.less';
@@ -65,7 +48,7 @@ import SkeletonLoader from '@/components/SkeletonLoader';
 import { Img } from '@orca-fe/pocket';
 import logo from '@/assets/logo.png';
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { useForm, useWatch } = Form;
 const { Text } = Typography;
 
@@ -88,6 +71,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [filters, setFilters] = useState<string[]>([SEARCH_FILTER.HIDE_EMPTY_GROUP]);
   const [openApiPanelKeys, setOpenApiPanelKeys] = useState<string[]>([]);
   const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [form] = useForm();
   const [configForm] = useForm();
@@ -326,7 +310,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       <TsGenerateSpin spinning={generateLoading} />
       {modalController.instance}
       {drawer.instance}
-      <Layout style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Layout style={{ height: '100%', display: 'flex', flexDirection: 'column'}}>
         <Affix offsetTop={0}>
           <header className={styles.header}>
             <div className={styles.headerContent}>
@@ -351,7 +335,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
             </div>
           </header>
         </Affix>
-        <Layout className={styles.layout} style={{ flex: 1, overflow: 'auto' }}>
+        <Layout ref={scrollContainerRef} className={styles.layout} style={{ flex: 1, overflow: 'auto' }}>
           <Content
             className={styles.content}
             style={{
@@ -591,8 +575,27 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
             </div>
           </Content>
         </Layout>
+         <FloatButton.Group>
+          <FloatButton
+            icon={<CodeOutlined />}
+            tooltip="生成接口代码"
+            type="primary"
+            style={{
+              opacity: selectedApiMap.size === 0 ? 0.4 : 1,
+              pointerEvents: selectedApiMap.size === 0 ? 'none' : 'auto',
+            }}
+            onClick={() => {
+              if (selectedApiMap.size > 0) {
+                handleBeforeGenTs();
+              }
+            }}
+          />
+          <FloatButton.BackTop 
+            tooltip="回到顶部" 
+            target={() => scrollContainerRef.current || window}
+          />
+        </FloatButton.Group>
       </Layout>
-      <FloatButton.BackTop />
     </div>
   );
 };
