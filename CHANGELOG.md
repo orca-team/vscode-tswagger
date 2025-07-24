@@ -11,6 +11,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Manage swagger doc URL in drawer.
 - Drag-and-drop reordering for swagger doc cards.
 - Support to group swagger doc.
+- Support for grouped swagger docs in select components.
+
+### Changed
+
+- Replace inline editing with modal-based form.
+- Simplify skeleton loader styles and component.
 
 ## [2.2.1] - 2025-03-02
 
