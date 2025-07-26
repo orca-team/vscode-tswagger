@@ -1,8 +1,8 @@
 import React, { useState, useRef, useMemo } from 'react';
 import styles from './SwaggerDocDrawer.module.less';
-import { Button, Drawer, DrawerProps, Space, Collapse, Input, Popconfirm, theme, Empty, Badge, Tooltip, Alert, Modal } from 'antd';
+import { Button, Drawer, DrawerProps, Space, Collapse, Input, theme, Empty, Badge, Tooltip, Alert, Modal } from 'antd';
 import { useGlobalState } from '@/states/globalState';
-import { PlusOutlined, DeleteOutlined, EditOutlined, FolderAddOutlined, SwapOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, FolderAddOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import useSwaggerUrlService from '@/hooks/useSwaggerUrlService';
 import useGroupSwaggerDocService from '@/hooks/useGroupSwaggerDocService';
 import DocCard from './DocCard';
@@ -309,45 +309,91 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
       return;
     }
 
-    // 从源分组中删除文档
-    if (isSourceUngrouped) {
-      setSwaggerUrlList(swaggerUrlList.filter((_, i) => i !== docIndex));
-    } else {
-      setGroupSwaggerDocList(
-        groupSwaggerDocList.map((group) => {
-          if (group.id === sourceGroupId) {
-            return {
-              ...group,
-              docs: group.docs.filter((_, i) => i !== docIndex),
-            };
-          }
-          return group;
-        }),
-      );
-    }
+    // 执行移动操作的内部函数
+    const performMove = () => {
+      // 同时处理源分组删除和目标分组添加，避免状态更新竞态条件
+      if (isSourceUngrouped) {
+        // 从未分组移动到其他分组
+        const newSwaggerUrlList = swaggerUrlList.filter((_, i) => i !== docIndex);
+        setSwaggerUrlList(newSwaggerUrlList);
 
-    // 添加到目标分组
-    if (targetGroupId === UNGROUPED_ID) {
-      // 移动到未分组，移除 groupId
-      const { groupId, ...docWithoutGroupId } = docData as GroupedSwaggerDocItem;
-      setSwaggerUrlList([...swaggerUrlList, docWithoutGroupId]);
-    } else {
-      // 移动到指定分组，设置 groupId
-      const docWithGroupId = { ...docData, groupId: targetGroupId } as GroupedSwaggerDocItem;
-      setGroupSwaggerDocList(
-        groupSwaggerDocList.map((group) => {
-          if (group.id === targetGroupId) {
-            return {
-              ...group,
-              docs: [...group.docs, docWithGroupId],
-            };
-          }
-          return group;
-        }),
-      );
-    }
+        if (targetGroupId === UNGROUPED_ID) {
+          // 这种情况不应该发生，但为了安全起见保留
+          return;
+        } else {
+          // 移动到指定分组，设置 groupId
+          const docWithGroupId = { ...docData, groupId: targetGroupId } as GroupedSwaggerDocItem;
+          setGroupSwaggerDocList(
+            groupSwaggerDocList.map((group) => {
+              if (group.id === targetGroupId) {
+                return {
+                  ...group,
+                  docs: [...group.docs, docWithGroupId],
+                };
+              }
+              return group;
+            }),
+          );
+        }
+      } else {
+        // 从已分组移动到其他分组
+        if (targetGroupId === UNGROUPED_ID) {
+          // 移动到未分组，移除 groupId
+          const { groupId, ...docWithoutGroupId } = docData as GroupedSwaggerDocItem;
+          setSwaggerUrlList([...swaggerUrlList, docWithoutGroupId]);
 
-    notification.success('文档移动成功');
+          // 从源分组中删除文档
+          setGroupSwaggerDocList(
+            groupSwaggerDocList.map((group) => {
+              if (group.id === sourceGroupId) {
+                return {
+                  ...group,
+                  docs: group.docs.filter((_, i) => i !== docIndex),
+                };
+              }
+              return group;
+            }),
+          );
+        } else {
+          // 从一个分组移动到另一个分组
+          const docWithGroupId = { ...docData, groupId: targetGroupId } as GroupedSwaggerDocItem;
+          setGroupSwaggerDocList(
+            groupSwaggerDocList.map((group) => {
+              if (group.id === sourceGroupId) {
+                // 从源分组删除
+                return {
+                  ...group,
+                  docs: group.docs.filter((_, i) => i !== docIndex),
+                };
+              } else if (group.id === targetGroupId) {
+                // 添加到目标分组
+                return {
+                  ...group,
+                  docs: [...group.docs, docWithGroupId],
+                };
+              }
+              return group;
+            }),
+          );
+        }
+      }
+
+      notification.success('文档移动成功');
+    };
+
+    // 如果是从已分组移动到未分组，显示确认对话框
+    if (!isSourceUngrouped && targetGroupId === UNGROUPED_ID) {
+      Modal.confirm({
+        title: '提示',
+        content: '未分组是为了兼容旧版本配置，不推荐使用。建议将文档保留在分组中以便更好地管理。确定要移动到未分组吗？',
+        okText: '确认移动',
+        cancelText: '取消',
+        onOk: performMove,
+      });
+    } else {
+      // 其他情况直接执行移动
+      performMove();
+    }
   });
 
   // 获取可移动的目标分组选项

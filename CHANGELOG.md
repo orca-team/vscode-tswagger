@@ -10,6 +10,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Monaco Editor initialization errors by updating CDN configuration.
 - Document sorting functionality in SwaggerDocDrawer not working properly.
+- Document move functionality from grouped to other groups not working correctly due to state update race conditions.
 
 ## [2.3.0] - 2025-07-24
 
