@@ -9,6 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 
 - Monaco Editor initialization errors by updating CDN configuration.
+- Document sorting functionality in SwaggerDocDrawer not working properly.
 
 ## [2.3.0] - 2025-07-24
 

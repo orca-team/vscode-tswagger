@@ -411,6 +411,27 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
     return true;
   });
 
+  // 处理文档排序
+  const handleDocSort = useMemoizedFn((groupId: string, newData: Partial<SwaggerUrlConfigItem>[]) => {
+    if (groupId === UNGROUPED_ID) {
+      // 更新未分组文档的顺序
+      setSwaggerUrlList(newData);
+    } else {
+      // 更新分组文档的顺序
+      setGroupSwaggerDocList(
+        groupSwaggerDocList.map((group) => {
+          if (group.id === groupId) {
+            return {
+              ...group,
+              docs: newData as SwaggerUrlConfigItem[],
+            };
+          }
+          return group;
+        }),
+      );
+    }
+  });
+
   // 渲染分组内容
   const renderGroupContent = useMemoizedFn((group: SwaggerDocGroup) => {
     const isUngrouped = group.id === UNGROUPED_ID;
@@ -435,7 +456,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
           {docs.length === 0 ? (
             <Empty description="暂无文档信息" />
           ) : (
-            <SortableList data={docs} customHandle>
+            <SortableList data={docs} customHandle onChange={(newData) => handleDocSort(group.id, newData)}>
               {(doc, index) => {
                 const editingKey = `${group.id}_${index}`;
                 return (
