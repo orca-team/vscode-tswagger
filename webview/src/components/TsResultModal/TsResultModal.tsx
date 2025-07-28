@@ -1,7 +1,7 @@
 import React, { Key, useEffect, useState } from 'react';
 import styles from './TsResultModal.less';
-import MonacoEditor, { DiffEditor, loader } from '@monaco-editor/react';
-import { Badge, Button, Empty, Modal, ModalProps, Space, Tooltip, Tree, Typography, theme, Spin, Alert } from 'antd';
+import MonacoEditor, { DiffEditor } from '@monaco-editor/react';
+import { Badge, Button, Empty, Modal, ModalProps, Space, Tooltip, Tree, Typography, theme } from 'antd';
 import { useBoolean, useMemoizedFn, useMount, useSetState } from 'ahooks';
 import { FetchResult } from '@/utils/vscode';
 import { CheckCircleOutlined, FormOutlined, QuestionCircleFilled } from '@ant-design/icons';
@@ -61,9 +61,6 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
   const [editorContent, setEditorContent] = useSetState<EditorContent>({ originalContent: '' });
   const [diffState, { setTrue: showTsDefDiff, setFalse: hideTsDefDiff }] = useBoolean(false);
   const [saving, { setTrue: startSaving, setFalse: stopSaving }] = useBoolean(false);
-  const [monacoLoading, { setTrue: startMonacoLoading, setFalse: stopMonacoLoading }] = useBoolean(true);
-  const [monacoError, setMonacoError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const [_this] = useState<{ latestTsResult: V2TSGenerateResult; localServiceInfo: ServiceMapInfoYAMLJSONType[] }>({
     latestTsResult: {
       nameMappingList,
@@ -173,46 +170,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
     }
   }, [pathKey]);
 
-  // Monaco Editor 初始化配置
-  const initializeMonaco = useMemoizedFn(async () => {
-    try {
-      startMonacoLoading();
-      setMonacoError(null);
 
-      // 配置 Monaco Editor CDN
-      loader.config({
-        paths: {
-          vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs',
-        },
-      });
-
-      // 预加载 Monaco Editor
-      await loader.init();
-
-      stopMonacoLoading();
-    } catch (error) {
-      console.error('Monaco Editor 初始化失败：', error);
-      setMonacoError(error instanceof Error ? error.message : '未知错误');
-      stopMonacoLoading();
-    } finally {
-      stopMonacoLoading();
-    }
-  });
-
-  // 重试 Monaco Editor 初始化
-  const retryMonacoInit = useMemoizedFn(() => {
-    if (retryCount < 3) {
-      setRetryCount((prev) => prev + 1);
-      // 清理之前的实例
-      loader.config({ paths: { vs: '' } });
-      setTimeout(
-        () => {
-          initializeMonaco();
-        },
-        1000 * (retryCount + 1),
-      ); // 递增延迟重试
-    }
-  });
 
   useMount(() => {
     setRenameDrawerProps({
@@ -220,7 +178,6 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
       allDefNameMapping: collectAllDefNameMapping(defNameMappingList),
     });
     handleApiPathTree(originalServiceResult);
-    initializeMonaco();
   });
 
   return (
@@ -305,49 +262,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
           )}
         </div>
         <div className={styles.editor}>
-          {monacoLoading && (
-            <div
-              style={{
-                height: '75vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'column',
-                gap: 16,
-              }}
-            >
-              <Spin size="large" />
-              <Text type="secondary">正在加载编辑器...</Text>
-            </div>
-          )}
-
-          {monacoError && (
-            <div style={{ height: '75vh', padding: 16 }}>
-              <Alert
-                message="编辑器加载失败"
-                description={
-                  <div>
-                    <div style={{ marginBottom: 8 }}>错误信息：{monacoError}</div>
-                    <div style={{ marginBottom: 8 }}>这可能是由于网络问题或浏览器兼容性导致的。</div>
-                    <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6 }}>
-                      <Text style={{ color: '#52c41a' }}>
-                        💡 提示：编辑器预览失败不会影响接口代码的生成和保存功能，您可以稍后重试或直接保存代码到项目中。
-                      </Text>
-                    </div>
-                    <Space>
-                      <Button type="primary" size="small" disabled={retryCount >= 3} onClick={retryMonacoInit}>
-                        重试 ({retryCount}/3)
-                      </Button>
-                    </Space>
-                  </div>
-                }
-                type="error"
-                showIcon
-              />
-            </div>
-          )}
-
-          {!monacoLoading && !monacoError && !diffState && (
+          {!diffState && (
             <MonacoEditor
               value={editorContent.originalContent}
               height="75vh"
@@ -359,7 +274,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
             />
           )}
 
-          {!monacoLoading && !monacoError && diffState && (
+          {diffState && (
             <DiffEditor
               original={editorContent.originalContent}
               modified={editorContent.modifiedContent}

@@ -4,6 +4,12 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Reverted Monaco Editor loading mechanism to fix initialization issues.
+
 ## [2.3.1] - 2025-07-27
 
 ### Fixed
