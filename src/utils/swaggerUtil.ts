@@ -166,28 +166,63 @@ const collectRefName = <Target extends Object>(obj: Target, resultSet = new Set<
 type DepDefListItem = string;
 
 /**
- * 递归收集 definitions 中所依赖到的所有实体类
- * @param defQueue 子依赖队列
+ * 非递归方式收集 definitions 中所依赖到的所有实体类，避免循环依赖导致的栈溢出
+ * @param initialDeps 初始依赖队列
  * @param entireDefs 完整的 definitions 定义
- * @param resultSet 结果集
+ * @param maxDepth 最大深度限制，防止过深嵌套
  * @returns 结果集
  */
-const collectV2AllDepDefs = (defQueue: DepDefListItem[], entireDefs: OpenAPIV2.DefinitionsObject, resultSet = new Set<DepDefListItem>()) => {
-  // 去重，减少循环
-  defQueue = uniq(defQueue);
-  if (!defQueue.length) {
-    return;
-  }
-  const length = defQueue.length;
-  new Array(length).fill(0).map(() => {
-    const current = defQueue.shift();
-    const defList = collectRefName(entireDefs[current!]);
-    if (!defList.has(current!)) {
-      defQueue.push(...defList);
+const collectV2AllDepDefs = (
+  initialDeps: DepDefListItem[], 
+  entireDefs: OpenAPIV2.DefinitionsObject, 
+  maxDepth: number = 50
+): Set<DepDefListItem> => {
+  const resultSet = new Set<DepDefListItem>();
+  const queue: DepDefListItem[] = [...initialDeps];
+  const visited = new Set<string>(); // 防止重复处理
+  let currentDepth = 0;
+
+  while (queue.length > 0 && currentDepth < maxDepth) {
+    const batchSize = queue.length;
+    let processedInBatch = 0;
+
+    // 处理当前层级的所有项目
+    for (let i = 0; i < batchSize; i++) {
+      const current = queue.shift();
+      if (!current || visited.has(current)) {
+        continue;
+      }
+
+      // 标记为已访问，防止重复处理
+      visited.add(current);
+      resultSet.add(current);
+      processedInBatch++;
+
+      // 收集当前定义的依赖
+      if (entireDefs[current]) {
+        const dependencies = collectRefName(entireDefs[current]);
+        dependencies.forEach(dep => {
+          if (!visited.has(dep) && !queue.includes(dep)) {
+            queue.push(dep);
+          }
+        });
+      }
     }
-    batchAdd2Set(resultSet, ...defList);
-  });
-  collectV2AllDepDefs(defQueue, entireDefs, resultSet);
+
+    currentDepth++;
+    
+    // 如果这一轮没有处理任何新的依赖，说明所有依赖都已经处理完毕
+    if (processedInBatch === 0) {
+      break;
+    }
+  }
+
+  // 如果达到最大深度限制，输出警告
+  if (currentDepth >= maxDepth && queue.length > 0) {
+    console.warn(`[collectV2AllDepDefs] 达到最大深度限制 ${maxDepth}，可能存在过深的嵌套或循环依赖。剩余未处理的依赖: ${queue.length}`);
+  }
+
+  return resultSet;
 };
 
 /**
@@ -203,8 +238,8 @@ export const shakeV2RefsInSchema = (schema: OpenAPIV2.SchemaObject, entireDefs: 
   const defNameSet = new Set<string>();
   schemaRefNameSet.forEach((ref) => {
     const childDefSet = collectRefName(entireDefs[ref]);
-    collectV2AllDepDefs([...childDefSet], entireDefs, childDefSet);
-    batchAdd2Set(defNameSet, ref, ...childDefSet);
+    const allChildDeps = collectV2AllDepDefs([...childDefSet], entireDefs);
+    batchAdd2Set(defNameSet, ref, ...allChildDeps);
   });
 
   // $ref tree shaking

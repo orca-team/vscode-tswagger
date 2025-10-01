@@ -4,6 +4,13 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Resolved infinite recursion and stack overflow issues in schema dependency collection when handling deeply nested or circular schema references
+
+
 ## [2.3.2] - 2025-07-28
 
 ### Fixed
