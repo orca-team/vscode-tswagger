@@ -49,8 +49,7 @@ export const callService = async <T>(method: string, params?: any): Promise<T> =
   let promiseResolve: (value: T) => void;
   const callback = (event: MessageEvent) => {
     const vscodeMsg: VsCodeMessage<T> = event.data;
-    if (vscodeMsg.token == token) {
-      console.log(method, params, event.data);
+    if (vscodeMsg.token === token) {
       if (promiseResolve) {
         promiseResolve(event.data);
       }
