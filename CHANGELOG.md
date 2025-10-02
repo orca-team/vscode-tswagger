@@ -8,6 +8,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Fixed
 
+- Fixed error that occurred when changing query parameters multiple times in the search panel
 - Resolved infinite recursion and stack overflow issues in schema dependency collection when handling deeply nested or circular schema references
 
 

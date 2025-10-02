@@ -38,10 +38,12 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   useEffect(() => {
     onChange?.(
       tag,
-      selected.map((key) => {
-        const { method, path } = parseSelectKey(key);
-        return apiPathList.find((api) => api.method === method && api.path === path)!;
-      }),
+      selected
+        .map((key) => {
+          const { method, path } = parseSelectKey(key);
+          return apiPathList.find((api) => api.method === method && api.path === path);
+        })
+        .filter((api): api is ApiPathType => api !== undefined),
     );
   }, [selected]);
 
