@@ -13,7 +13,7 @@
     "eqeqeq": "warn",
     "no-throw-literal": "warn",
     "semi": "off",
-    "no-console": ["error", { "allow": ["warn", "error"] }]
+    "no-console": ["error", { "allow": ["info", "warn", "error"] }]
   },
   "ignorePatterns": ["out", "dist", "**/*.d.ts"]
 }
