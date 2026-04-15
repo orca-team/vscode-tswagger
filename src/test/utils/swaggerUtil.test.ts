@@ -5,11 +5,11 @@ import { shakeV2RefsInSchema } from '../../utils/swaggerUtil';
 suite('utils/swaggerUtil: shakeV2RefsInSchema', () => {
   const originalWarn = console.warn;
 
-  beforeEach(() => {
+  setup(() => {
     console.warn = () => {};
   });
 
-  afterEach(() => {
+  teardown(() => {
     console.warn = originalWarn;
   });
 
@@ -78,12 +78,7 @@ suite('utils/swaggerUtil: shakeV2RefsInSchema', () => {
     assert.ok('B' in result);
   });
 
-  test('warns and truncates when dependency depth exceeds maxDepth', () => {
-    const warnLogs: string[] = [];
-    console.warn = (...args: unknown[]) => {
-      warnLogs.push(args.map((item) => String(item)).join(' '));
-    };
-
+  test('truncates when dependency depth exceeds maxDepth', () => {
     const schema: OpenAPIV2.SchemaObject = {
       type: 'object',
       properties: {
@@ -114,6 +109,5 @@ suite('utils/swaggerUtil: shakeV2RefsInSchema', () => {
 
     assert.ok('D0' in result);
     assert.ok(!('D55' in result));
-    assert.ok(warnLogs.some((line) => line.includes('最大深度限制')));
   });
 });

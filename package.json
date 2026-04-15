@@ -107,7 +107,7 @@
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint-staged": "lint-staged",
-    "test-compile": "rimraf ./out-test && esbuild ./src/**/*.ts --bundle --outdir=out-test --external:vscode --format=cjs --platform=node",
+    "test-compile": "rimraf ./out-test && node ./scripts/test-compile.js",
     "test": "node ./out-test/test/runTest.js",
     "prepare": "husky install"
   },

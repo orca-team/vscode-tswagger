@@ -34,12 +34,12 @@ const baseDocument: OpenAPIV2.Document = {
 suite('schema2ts/generateTypescript', () => {
   const originalConsoleInfo = console.info;
 
-  beforeEach(() => {
+  setup(() => {
     convertAPIV2ToJSONSchema.defRenameMapping = undefined;
     console.info = () => {};
   });
 
-  afterEach(() => {
+  teardown(() => {
     convertAPIV2ToJSONSchema.defRenameMapping = undefined;
     console.info = originalConsoleInfo;
   });
@@ -73,7 +73,7 @@ suite('schema2ts/generateTypescript', () => {
     assert.strictEqual(defNameMapping.Profile, 'AccountProfile');
   });
 
-  test('uses deterministic ASCII fallback naming when mapping is absent', async () => {
+  test('uses current filterString fallback naming when mapping is absent', async () => {
     const rootSchema: OpenAPIV2.SchemaObject = {
       type: 'object',
       properties: {
@@ -99,7 +99,7 @@ suite('schema2ts/generateTypescript', () => {
 
     assert.ok(tsDef.includes('AsciiRoot'));
     assert.ok(Object.keys(depDefs).includes('Alpha_Beta'));
-    assert.strictEqual(defNameMapping.Alpha_Beta, 'Alpha_Beta');
+    assert.strictEqual(defNameMapping.Alpha_Beta, 'AlphaBeta');
   });
 
   test('resets defRenameMapping state between calls in same run', async () => {

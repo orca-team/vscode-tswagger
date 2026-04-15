@@ -1,19 +1,15 @@
 import * as assert from 'assert';
 import { OpenAPIV2 } from 'openapi-types';
-import {
-  convertAPIV2Definitions,
-  convertAPIV2Schema2JSONSchema,
-  convertAPIV2ToJSONSchema,
-} from '../../schema2ts/convertSwagger';
+import { convertAPIV2Definitions, convertAPIV2Schema2JSONSchema, convertAPIV2ToJSONSchema } from '../../schema2ts/convertSwagger';
 
-const refSchema = (name: string) => ({ $ref: `#/definitions/${name}` } as OpenAPIV2.SchemaObject);
+const refSchema = (name: string) => ({ $ref: `#/definitions/${name}` }) as OpenAPIV2.SchemaObject;
 
 suite('schema2ts/convertSwagger', () => {
-  beforeEach(() => {
+  setup(() => {
     convertAPIV2ToJSONSchema.defRenameMapping = undefined;
   });
 
-  afterEach(() => {
+  teardown(() => {
     convertAPIV2ToJSONSchema.defRenameMapping = undefined;
   });
 
