@@ -12,6 +12,10 @@ import notification from '@/utils/notification';
 import { GroupedSwaggerDocItem, SwaggerDocGroup, GroupedSwaggerDocList } from '@/utils/types';
 import { useMemoizedFn } from 'ahooks';
 
+type AddGroupSwaggerDocPayload = Omit<GroupedSwaggerDocItem, 'key'> & {
+  groupName?: string;
+};
+
 const generateKey = () => {
   return Date.now();
 };
@@ -26,7 +30,7 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
   const { setExtSetting } = useGlobalState();
 
   // 添加分组文档
-  const addGroupSwaggerDoc = useMemoizedFn(async (item: Omit<GroupedSwaggerDocItem, 'key'>) => {
+  const addGroupSwaggerDoc = useMemoizedFn(async (item: AddGroupSwaggerDocPayload) => {
     const docData = { ...item, key: generateKey() };
     const resp = await apiAddGroupSwaggerDoc(docData);
     if (resp.success) {
@@ -34,8 +38,10 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
         groupSwaggerDocList: resp.data ?? [],
       });
       notification.success(`${item.name || item.url} 添加到分组成功`);
+      return true;
     } else {
       notification.error('添加失败请稍后再试');
+      return false;
     }
   });
 
@@ -47,8 +53,10 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
         groupSwaggerDocList: resp.data ?? [],
       });
       notification.success(`${item.name || item.url} 删除成功`);
+      return true;
     } else {
       notification.error('删除失败请稍后再试');
+      return false;
     }
   });
 
@@ -60,8 +68,10 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
         groupSwaggerDocList: resp.data ?? [],
       });
       notification.success(`${item.name || item.url} 更新成功`);
+      return true;
     } else {
       notification.error('更新失败请稍后再试');
+      return false;
     }
   });
 
@@ -73,8 +83,10 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
         groupSwaggerDocList: resp.data ?? [],
       });
       notification.success(`分组 ${group.name} 更新成功`);
+      return true;
     } else {
       notification.error('更新分组失败请稍后再试');
+      return false;
     }
   });
 
@@ -86,8 +98,10 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
         groupSwaggerDocList: resp.data ?? [],
       });
       notification.success('文档列表更新成功');
+      return true;
     } else {
       notification.error('更新失败请稍后再试');
+      return false;
     }
   });
 
@@ -103,10 +117,16 @@ function useGroupSwaggerDocService(props: UseGroupSwaggerDocServiceProps = {}) {
         groupSwaggerDocList: resp.data ?? [],
       });
       notification.success(`分组 ${groupData.name} 创建成功`);
-      return newGroup.id;
+      return {
+        success: true,
+        groupId: newGroup.id,
+      };
     } else {
       notification.error('创建分组失败请稍后再试');
-      return null;
+      return {
+        success: false,
+        groupId: null,
+      };
     }
   });
 

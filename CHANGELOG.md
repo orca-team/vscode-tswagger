@@ -4,6 +4,16 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## Unreleased
+
+### Added
+
+- **Project Swagger URLs Detection**: Auto-detect project-level swaggerUrls configuration and display a modal on first load
+
+### Fixed
+
+- Fixed issue where custom group names became "未命名分组" when adding URLs to groups
+
 ## [2.3.3] - 2025-10-08
 
 ### Fixed

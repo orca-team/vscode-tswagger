@@ -1,0 +1,97 @@
+.root {
+  :global(.ant-modal-body) {
+    padding-top: 16px;
+  }
+}
+
+.intro {
+  margin-bottom: 16px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--vscode-widget-border, #303031);
+  background: var(--vscode-editorHoverWidget-background, #252526);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.urlBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.urlLine {
+  width: 100%;
+}
+
+.url {
+  word-break: break-all;
+}
+
+.rowAction {
+  display: flex;
+  align-items: center;
+}
+
+.clickableRow {
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover,
+  &:focus {
+    border-color: var(--vscode-focusBorder, #007fd4);
+    transform: translateY(-1px);
+    outline: none;
+  }
+}
+
+.successIcon {
+  color: #52c41a;
+  margin-top: 3px;
+}
+
+.mutedIcon {
+  color: #8c8c8c;
+  margin-top: 3px;
+}
+
+.addPanel {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--vscode-widget-border, #303031);
+  background: var(--vscode-sideBar-background, #1e1e1e);
+}
+
+.addTitle {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.addTarget {
+  display: block;
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+
+.addActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -243,6 +243,16 @@ export interface SwaggerDocGroup {
 export type GroupedSwaggerDocList = SwaggerDocGroup[];
 
 /**
+ * 当前工程使用的接口文档地址
+ */
+type CurrentProjectSwaggerUrls = {
+  /** 接口文档地址 */
+  url?: string;
+  /** 接口文档说明（如：dev 环境） */
+  remark?: string;
+};
+
+/**
  * 项目插件配置文件
  */
 export type TSwaggerConfig = Partial<{
@@ -252,4 +262,6 @@ export type TSwaggerConfig = Partial<{
   addBasePathPrefix: boolean;
   /** 路径前缀名称映射 */
   basePathMapping?: Record<string, string>;
+  /** 当前工程使用的接口文档地址（多个） */
+  swaggerUrls?: CurrentProjectSwaggerUrls[];
 }>;

@@ -40,6 +40,7 @@ import ConfigJsonForm from '@/components/ConfigJSONForm';
 import useMessageListener from '@/hooks/useMessageListener';
 import { WebviewPageContext } from './context';
 import SettingModal from '@/components/SettingModal';
+import ProjectSwaggerUrlsModal from '@/components/ProjectSwaggerUrlsModal';
 import { pick } from 'lodash-es';
 import SearchSuite, { SearchValue } from '@/components/SearchSuite';
 import { ADVANCED_SEARCH_OPTIONS, PARSE_METHOD_DOCS, PARSE_METHOD_LOCAL, SEARCH_FILTER } from './constants';
@@ -70,7 +71,9 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const [searchPanelKey, setSearchPanelKey] = useState<string>(PARSE_METHOD_DOCS);
   const [filters, setFilters] = useState<string[]>([SEARCH_FILTER.HIDE_EMPTY_GROUP]);
   const [openApiPanelKeys, setOpenApiPanelKeys] = useState<string[]>([]);
-  const _this = useRef<{ V2Document?: OpenAPIV2.Document }>({}).current;
+  const _this = useRef<{ V2Document?: OpenAPIV2.Document, hasShownProjectSwaggerUrlsModal: boolean; }>({
+    hasShownProjectSwaggerUrlsModal: false
+  }).current;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [form] = useForm();
@@ -78,7 +81,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
   const currentSwaggerUrl = useWatch<string>('swaggerUrl', form);
   const searchParams = useWatch<SearchValue | undefined>('searchParams', form);
 
-  const { extSetting, setExtSetting, setTswaggerConfig } = useGlobalState();
+  const { extSetting, setExtSetting, tswaggerConfig, setTswaggerConfig } = useGlobalState();
   const [parseLoading, { setTrue: startParseLoading, setFalse: stopParseLoading }] = useBoolean(false);
   const [generateLoading, { setTrue: startGenerateLoading, setFalse: stopGenerateLoading }] = useBoolean(false);
   const modalController = usePromisifyModal();
@@ -140,6 +143,14 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
     setAllApiGroup(apiGroup);
     _this.V2Document = apiDocs;
   };
+
+  const handleSelectProjectSwaggerUrl = useMemoizedFn((url: string) => {
+    form.setFieldValue('swaggerUrl', url);
+
+    if (currentSwaggerUrl === url) {
+      refreshSwaggerSchema();
+    }
+  });
 
   const refreshSwaggerSchema = useMemoizedFn(async () => {
     if (!currentSwaggerUrl) {
@@ -299,6 +310,16 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
       resetPageWhenChange();
     }
   }, [searchPanelKey]);
+
+  useEffect(() => {
+    const validProjectSwaggerUrls = tswaggerConfig.swaggerUrls?.filter((item) => item.url?.trim());
+    if (!validProjectSwaggerUrls?.length || _this.hasShownProjectSwaggerUrlsModal) {
+      return;
+    }
+
+    _this.hasShownProjectSwaggerUrlsModal = true;
+    modalController.show(<ProjectSwaggerUrlsModal swaggerUrls={validProjectSwaggerUrls} onSelectSwaggerUrl={handleSelectProjectSwaggerUrl} />);
+  }, [handleSelectProjectSwaggerUrl, modalController, tswaggerConfig.swaggerUrls]);
 
   useMount(() => {
     handleExtInfo();
