@@ -1,3 +1,7 @@
 {
-  "extends": "./src/.umi/tsconfig.json"
+  "extends": "./src/.umi/tsconfig.json",
+  // 新版 Vscode 中使用了 Typescript 7.0，导致一些过时的 API 被标记为废弃，增加 ignoreDeprecations 选项来忽略这些警告
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0"
+  }
 }
