@@ -11,7 +11,7 @@
     "postinstall": "umi setup",
     "setup": "umi setup",
     "prestart": "rimraf dist",
-    "start": "set SOCKET_SERVER=http://localhost:8000/ && umi dev"
+    "start": "umi build --watch --clean=false"
   },
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
