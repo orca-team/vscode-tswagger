@@ -1,4 +1,5 @@
 /node_modules
+/.PORT
 /.env.local
 /.umirc.local.ts
 /config/config.local.ts

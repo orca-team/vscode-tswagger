@@ -42,11 +42,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   let umiPanel: vscode.WebviewPanel | undefined;
   let umiHTML: string = '';
+  let webviewHotReloadDisposable: vscode.Disposable | undefined;
 
   let generateTypescriptCommand = vscode.commands.registerCommand('tswagger.generateTypescript', () => {
     const activeViewColumn = vscode.window.activeTextEditor?.viewColumn;
 
     if (umiPanel) {
+      if (isDev) {
+        umiHTML = loadUmiHTML(context, umiPanel);
+        umiPanel.webview.html = umiHTML;
+      }
       umiPanel.reveal(activeViewColumn);
     } else {
       umiPanel = vscode.window.createWebviewPanel('generate-typescript', 'tswagger', vscode.ViewColumn.One, {
@@ -118,6 +123,8 @@ export function activate(context: vscode.ExtensionContext) {
       // webview 销毁时
       onDidDispose(
         () => {
+          webviewHotReloadDisposable?.dispose();
+          webviewHotReloadDisposable = undefined;
           umiPanel = undefined;
         },
         null,
@@ -134,10 +141,10 @@ export function activate(context: vscode.ExtensionContext) {
      * temp: 临时热更新方案，监听 umi 文件输出变化
      * 在 webview 中使用 umi4 的热更新尚有问题，待解决
      */
-    if (isDev && umiPanel) {
-      console.info('Startup Hot Reload Webview.');
-      hotReloadWebview(context, umiPanel, umiHTML);
-    }
+    // if (isDev && umiPanel) {
+    //   console.info('Startup Hot Reload Webview.');
+    //   webviewHotReloadDisposable?.dispose();
+    // }
   });
 
   context.subscriptions.push(generateTypescriptCommand);

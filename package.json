@@ -98,7 +98,7 @@
   },
   "scripts": {
     "webview-build": "pnpm --filter tswagger-webview build",
-    "webview-watch": "pnpm --filter tswagger-webview start",
+    "webview-watch": "node scripts/webview-dev.js",
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV=\\\"development\\\"",
     "package": "npm run webview-build && npm run esbuild-build -- --minify && vsce package --no-dependencies",
@@ -128,6 +128,7 @@
     "eslint": "^7.19.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "get-port": "^5.1.1",
     "glob": "^7.1.6",
     "husky": "^8.0.0",
     "lint-staged": "^14.0.1",
