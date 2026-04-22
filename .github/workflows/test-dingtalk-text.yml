@@ -1,0 +1,77 @@
+name: Test Dingtalk Text
+
+on:
+  push:
+    branches:
+      - ci/dingtalk-text-workflow
+    paths:
+      - .github/workflows/test-dingtalk-text.yml
+      - scripts/generate-dingtalk-text.js
+      - CHANGELOG.md
+      - package.json
+  workflow_dispatch:
+
+jobs:
+  test-dingtalk-text:
+    name: Test Dingtalk Text
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Setup Environment
+        id: setup_environment
+        run: echo "package_version=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+      - name: Generate Changelog
+        id: changelog
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          version: ${{ steps.setup_environment.outputs.package_version }}
+          path: ./CHANGELOG.md
+      - name: Generate Dingtalk Text File
+        env:
+          PACKAGE_VERSION: ${{ steps.setup_environment.outputs.package_version }}
+          CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
+        run: node ./scripts/generate-dingtalk-text.js > dingtalk-text.json
+      - name: Validate Dingtalk Text
+        env:
+          PACKAGE_VERSION: ${{ steps.setup_environment.outputs.package_version }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const raw = fs.readFileSync('dingtalk-text.json', 'utf8');
+          const text = JSON.parse(raw);
+
+          if (!text.includes(`TSwagger v${process.env.PACKAGE_VERSION} Published`)) {
+            throw new Error('Missing release title');
+          }
+
+          if (!text.includes('Changes in this release:')) {
+            throw new Error('Missing changelog heading');
+          }
+
+          if (!text.includes('VSCode Marketplace')) {
+            throw new Error('Missing marketplace link text');
+          }
+
+          const summary = [
+            '## Generated DingTalk Text JSON',
+            '',
+            '```json',
+            raw,
+            '```',
+            '',
+            '## Decoded Markdown Preview',
+            '',
+            text,
+            ''
+          ].join('\n');
+
+          fs.appendFileSync(
+            process.env.GITHUB_STEP_SUMMARY,
+            summary
+          );
+          NODE
