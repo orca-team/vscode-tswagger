@@ -60,6 +60,26 @@
 | `fetchFilePath`     | `fetch` 文件地址，约定必须以 `@` 开头，`@` 表示 `src` 目录 | `string`                 | `@/utils/fetch` |         |
 | `addBasePathPrefix` | 是否为生成的接口路径添加前缀                               | `boolean`                | `true`          |         |
 | `basePathMapping`   | 接口前缀映射，如：`/api-v1` 映射为 `/api`，可配置多个      | `Record<string, string>` | -               | `1.2.0` |
+| `swaggerUrls`       | 当前工程使用的接口文档地址列表，可用于快速选择与同步       | `Array<{ url?: string; remark?: string }>` | - | `2.4.0` |
+
+示例：
+
+```json
+{
+  "fetchFilePath": "@/utils/fetch",
+  "addBasePathPrefix": true,
+  "swaggerUrls": [
+    {
+      "url": "https://api-dev.example.com/v2/api-docs",
+      "remark": "dev 环境"
+    },
+    {
+      "url": "https://api-prod.example.com/v2/api-docs",
+      "remark": "prod 环境"
+    }
+  ]
+}
+```
 
 ### fetch 文件
 
