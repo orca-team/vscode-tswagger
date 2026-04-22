@@ -6,15 +6,16 @@ on:
       - ci/dingtalk-text-workflow
     paths:
       - .github/workflows/test-dingtalk-text.yml
+      - .github/testdata/dingtalk-text-fixture.md
       - scripts/generate-dingtalk-text.js
-      - CHANGELOG.md
-      - package.json
   workflow_dispatch:
 
 jobs:
   test-dingtalk-text:
     name: Test Dingtalk Text
     runs-on: ubuntu-latest
+    env:
+      PACKAGE_VERSION: 9.9.9-test
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -22,28 +23,41 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Setup Environment
-        id: setup_environment
-        run: echo "package_version=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
-      - name: Generate Changelog
-        id: changelog
-        uses: mindsers/changelog-reader-action@v2
-        with:
-          version: ${{ steps.setup_environment.outputs.package_version }}
-          path: ./CHANGELOG.md
+      - name: Load Test Fixture
+        run: |
+          {
+            echo 'CHANGELOG_CHANGES<<EOF'
+            cat ./.github/testdata/dingtalk-text-fixture.md
+            echo 'EOF'
+          } >> $GITHUB_ENV
       - name: Generate Dingtalk Text File
-        env:
-          PACKAGE_VERSION: ${{ steps.setup_environment.outputs.package_version }}
-          CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
         run: node ./scripts/generate-dingtalk-text.js > dingtalk-text.json
       - name: Validate Dingtalk Text
-        env:
-          PACKAGE_VERSION: ${{ steps.setup_environment.outputs.package_version }}
         run: |
           node <<'NODE'
           const fs = require('fs');
+          const fixture = fs.readFileSync('.github/testdata/dingtalk-text-fixture.md', 'utf8');
+          const normalizedFixture = fixture.replace(/\r?\n$/, '');
+          const changes = process.env.CHANGELOG_CHANGES;
           const raw = fs.readFileSync('dingtalk-text.json', 'utf8');
           const text = JSON.parse(raw);
+          const expected = [
+            `### TSwagger v${process.env.PACKAGE_VERSION} Published`,
+            '',
+            `**tswagger@${process.env.PACKAGE_VERSION}** has been published to the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger).`,
+            '',
+            '> **Note**: It might take a few minutes to appear on the marketplace.',
+            '',
+            '---',
+            '',
+            '**Changes in this release:**',
+            '',
+            changes
+          ].join('\n');
+
+          if (changes !== normalizedFixture) {
+            throw new Error('Loaded fixture content does not match the markdown test file');
+          }
 
           if (!text.includes(`TSwagger v${process.env.PACKAGE_VERSION} Published`)) {
             throw new Error('Missing release title');
@@ -55,6 +69,26 @@ jobs:
 
           if (!text.includes('VSCode Marketplace')) {
             throw new Error('Missing marketplace link text');
+          }
+
+          if (text !== expected) {
+            throw new Error('Generated text does not exactly match the expected fixture output');
+          }
+
+          if (!text.includes('"hello world"')) {
+            throw new Error('Missing double quote test case');
+          }
+
+          if (!text.includes('C:\\\\Users\\\\orca\\\\workspace')) {
+            throw new Error('Missing backslash path test case');
+          }
+
+          if (!text.includes('{\\\"name\\\":\\\"tswagger\\\"}')) {
+            throw new Error('Missing escaped JSON fragment test case');
+          }
+
+          if (!text.includes('https://example.com/search?q="swagger"&path=C:\\\\temp')) {
+            throw new Error('Missing query string test case');
           }
 
           const summary = [
