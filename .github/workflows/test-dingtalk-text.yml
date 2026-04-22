@@ -1,0 +1,111 @@
+name: Test Dingtalk Text
+
+on:
+  push:
+    branches:
+      - ci/dingtalk-text-workflow
+    paths:
+      - .github/workflows/test-dingtalk-text.yml
+      - .github/testdata/dingtalk-text-fixture.md
+      - scripts/generate-dingtalk-text.js
+  workflow_dispatch:
+
+jobs:
+  test-dingtalk-text:
+    name: Test Dingtalk Text
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_VERSION: 9.9.9-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Load Test Fixture
+        run: |
+          {
+            echo 'CHANGELOG_CHANGES<<EOF'
+            cat ./.github/testdata/dingtalk-text-fixture.md
+            echo 'EOF'
+          } >> $GITHUB_ENV
+      - name: Generate Dingtalk Text File
+        run: node ./scripts/generate-dingtalk-text.js > dingtalk-text.json
+      - name: Validate Dingtalk Text
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const fixture = fs.readFileSync('.github/testdata/dingtalk-text-fixture.md', 'utf8');
+          const normalizedFixture = fixture.replace(/\r?\n$/, '');
+          const changes = process.env.CHANGELOG_CHANGES;
+          const raw = fs.readFileSync('dingtalk-text.json', 'utf8');
+          const text = JSON.parse(raw);
+          const expected = [
+            `### TSwagger v${process.env.PACKAGE_VERSION} Published`,
+            '',
+            `**tswagger@${process.env.PACKAGE_VERSION}** has been published to the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger).`,
+            '',
+            '> **Note**: It might take a few minutes to appear on the marketplace.',
+            '',
+            '---',
+            '',
+            '**Changes in this release:**',
+            '',
+            changes
+          ].join('\n');
+
+          if (changes !== normalizedFixture) {
+            throw new Error('Loaded fixture content does not match the markdown test file');
+          }
+
+          if (!text.includes(`TSwagger v${process.env.PACKAGE_VERSION} Published`)) {
+            throw new Error('Missing release title');
+          }
+
+          if (!text.includes('Changes in this release:')) {
+            throw new Error('Missing changelog heading');
+          }
+
+          if (!text.includes('VSCode Marketplace')) {
+            throw new Error('Missing marketplace link text');
+          }
+
+          if (text !== expected) {
+            throw new Error('Generated text does not exactly match the expected fixture output');
+          }
+
+          if (!text.includes('"hello world"')) {
+            throw new Error('Missing double quote test case');
+          }
+
+          if (!text.includes('C:\\\\Users\\\\orca\\\\workspace')) {
+            throw new Error('Missing backslash path test case');
+          }
+
+          if (!text.includes('{\\\"name\\\":\\\"tswagger\\\"}')) {
+            throw new Error('Missing escaped JSON fragment test case');
+          }
+
+          if (!text.includes('https://example.com/search?q="swagger"&path=C:\\\\temp')) {
+            throw new Error('Missing query string test case');
+          }
+
+          const summary = [
+            '## Generated DingTalk Text JSON',
+            '',
+            '```json',
+            raw,
+            '```',
+            '',
+            '## Decoded Markdown Preview',
+            '',
+            text,
+            ''
+          ].join('\n');
+
+          fs.appendFileSync(
+            process.env.GITHUB_STEP_SUMMARY,
+            summary
+          );
+          NODE

@@ -48,6 +48,12 @@ jobs:
           draft: false
           prerelease: false
           files: ./${{ env.PACKAGE_NAME }}.vsix
+      - name: Generate Dingtalk Text
+        id: dingtalk_text
+        env:
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
+          CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
+        run: printf 'text=%s\n' "$(node ./scripts/generate-dingtalk-text.js)" >> "$GITHUB_OUTPUT"
       - name: Dingtalk Notify
         uses: zcong1993/actions-ding@master
         with:
@@ -57,7 +63,7 @@ jobs:
                 "msgtype": "markdown",
                 "markdown": {
                     "title":"🎉 TSwagger Release Successful",
-                    "text": "### TSwagger v${{ env.PACKAGE_VERSION }} Published\n\n**tswagger@${{ env.PACKAGE_VERSION }}** has been published to the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger).\n\n> **Note**: It might take a few minutes to appear on the marketplace.\n\n---\n\n**Changes in this release:**\n\n${{ steps.changelog.outputs.changes }}"
+                    "text": ${{ steps.dingtalk_text.outputs.text }}
                 },
                 "at": {
                     "isAtAll": false
