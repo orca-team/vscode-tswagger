@@ -54,7 +54,7 @@ jobs:
           CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
         run: printf 'text=%s\n' "$(node ./scripts/generate-dingtalk-text.js)" >> "$GITHUB_OUTPUT"
       - name: Dingtalk Notify
-        uses: zcong1993/actions-ding@master
+        uses: Orchardxyz/dingtalk-bot-message@v1
         with:
           dingToken: ${{ secrets.DING_TALK_ACCESS_TOKEN}}
           body: |
