@@ -1,11 +1,47 @@
 const packageVersion = process.env.PACKAGE_VERSION || '';
 const changes = process.env.CHANGELOG_CHANGES || '';
+const vscodePublishStatus = process.env.VSCODE_PUBLISH_STATUS || 'success';
+const openvsxPublishStatus = process.env.OPENVSX_PUBLISH_STATUS || 'unknown';
 
-const text = `### TSwagger v${packageVersion} Published
+const marketplaceStatuses = [
+	{
+		label: 'VS Code Marketplace',
+		url: 'https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger',
+		status: vscodePublishStatus,
+	},
+	{
+		label: 'OpenVSX',
+		url: 'https://open-vsx.org/extension/OrcaTeam/tswagger',
+		status: openvsxPublishStatus,
+	},
+];
 
-**tswagger@${packageVersion}** has been published to the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger).
+const publishedMarketplaces = marketplaceStatuses.filter(
+	({ status }) => status === 'success',
+);
+const unpublishedMarketplaces = marketplaceStatuses.filter(
+	({ status }) => status !== 'success' && status !== 'unknown',
+);
 
-> **Note**: It might take a few minutes to appear on the marketplace.
+const publishedText = publishedMarketplaces.length
+	? `**Published in this run:**\n\n${publishedMarketplaces
+			.map(({ label, url }) => `- [${label}](${url})`)
+			.join('\n')}`
+	: '';
+
+const unpublishedText = unpublishedMarketplaces.length
+	? `**Not published in this run:**\n\n${unpublishedMarketplaces
+			.map(({ label }) => `- ${label}`)
+			.join('\n')}`
+	: '';
+
+const text = `### TSwagger v${packageVersion} Release Completed
+
+**tswagger@${packageVersion}** release workflow completed.
+
+${[publishedText, unpublishedText].filter(Boolean).join('\n\n')}
+
+> **Note**: It might take a few minutes to appear on the marketplaces.
 
 ---
 
