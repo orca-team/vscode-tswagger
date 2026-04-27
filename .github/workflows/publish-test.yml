@@ -49,7 +49,7 @@ jobs:
           if-no-files-found: error
 
   publish_vscode_test:
-    name: VS Code Publish Dry-Run
+    name: VS Code Publish Validation
     runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.result == 'success' }}
@@ -65,8 +65,10 @@ jobs:
           path: .
       - name: Install VSCE
         run: npm install -g @vscode/vsce
-      - name: VSCE Dry-Run
-        run: vsce publish --no-dependencies --packagePath ./${{ needs.build.outputs.package_name }}.vsix --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }} --dryRun
+      - name: Verify VSIX Artifact Exists
+        run: test -f ./${{ needs.build.outputs.package_name }}.vsix
+      - name: Verify VS Code Marketplace PAT
+        run: vsce verify-pat OrcaTeam --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }}
 
   publish_openvsx_test:
     name: OpenVSX Publish Dry-Run
