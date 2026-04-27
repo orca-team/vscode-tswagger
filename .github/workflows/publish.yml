@@ -74,7 +74,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
       - name: Download Extension Package
         uses: actions/download-artifact@v4
         with:
@@ -94,7 +94,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
       - name: Download Extension Package
         uses: actions/download-artifact@v4
         with:
