@@ -1,0 +1,130 @@
+name: Publish Test Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*-test'
+
+jobs:
+  build:
+    name: Build Extension (Test)
+    runs-on: ubuntu-latest
+    outputs:
+      package_name: ${{ steps.package_info.outputs.package_name }}
+      package_version: ${{ steps.package_info.outputs.package_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Setup Environment
+        id: package_info
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name + '-' + require('./package.json').version")
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
+          echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+      - name: Verify Version
+        run: |
+          EXPECTED_TAG="refs/tags/v${{ env.PACKAGE_VERSION }}-test"
+          if [[ "$EXPECTED_TAG" != "${{ github.ref }}" ]]; then
+            echo "::error::Version Mismatch. expected=$EXPECTED_TAG actual=${{ github.ref }}"
+            exit 1
+          fi
+      - name: Install Dependencies
+        run: |
+          npm install pnpm -g
+          pnpm install --no-frozen-lockfile
+      - name: Package Extension
+        run: pnpm run package
+      - name: Upload Extension Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-package-test
+          path: ./${{ env.PACKAGE_NAME }}.vsix
+          if-no-files-found: error
+
+  publish_vscode_test:
+    name: VS Code Publish Dry-Run
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.result == 'success' }}
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Download Extension Package
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-package-test
+          path: .
+      - name: Install VSCE
+        run: npm install -g @vscode/vsce
+      - name: VSCE Dry-Run
+        run: vsce publish --no-dependencies --packagePath ./${{ needs.build.outputs.package_name }}.vsix --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }} --dryRun
+
+  publish_openvsx_test:
+    name: OpenVSX Publish Dry-Run
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.result == 'success' }}
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Download Extension Package
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-package-test
+          path: .
+      - name: Install OVSX
+        run: npm install -g ovsx
+      - name: OpenVSX Dry-Run Marker
+        run: |
+          ovsx --version
+          echo "OpenVSX dry-run: skip real publish in test pipeline"
+
+  notify_preview:
+    name: Output DingTalk Markdown Preview
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - publish_vscode_test
+      - publish_openvsx_test
+    if: ${{ always() && needs.build.result == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate Changelog
+        id: changelog
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          version: ${{ needs.build.outputs.package_version }}
+          path: ./CHANGELOG.md
+      - name: Generate Dingtalk Text
+        id: dingtalk_text
+        env:
+          PACKAGE_VERSION: ${{ needs.build.outputs.package_version }}
+          CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
+          VSCODE_PUBLISH_STATUS: ${{ needs.publish_vscode_test.result }}
+          OPENVSX_PUBLISH_STATUS: ${{ needs.publish_openvsx_test.result }}
+        run: printf 'text=%s\n' "$(node ./scripts/generate-dingtalk-text.js)" >> "$GITHUB_OUTPUT"
+      - name: Write Markdown Preview To Job Summary
+        env:
+          MARKDOWN_TEXT: ${{ steps.dingtalk_text.outputs.text }}
+        run: |
+          {
+            echo "## TSwagger Test Notification Preview"
+            echo ""
+            echo "**Tag**: ${{ github.ref_name }}"
+            echo ""
+            echo "### Markdown"
+            echo ""
+            node -e "console.log(JSON.parse(process.env.MARKDOWN_TEXT || '\"\"'))"
+          } >> "$GITHUB_STEP_SUMMARY"
