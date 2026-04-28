@@ -17,9 +17,9 @@ jobs:
       is_prerelease: ${{ steps.package_info.outputs.is_prerelease }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
       - name: Setup Environment
@@ -59,7 +59,7 @@ jobs:
       - name: Package Extension
         run: pnpm run package
       - name: Upload Extension Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: extension-package
           path: ./${{ env.PACKAGE_NAME }}.vsix
@@ -72,11 +72,11 @@ jobs:
     if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: extension-package
           path: .
@@ -92,11 +92,11 @@ jobs:
     if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: extension-package
           path: .
@@ -117,13 +117,13 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
       - name: Download Extension Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: extension-package
           path: .
