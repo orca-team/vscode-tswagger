@@ -1,8 +1,5 @@
 name: Test Dingtalk Text
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 on:
   push:
     branches:
@@ -21,7 +18,7 @@ jobs:
       PACKAGE_VERSION: 9.9.9-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Node
         uses: actions/setup-node@v6
         with:

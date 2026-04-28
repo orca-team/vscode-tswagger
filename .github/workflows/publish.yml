@@ -1,8 +1,5 @@
 name: Publish Extension
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 on:
   push:
     tags:
@@ -20,7 +17,7 @@ jobs:
       is_prerelease: ${{ steps.package_info.outputs.is_prerelease }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -62,7 +59,7 @@ jobs:
       - name: Package Extension
         run: pnpm run package
       - name: Upload Extension Package
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: extension-package
           path: ./${{ env.PACKAGE_NAME }}.vsix
@@ -79,7 +76,7 @@ jobs:
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: extension-package
           path: .
@@ -99,7 +96,7 @@ jobs:
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: extension-package
           path: .
@@ -120,13 +117,13 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: '18'
       - name: Download Extension Package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: extension-package
           path: .

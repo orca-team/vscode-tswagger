@@ -1,8 +1,5 @@
 name: Publish Test Pipeline
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 on:
   push:
     tags:
@@ -17,7 +14,7 @@ jobs:
       package_version: ${{ steps.package_info.outputs.package_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -45,7 +42,7 @@ jobs:
       - name: Package Extension
         run: pnpm run package
       - name: Upload Extension Package
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: extension-package-test
           path: ./${{ env.PACKAGE_NAME }}.vsix
@@ -62,7 +59,7 @@ jobs:
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: extension-package-test
           path: .
@@ -84,7 +81,7 @@ jobs:
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: extension-package-test
           path: .
@@ -105,7 +102,7 @@ jobs:
     if: ${{ always() && needs.build.result == 'success' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Generate Changelog
         id: changelog
         uses: mindsers/changelog-reader-action@v2
