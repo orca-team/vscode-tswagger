@@ -4,37 +4,134 @@ on:
   push:
     tags:
       - 'v*.*.*'
+      - 'v*.*.*-*'
 
 jobs:
-  publish:
-    name: Publish Extension
+  build:
+    name: Build Extension
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    if: ${{ !endsWith(github.ref_name, '-test') }}
+    outputs:
+      package_name: ${{ steps.package_info.outputs.package_name }}
+      package_version: ${{ steps.package_info.outputs.package_version }}
+      is_prerelease: ${{ steps.package_info.outputs.is_prerelease }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
       - name: Setup Environment
-        run: node -e "console.log('PACKAGE_VERSION=' + require('./package.json').version + '\nPACKAGE_NAME=' + require('./package.json').name + '-' + require('./package.json').version)" >> $GITHUB_ENV # set PACKAGE_VERSION and PACKAGE_NAME
+        id: package_info
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name + '-' + require('./package.json').version")
+          TAG_NAME="${{ github.ref_name }}"
+          IS_PRERELEASE="false"
+          if [[ "$TAG_NAME" == *-* ]] && [[ "$TAG_NAME" != *-test ]]; then
+            IS_PRERELEASE="true"
+          fi
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
+          echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
       - name: Verify Version
-        run: node -e "if ('refs/tags/v' + '${{ env.PACKAGE_VERSION }}' !== '${{ github.ref }}') { console.log('::error' + 'Version Mismatch. refs/tags/v' + '${{ env.PACKAGE_VERSION }}', '${{ github.ref }}'); throw Error('Version Mismatch')} "
+        run: |
+          if [[ "${{ steps.package_info.outputs.is_prerelease }}" == "true" ]]; then
+            EXPECTED_PREFIX="refs/tags/v${{ env.PACKAGE_VERSION }}-"
+            if [[ "${{ github.ref }}" != "$EXPECTED_PREFIX"* ]]; then
+              echo "::error::Version Mismatch. expected_prefix=$EXPECTED_PREFIX actual=${{ github.ref }}"
+              exit 1
+            fi
+          else
+            EXPECTED_TAG="refs/tags/v${{ env.PACKAGE_VERSION }}"
+            if [[ "$EXPECTED_TAG" != "${{ github.ref }}" ]]; then
+              echo "::error::Version Mismatch. expected=$EXPECTED_TAG actual=${{ github.ref }}"
+              exit 1
+            fi
+          fi
       - name: Install Dependencies
         run: |
           npm install pnpm -g
           pnpm install --no-frozen-lockfile
       - name: Package Extension
         run: pnpm run package
+      - name: Upload Extension Package
+        uses: actions/upload-artifact@v7
+        with:
+          name: extension-package
+          path: ./${{ env.PACKAGE_NAME }}.vsix
+          if-no-files-found: error
+
+  publish_vscode:
+    name: Publish To VS Code Marketplace
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.result == 'success' }}
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Download Extension Package
+        uses: actions/download-artifact@v8
+        with:
+          name: extension-package
+          path: .
+      - name: Install VSCE
+        run: npm install -g @vscode/vsce
       - name: Publish Extension
-        run: pnpm run publish --packagePath ./${{ env.PACKAGE_NAME }}.vsix --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }}
+        run: vsce publish --no-dependencies --packagePath ./${{ needs.build.outputs.package_name }}.vsix --pat ${{ secrets.TSWAGGER_PERSONAL_ACCESS_TOKEN }}
+
+  publish_openvsx:
+    name: Publish To OpenVSX
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.result == 'success' }}
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Download Extension Package
+        uses: actions/download-artifact@v8
+        with:
+          name: extension-package
+          path: .
+      - name: Install OVSX
+        run: npm install -g ovsx
+      - name: Publish Extension
+        run: ovsx publish ./${{ needs.build.outputs.package_name }}.vsix -p ${{ secrets.OPENVSX_PAT }}
+
+  release_and_notify:
+    name: Create Release And Notify
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - publish_vscode
+      - publish_openvsx
+    if: ${{ always() && needs.build.result == 'success' && (needs.publish_vscode.result == 'success' || needs.publish_openvsx.result == 'success') }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '18'
+      - name: Download Extension Package
+        uses: actions/download-artifact@v8
+        with:
+          name: extension-package
+          path: .
       - name: Generate Changelog
         id: changelog
         uses: mindsers/changelog-reader-action@v2
         with:
-          version: ${{ env.PACKAGE_VERSION }}
+          version: ${{ needs.build.outputs.package_version }}
           path: ./CHANGELOG.md
       - name: Create GitHub Release
         id: create_release
@@ -42,16 +139,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref }}
-          name: v${{ env.PACKAGE_VERSION }}
+          name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.changes }}
           draft: false
-          prerelease: false
-          files: ./${{ env.PACKAGE_NAME }}.vsix
+          prerelease: ${{ needs.build.outputs.is_prerelease }}
+          files: ./${{ needs.build.outputs.package_name }}.vsix
       - name: Generate Dingtalk Text
         id: dingtalk_text
         env:
-          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
+          PACKAGE_VERSION: ${{ needs.build.outputs.package_version }}
           CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
+          VSCODE_PUBLISH_STATUS: ${{ needs.publish_vscode.result }}
+          OPENVSX_PUBLISH_STATUS: ${{ needs.publish_openvsx.result }}
         run: printf 'text=%s\n' "$(node ./scripts/generate-dingtalk-text.js)" >> "$GITHUB_OUTPUT"
       - name: Dingtalk Notify
         uses: Orchardxyz/dingtalk-bot-message@v1
