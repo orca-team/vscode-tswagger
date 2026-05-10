@@ -1,5 +1,3 @@
-import YAML from 'yaml';
-import { existsSync, outputFileSync, readFileSync, readdirSync, statSync } from 'fs-extra';
 import {
   ApiGroupDefNameMapping,
   ApiGroupNameMapping,
@@ -7,7 +5,9 @@ import {
   GenerateTypescriptConfig,
   RenameMapping,
   ServiceMapInfoYAMLJSONType,
-} from '../../types';
+} from '@tswagger/types';
+import YAML from 'yaml';
+import { existsSync, outputFileSync, readFileSync, readdirSync, statSync } from 'fs-extra';
 import { currentTime, getMappedBasePath, getServiceMapJSON, getServiceMapPath } from '../../utils/swaggerUtil';
 import { join } from 'path';
 import { OpenAPIV2 } from 'openapi-types';

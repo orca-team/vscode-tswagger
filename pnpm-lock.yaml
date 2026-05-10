@@ -11,6 +11,12 @@ importers:
       '@apidevtools/swagger-parser':
         specifier: ^10.1.0
         version: 10.1.0(openapi-types@12.1.3)
+      '@tswagger/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@tswagger/types':
+        specifier: workspace:*
+        version: link:packages/types
       bing-translate-api:
         specifier: ^4.0.0
         version: 4.0.0
@@ -112,6 +118,56 @@ importers:
         specifier: ^4.1.3
         version: 4.9.5
 
+  packages/core:
+    dependencies:
+      '@tswagger/types':
+        specifier: workspace:*
+        version: link:../types
+      json-schema-to-typescript:
+        specifier: ^12.0.0
+        version: 12.0.0
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
+      nanoid:
+        specifier: ^5.0.7
+        version: 5.0.7
+      openapi-types:
+        specifier: ^12.1.0
+        version: 12.1.3
+    devDependencies:
+      '@types/mocha':
+        specifier: ^8.0.4
+        version: 8.2.3
+      '@types/node':
+        specifier: ^12.11.7
+        version: 12.20.55
+      esbuild:
+        specifier: ^0.19.4
+        version: 0.19.4
+      glob:
+        specifier: ^7.1.6
+        version: 7.2.3
+      mocha:
+        specifier: ^8.2.1
+        version: 8.4.0
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      typescript:
+        specifier: ^4.1.3
+        version: 4.9.5
+
+  packages/types:
+    dependencies:
+      openapi-types:
+        specifier: ^12.1.0
+        version: 12.1.3
+    devDependencies:
+      typescript:
+        specifier: ^4.1.3
+        version: 4.9.5
+
   webview:
     dependencies:
       '@ant-design/icons':
@@ -132,6 +188,9 @@ importers:
       '@orca-fe/pocket':
         specifier: ^2.3.5
         version: 2.3.10(@ant-design/icons@5.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(antd@5.26.6(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(jss@10.10.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-router@6.3.0(react@18.3.1))(react@18.3.1)
+      '@tswagger/types':
+        specifier: workspace:*
+        version: link:../packages/types
       ahooks:
         specifier: ^3.7.6
         version: 3.9.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -8829,7 +8888,7 @@ snapshots:
 
   '@types/jsonfile@6.1.1':
     dependencies:
-      '@types/node': 20.4.1
+      '@types/node': 12.20.55
 
   '@types/keyv@3.1.4':
     dependencies:

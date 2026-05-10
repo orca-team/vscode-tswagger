@@ -1,6 +1,3 @@
-/**
- * 文件头说明
- */
 export const FILE_DESCRIPTION = `/* eslint-disable */
 /* tslint:disable */
 /*
@@ -14,9 +11,6 @@ export const FILE_DESCRIPTION = `/* eslint-disable */
 
 `;
 
-/**
- * JSON -> FormData
- */
 export const JSON_TO_FORM_DATA = `const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     formData.append(key, value);

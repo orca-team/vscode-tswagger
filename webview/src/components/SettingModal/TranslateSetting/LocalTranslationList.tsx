@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './LocalTranslationList.less';
 import { List, Space, Typography } from 'antd';
-import { LocalTranslationMap } from '../../../../../src/types';
+import { LocalTranslationMap } from '@tswagger/types';
 
 const { Text } = Typography;
 

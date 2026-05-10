@@ -5,7 +5,6 @@
     "outDir": "out",
     "lib": ["es6"],
     "sourceMap": true,
-    "rootDir": "src",
     "strict": true /* enable all strict type-checking options */,
     "esModuleInterop": true,
     "typeRoots": ["./types/*.d.ts"]
@@ -14,5 +13,6 @@
     // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
     // "noUnusedParameters": true,  /* Report errors on unused parameters. */
   },
+  "include": ["src/**/*.ts", "packages/core/src/**/*.ts", "packages/types/src/**/*.ts", "typings.d.ts"],
   "exclude": ["node_modules", ".vscode-test", "webview"]
 }

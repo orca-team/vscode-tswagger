@@ -34,7 +34,7 @@ import styles from './WebviewPage.less';
 import SwaggerUrlSelect from '@/components/SwaggerUrlSelect';
 import TsResultModal from '@/components/TsResultModal';
 import { RcFile } from 'antd/es/upload';
-import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '../../../src/types';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping } from '@tswagger/types';
 import notification from '@/utils/notification';
 import ConfigJsonForm from '@/components/ConfigJSONForm';
 import useMessageListener from '@/hooks/useMessageListener';

@@ -1,7 +1,7 @@
 import { SwaggerUrlConfigItem, GroupedSwaggerDocList } from '@/utils/types';
 import { useSetState } from 'ahooks';
 import { createGlobalStore } from 'hox';
-import { TSwaggerConfig, TranslateEngine } from '../../../src/types';
+import { TSwaggerConfig, TranslateEngine } from '@tswagger/types';
 
 export type ExtTranslationConfig = {
   engine: TranslateEngine;

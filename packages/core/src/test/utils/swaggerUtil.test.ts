@@ -89,13 +89,13 @@ suite('utils/swaggerUtil: shakeV2RefsInSchema', () => {
     const definitions: OpenAPIV2.DefinitionsObject = {};
     const chainLength = 56;
 
-    for (let i = 0; i < chainLength; i++) {
-      const current = `D${i}`;
-      const next = `D${i + 1}`;
+    for (let index = 0; index < chainLength; index++) {
+      const current = `D${index}`;
+      const next = `D${index + 1}`;
       definitions[current] = {
         type: 'object',
         properties:
-          i + 1 < chainLength
+          index + 1 < chainLength
             ? {
                 next: { $ref: `#/definitions/${next}` },
               }

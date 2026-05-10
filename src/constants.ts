@@ -1,4 +1,4 @@
-import { TSwaggerConfig } from './types';
+import { TSwaggerConfig } from '@tswagger/types';
 
 /**
  * 默认配置项

@@ -1,6 +1,6 @@
 import { OpenAPIV2 } from 'openapi-types';
 import { ApiGroupByTag, ApiPathType } from './types';
-import { HttpMethod } from '../../../src/types';
+import { HttpMethod } from '@tswagger/types';
 
 export const parseOpenAPIV2 = (doc: OpenAPIV2.Document) => {
   // 相同 tag 名称的 api 集合映射

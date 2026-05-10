@@ -8,7 +8,7 @@ import { CheckCircleOutlined, FormOutlined, QuestionCircleFilled } from '@ant-de
 import { usePromisifyDrawer } from '@orca-fe/hooks';
 import ResultRenameDrawer, { ResultRenameDrawerProps } from './ResultRenameDrawer';
 import { V2TSGenerateResult } from '../../../../src/controllers/generate/v2';
-import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping, ServiceMapInfoYAMLJSONType } from '../../../../src/types';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, RenameMapping, ServiceMapInfoYAMLJSONType } from '@tswagger/types';
 import { collectAllDefNameMapping } from '@/utils';
 import type { DataNode } from 'antd/es/tree';
 import notification from '@/utils/notification';
