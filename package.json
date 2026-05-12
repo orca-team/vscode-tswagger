@@ -3,7 +3,7 @@
   "displayName": "tswagger",
   "icon": "assets/images/logo.png",
   "description": "Generate typescript for swagger.",
-  "version": "2.4.0",
+  "version": "2.5.0-0",
   "private": "true",
   "author": "Orchard",
   "publisher": "OrcaTeam",
@@ -33,7 +33,7 @@
     "Programming Languages"
   ],
   "main": "./out/extension.js",
-    "pretest": "pnpm --filter @tswagger/core run test-compile && pnpm --filter @tswagger/core run test && pnpm run test-compile && pnpm run lint",
+  "pretest": "pnpm --filter @tswagger/core run test-compile && pnpm --filter @tswagger/core run test && pnpm run test-compile && pnpm run lint",
   "contributes": {
     "commands": [
       {
