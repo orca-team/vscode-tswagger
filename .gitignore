@@ -24,3 +24,5 @@ dist
 
 # test
 out-test
+
+docs/plans/*
