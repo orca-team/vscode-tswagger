@@ -4,6 +4,13 @@ All notable changes to the "tswagger" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Changed
+
+- **Internal Refactor**: Extracted core swagger processing logic into a standalone `@tswagger/core` package and shared type definitions into `@tswagger/types`, restructuring the project as a pnpm monorepo.
+- Refactored translation bridge into a dedicated `translateBridge` module, replacing the deprecated `localTranslate` module.
+
 ## [2.4.0] - 2026-04-22
 
 ### Added
@@ -20,7 +27,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Fixed error that occurred when changing query parameters multiple times in the search panel
 - Resolved infinite recursion and stack overflow issues in schema dependency collection when handling deeply nested or circular schema references
-
 
 ## [2.3.2] - 2025-07-28
 
