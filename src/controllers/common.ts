@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
+import { ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '@tswagger/types';
 import * as vscode from 'vscode';
 import dirTree from 'directory-tree';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import YAML from 'yaml';
 import { getAllConfiguration, getConfiguration, getGlobalState, setConfiguration } from '../utils/vscodeUtil';
 import { getConfigJSONPath, getServiceMapPath, getTSwaggerConfigJSON } from '../utils/swaggerUtil';
-import { getLocalTranslation } from '../utils/localTranslate';
+import { getLocalTranslation } from '../utils/translateBridge';
 import { existsSync, outputFileSync, readFileSync } from 'fs-extra';
-import { ServiceMapInfoYAMLJSONType, TSwaggerConfig } from '../types';
 import { join } from 'path';
 
 /**

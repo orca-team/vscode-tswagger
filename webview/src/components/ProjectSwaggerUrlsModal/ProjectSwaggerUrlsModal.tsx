@@ -5,7 +5,7 @@ import { CheckCircleOutlined, CloseCircleOutlined, PlusOutlined } from '@ant-des
 import { useBoolean, useMemoizedFn } from 'ahooks';
 import { useGlobalState } from '@/states/globalState';
 import useGroupSwaggerDocService from '@/hooks/useGroupSwaggerDocService';
-import { TSwaggerConfig } from '../../../../src/types';
+import { TSwaggerConfig } from '@tswagger/types';
 
 const { Text } = Typography;
 

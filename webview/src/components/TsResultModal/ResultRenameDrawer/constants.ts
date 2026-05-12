@@ -1,4 +1,4 @@
-import { ApiGroupNameMapping } from '../../../../../src/types';
+import { ApiGroupNameMapping } from '@tswagger/types';
 
 export type ApiGroupItemConfigType = {
   label: string;

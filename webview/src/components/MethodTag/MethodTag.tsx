@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './MethodTag.less';
 import { Tag, TagProps } from 'antd';
-import { HttpMethod } from '../../../../src/types';
+import { HttpMethod } from '@tswagger/types';
 
 const methodColorMap: Record<HttpMethod, TagProps['color']> = {
   get: 'green',

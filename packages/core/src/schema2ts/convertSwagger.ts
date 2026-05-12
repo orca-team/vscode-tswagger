@@ -1,23 +1,23 @@
 import { JSONSchema } from 'json-schema-to-typescript';
+import { isArray } from 'lodash-es';
 import { OpenAPIV2 } from 'openapi-types';
 import { buildAnyTypeSchema, buildBasicTypeSchema } from './buildSchema';
-import { filterString, match$RefClassName } from '../utils/swaggerUtil';
-import { isArray } from 'lodash-es';
+import { filterString } from '../utils/filterString';
+import { match$RefClassName } from '../utils/swaggerUtil';
 
 const filterStringByMapping = async (text: string | string[]) =>
   isArray(text)
-    ? Promise.all(text.map((t) => convertAPIV2ToJSONSchema.defRenameMapping?.[t] ?? filterString(t))).then((r) => r.join(''))
+    ? Promise.all(text.map((item) => convertAPIV2ToJSONSchema.defRenameMapping?.[item] ?? filterString(item))).then((result) => result.join(''))
     : convertAPIV2ToJSONSchema.defRenameMapping?.[text] ?? filterString(text);
 
 export const swaggerSchemaBasicTypes = ['string', 'boolean', 'number', 'integer'];
 
 export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.SchemaObject): Promise<JSONSchema> => {
-  const { $ref: $schemaRef, type: schemaType = '', title: schemaTitle, description, ...otherProps } = swaggerSchema;
+  const { $ref: schemaRef, type: schemaType = '', title: schemaTitle, description, ...otherProps } = swaggerSchema;
   const mergeCommonJSONSchema = (additionalSchema: JSONSchema): JSONSchema => ({ title: schemaTitle, description, ...additionalSchema });
 
-  // 处理 $ref 引用类型
-  if ($schemaRef) {
-    const refClassName = match$RefClassName($schemaRef);
+  if (schemaRef) {
+    const refClassName = match$RefClassName(schemaRef);
     const currentClassName = await filterStringByMapping(refClassName);
 
     return {
@@ -32,13 +32,11 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
     } as JSONSchema);
   }
 
-  // 基本类型
   if (swaggerSchemaBasicTypes.includes(schemaType)) {
     const { enum: swaggerEnum = [] } = swaggerSchema;
     return mergeCommonJSONSchema(!!swaggerEnum.length ? { enum: swaggerEnum } : buildBasicTypeSchema(schemaType));
   }
 
-  // File 类型
   if (schemaType === 'file') {
     return mergeCommonJSONSchema({
       type: 'any',
@@ -46,7 +44,6 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
     });
   }
 
-  // 数组类型
   if (schemaType === 'array') {
     const { items: arrayItems } = swaggerSchema;
     return mergeCommonJSONSchema({
@@ -55,7 +52,6 @@ export const convertAPIV2Schema2JSONSchema = async (swaggerSchema: OpenAPIV2.Sch
     });
   }
 
-  // 对象类型
   if (schemaType === 'object') {
     const properties: JSONSchema['properties'] = {};
     const requiredSet = new Set<string>();
@@ -85,24 +81,21 @@ export const convertAPIV2ToJSONSchema = async (
   swaggerSchema: OpenAPIV2.SchemaObject,
   V2Document?: OpenAPIV2.Document | null,
 ): Promise<JSONSchema> => {
-  const JSONSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
-  JSONSchema.definitions = await convertAPIV2Definitions(
+  const jsonSchema = await convertAPIV2Schema2JSONSchema(swaggerSchema);
+  jsonSchema.definitions = await convertAPIV2Definitions(
     (swaggerSchema.definitions ? (swaggerSchema.definitions as OpenAPIV2.DefinitionsObject) : V2Document?.definitions) ?? {},
   );
 
-  return JSONSchema;
+  return jsonSchema;
 };
 
-/**
- * 依赖名称映射集合
- */
 convertAPIV2ToJSONSchema.defRenameMapping = {} as Record<string, string> | undefined;
 
 export const convertAPIV2Definitions = async (definitions: OpenAPIV2.DefinitionsObject): Promise<JSONSchema> => {
   const defs: JSONSchema = {};
 
   for (const [name, schema] of Object.entries(definitions)) {
-    let currentName = await filterStringByMapping(name);
+    const currentName = await filterStringByMapping(name);
     defs[currentName] = await convertAPIV2ToJSONSchema(schema);
     defs[currentName].title = currentName;
   }

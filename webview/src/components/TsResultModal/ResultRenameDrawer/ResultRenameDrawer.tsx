@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import styles from './ResultRenameDrawer.less';
 import { Typography, Collapse, Drawer, DrawerProps, Space, Button, Descriptions, Empty, Form, theme, Divider, Tooltip, Modal } from 'antd';
-import { ApiGroupNameMapping, NameMappingByGroup, RenameMapping, ServiceMapInfoYAMLJSONType } from '../../../../../src/types';
+import { ApiGroupNameMapping, NameMappingByGroup, RenameMapping, ServiceMapInfoYAMLJSONType } from '@tswagger/types';
 import { CheckCircleFilled, DownOutlined, ExclamationCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import MethodTag from '../../MethodTag';
 import { isPlainObject } from 'lodash-es';
@@ -225,7 +225,7 @@ const ResultRenameDrawer: React.FC<ResultRenameDrawerProps> = (props) => {
                   {groupFields.map((groupField) => {
                     const groupIndex = groupField.name;
                     const groupName = form.getFieldValue([nameGroupFormKey, groupIndex, 'groupName']);
-                    const childApiGroupName = [nameGroupFormKey, groupIndex, 'group'];
+                    const childApiGroupName = [nameGroupFormKey, groupIndex, 'group'] as const;
 
                     return (
                       <div className={styles.tagGroup} {...groupField}>

@@ -1,6 +1,5 @@
 import { JSONSchema } from 'json-schema-to-typescript';
 
-// 构建基本类型的 schema
 export const buildBasicTypeSchema = (type: string, otherSchemaConfig: Record<string, any> = {}): JSONSchema => {
   return {
     type,
@@ -8,7 +7,6 @@ export const buildBasicTypeSchema = (type: string, otherSchemaConfig: Record<str
   } as JSONSchema;
 };
 
-// 构建基本类型数组的 schema
 export const buildBasicArrayTypeSchema = (type: string, otherSchemaConfig: Record<string, any> = {}): JSONSchema => {
   return {
     type: 'array',
@@ -19,7 +17,6 @@ export const buildBasicArrayTypeSchema = (type: string, otherSchemaConfig: Recor
   } as JSONSchema;
 };
 
-// 构建对象类型的 schema
 export const buildObjectTypeSchema = ({ title = '', ...otherSchemaConfig }): JSONSchema => {
   return {
     title,
@@ -31,7 +28,6 @@ export const buildObjectTypeSchema = ({ title = '', ...otherSchemaConfig }): JSO
   } as JSONSchema;
 };
 
-// 构建 any 类型的 schema
 export const buildAnyTypeSchema = (otherSchemaConfig: Record<string, any> = {}): JSONSchema => {
   return {
     type: 'any',

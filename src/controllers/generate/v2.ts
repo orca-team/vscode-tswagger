@@ -1,13 +1,12 @@
 import * as vscode from 'vscode';
+import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, GenerateTypescriptConfig, ServiceResult } from '@tswagger/types';
 import YAML from 'yaml';
-import { ApiGroupDefNameMapping, ApiGroupNameMapping, ApiGroupServiceResult, GenerateTypescriptConfig, ServiceResult } from '../../types';
+import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2, handleSwaggerPathV2 } from '@tswagger/core';
 import { generateEntryServiceFile, generateServiceMapInfoJSON, mergeServiceMapJSONByGroup, readServiceMappingFile } from './utils';
 import { getMappedBasePath, getServiceMapPath, getTSwaggerConfigJSON } from '../../utils/swaggerUtil';
 import { OpenAPIV2 } from 'openapi-types';
-import { generateServiceFromAPIV2, generateServiceImport, generateTypescriptFromAPIV2 } from '../../schema2ts/generateTypescript';
 import { join } from 'path';
 import { existsSync, outputFileSync, readFileSync, removeSync } from 'fs-extra';
-import handleSwaggerPathV2 from '../../swaggerPath/handleSwaggerPathV2';
 import { flatMap } from 'lodash-es';
 import { sendCurrTsGenProgressMsg, sendFetchFileGenMsg } from '../../serverSentEvents';
 import templateAxios from '../../requestTemplates/axios';

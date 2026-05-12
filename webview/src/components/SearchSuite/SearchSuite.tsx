@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import styles from './SearchSuite.less';
-import { ApiGroupByTag, ApiPathTypeV2 } from '../../../../src/types';
+import { ApiGroupByTag, ApiPathTypeV2 } from '@tswagger/types';
 import { useControllableValue, useMemoizedFn } from 'ahooks';
 import { AutoComplete, Select, SelectProps, Space } from 'antd';
 import PathInfoItem from '../PathInfoItem';

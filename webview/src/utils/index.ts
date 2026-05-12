@@ -1,4 +1,4 @@
-import { ApiGroupDefNameMapping } from '../../../src/types';
+import { ApiGroupDefNameMapping } from '@tswagger/types';
 
 /**
  * 粘贴至剪切板

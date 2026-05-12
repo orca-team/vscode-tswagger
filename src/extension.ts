@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
+import * as core from '@tswagger/core';
 import * as vscode from 'vscode';
 import { join } from 'path';
 import loadUmiHTML from './utils/loadUmiHTML';
-import hotReloadWebview from './utils/hotReloadWebview';
+import { createTranslateFunction } from './utils/translateBridge';
 import { isDev } from './utils/vscodeUtil';
 import { setGlobalContext } from './globalContext';
 import { manageServicesFromPanel } from './utils/manageServices';
@@ -39,6 +40,9 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "tswagger" is now active!');
 
   setGlobalContext(context);
+  core.configure({
+    translate: createTranslateFunction(context),
+  });
 
   let umiPanel: vscode.WebviewPanel | undefined;
   let umiHTML: string = '';
