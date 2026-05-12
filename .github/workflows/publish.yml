@@ -39,18 +39,10 @@ jobs:
           echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
       - name: Verify Version
         run: |
-          if [[ "${{ steps.package_info.outputs.is_prerelease }}" == "true" ]]; then
-            EXPECTED_PREFIX="refs/tags/v${{ env.PACKAGE_VERSION }}-"
-            if [[ "${{ github.ref }}" != "$EXPECTED_PREFIX"* ]]; then
-              echo "::error::Version Mismatch. expected_prefix=$EXPECTED_PREFIX actual=${{ github.ref }}"
-              exit 1
-            fi
-          else
-            EXPECTED_TAG="refs/tags/v${{ env.PACKAGE_VERSION }}"
-            if [[ "$EXPECTED_TAG" != "${{ github.ref }}" ]]; then
-              echo "::error::Version Mismatch. expected=$EXPECTED_TAG actual=${{ github.ref }}"
-              exit 1
-            fi
+          EXPECTED_TAG="refs/tags/v${{ env.PACKAGE_VERSION }}"
+          if [[ "$EXPECTED_TAG" != "${{ github.ref }}" ]]; then
+            echo "::error::Version Mismatch. expected=$EXPECTED_TAG actual=${{ github.ref }}"
+            exit 1
           fi
       - name: Install Dependencies
         run: |
