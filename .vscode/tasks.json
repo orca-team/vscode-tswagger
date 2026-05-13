@@ -8,8 +8,12 @@
       "script": "esbuild-watch",
       "problemMatcher": "$esbuild-watch",
       "isBackground": true,
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
       "presentation": {
-        "reveal": "never"
+        "reveal": "never",
+        "close": true
       },
       "group": {
         "kind": "build",
@@ -33,12 +37,39 @@
         }
       },
       "isBackground": true,
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
       "presentation": {
-        "reveal": "never"
+        "reveal": "never",
+        "close": true
       },
       "group": {
         "kind": "build"
       }
+    },
+    {
+      "label": "debug:stop-watch-tasks",
+      "type": "shell",
+      "command": "echo Debug watch cleanup",
+      "osx": {
+        "command": "for pid in $(pgrep -f 'pnpm run webview-watch' || true); do kill -TERM -- -$pid 2>/dev/null || kill -TERM $pid 2>/dev/null || true; done; for pid in $(pgrep -f 'pnpm run esbuild-watch' || true); do kill -TERM -- -$pid 2>/dev/null || kill -TERM $pid 2>/dev/null || true; done"
+      },
+      "linux": {
+        "command": "for pid in $(pgrep -f 'pnpm run webview-watch' || true); do kill -TERM -- -$pid 2>/dev/null || kill -TERM $pid 2>/dev/null || true; done; for pid in $(pgrep -f 'pnpm run esbuild-watch' || true); do kill -TERM -- -$pid 2>/dev/null || kill -TERM $pid 2>/dev/null || true; done"
+      },
+      "windows": {
+        "command": "echo Debug watch cleanup is only configured for POSIX shells"
+      },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "hide": true
     }
   ]
 }
