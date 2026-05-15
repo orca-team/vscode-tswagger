@@ -11,6 +11,8 @@ import { shakeV2RefsInSchema } from '../utils/swaggerUtil';
 
 export type GenerateOptions = Partial<Options & { title: string }>;
 
+const isSchemaDebugEnabled = () => process.env.TSWAGGER_DEBUG_SCHEMA === '1';
+
 const defaultGenerateOptions: GenerateOptions = {
   title: '',
   bannerComment: '',
@@ -34,8 +36,10 @@ export const generateTypescriptFromAPIV2 = async (
   const shakedDocument: OpenAPIV2.Document = { ...V2Document, definitions: shakedDefs };
   convertAPIV2ToJSONSchema.defRenameMapping = mapping;
   const jsonSchema = await convertAPIV2ToJSONSchema(shakedSchema, shakedDocument);
-  console.info('[JSONSchema Result]: ');
-  console.info(jsonSchema);
+  if (isSchemaDebugEnabled()) {
+    console.info('[JSONSchema Result]: ');
+    console.info(jsonSchema);
+  }
   const tsDef = await generateTsFromJSONSchema(jsonSchema, options);
 
   const defNameMapping: Record<string, string> = {};

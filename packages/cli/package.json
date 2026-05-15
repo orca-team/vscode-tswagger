@@ -1,0 +1,32 @@
+{
+  "name": "@tswagger/cli",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "bin": {
+    "tswagger": "dist/bin.js"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "local-test:init": "node scripts/init-local-test.js",
+    "typecheck": "tsc --noEmit",
+    "test-compile": "node scripts/test-compile.js",
+    "test": "pnpm run test-compile && mocha \"out-test/**/*.test.js\" --ui tdd --timeout 10000"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "@tswagger/core": "workspace:*",
+    "@tswagger/types": "workspace:*",
+    "bing-translate-api": "^4.0.0",
+    "openapi-types": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^14.14.0",
+    "esbuild": "^0.19.4",
+    "glob": "^7.1.6",
+    "mocha": "^8.2.1",
+    "rimraf": "^5.0.5",
+    "typescript": "^4.1.3"
+  }
+}
