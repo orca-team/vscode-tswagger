@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "prepack": "pnpm run build",
-    "pack:check": "pnpm pack --dry-run",
+    "pack:check": "npm pack --dry-run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

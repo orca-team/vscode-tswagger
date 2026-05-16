@@ -22,7 +22,7 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json && node scripts/build.js",
     "local-test:init": "node scripts/init-local-test.js",
-    "pack:check": "pnpm pack --dry-run",
+    "pack:check": "npm pack --dry-run",
     "prepack": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "test-compile": "node scripts/test-compile.js",
