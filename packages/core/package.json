@@ -1,10 +1,25 @@
 {
   "name": "@tswagger/core",
-  "version": "1.0.0",
-  "private": true,
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "version": "1.0.0-beta.0",
+  "private": false,
+  "description": "Low-level tswagger generation primitives for integrations and tooling.",
+  "license": "MIT",
+  "repository": "https://github.com/orca-team/vscode-tswagger.git",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build",
+    "pack:check": "pnpm pack --dry-run",
     "typecheck": "tsc --noEmit",
     "test-compile": "node scripts/test-compile.js",
     "test": "mocha \"out-test/**/*.test.js\" --ui tdd --timeout 10000"

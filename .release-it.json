@@ -1,6 +1,8 @@
 {
   "git": {
-    "commitMessage": "chore: release v${version}"
+    "commitMessage": "chore: release extension v${version}",
+    "tagName": "extension-v${version}",
+    "push": false
   },
   "github": {
     "release": false

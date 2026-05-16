@@ -1,16 +1,14 @@
-const { build } = require('esbuild');
+const { chmodSync, readFileSync, writeFileSync } = require('fs');
+
+const SHEBANG = '#!/usr/bin/env node';
+const BIN_FILE = 'dist/bin.js';
 
 async function main() {
-  await build({
-    entryPoints: ['src/bin.ts'],
-    bundle: true,
-    outfile: 'dist/bin.js',
-    format: 'cjs',
-    platform: 'node',
-    banner: {
-      js: '#!/usr/bin/env node',
-    },
-  });
+  const content = readFileSync(BIN_FILE, 'utf8');
+  const normalized = content.startsWith(SHEBANG) ? content : `${SHEBANG}\n${content}`;
+
+  writeFileSync(BIN_FILE, normalized);
+  chmodSync(BIN_FILE, 0o755);
 }
 
 main().catch((error) => {

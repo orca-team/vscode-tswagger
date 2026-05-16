@@ -1,0 +1,58 @@
+name: Release Npm Packages Test
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.changeset/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Npm Package Release Flow
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NPM_VERSION_PR_TITLE: chore: version npm packages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+      - name: Validate Changeset Status
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.title != env.NPM_VERSION_PR_TITLE }}
+        run: pnpm run release:npm:status
+      - name: Note Version PR Validation Mode
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.title == env.NPM_VERSION_PR_TITLE }}
+        run: echo "Skipping changeset status because this PR is the maintainer-reviewed npm version PR."
+      - name: Build Types
+        run: pnpm --filter @tswagger/types run build
+      - name: Build Core
+        run: pnpm --filter @tswagger/core run build
+      - name: Test Core
+        run: pnpm --filter @tswagger/core run test-compile && pnpm --filter @tswagger/core run test
+      - name: Build CLI
+        run: pnpm --filter @tswagger/cli run build
+      - name: Test CLI
+        run: pnpm --filter @tswagger/cli run test
+      - name: Pack Checks
+        run: |
+          pnpm --filter @tswagger/types run pack:check
+          pnpm --filter @tswagger/core run pack:check
+          pnpm --filter @tswagger/cli run pack:check

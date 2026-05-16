@@ -15,6 +15,7 @@ jobs:
     name: Test Dingtalk Text
     runs-on: ubuntu-latest
     env:
+      RELEASE_KIND: extension
       PACKAGE_VERSION: 9.9.9-test
     steps:
       - name: Checkout
@@ -42,11 +43,13 @@ jobs:
           const raw = fs.readFileSync('dingtalk-text.json', 'utf8');
           const text = JSON.parse(raw);
           const expected = [
-            `### TSwagger v${process.env.PACKAGE_VERSION} Published`,
+            `### TSwagger Extension v${process.env.PACKAGE_VERSION} Release Completed`,
             '',
-            `**tswagger@${process.env.PACKAGE_VERSION}** has been published to the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger).`,
+            '**Published in this run:**',
             '',
-            '> **Note**: It might take a few minutes to appear on the marketplace.',
+            '- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=OrcaTeam.tswagger)',
+            '',
+            '> **Note**: It might take a few minutes to appear on the marketplaces.',
             '',
             '---',
             '',
@@ -60,6 +63,10 @@ jobs:
           }
 
           if (!text.includes(`TSwagger v${process.env.PACKAGE_VERSION} Published`)) {
+            throw new Error('Missing legacy release title');
+          }
+
+          if (!text.includes(`TSwagger Extension v${process.env.PACKAGE_VERSION} Release Completed`)) {
             throw new Error('Missing release title');
           }
 
@@ -67,7 +74,7 @@ jobs:
             throw new Error('Missing changelog heading');
           }
 
-          if (!text.includes('VSCode Marketplace')) {
+          if (!text.includes('VS Code Marketplace')) {
             throw new Error('Missing marketplace link text');
           }
 
