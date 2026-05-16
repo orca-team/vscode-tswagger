@@ -32,8 +32,6 @@ jobs:
         run: npm install -g pnpm@9
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
-      - name: Upgrade npm
-        run: npm install -g npm@latest
       - name: Build Types
         run: pnpm --filter @tswagger/types run build
       - name: Build Core

@@ -33,8 +33,6 @@ jobs:
         run: npm install -g pnpm@9
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
-      - name: Upgrade npm
-        run: npm install -g npm@latest
       - name: Validate Changeset Status
         if: ${{ github.event_name != 'pull_request' || github.event.pull_request.title != env.NPM_VERSION_PR_TITLE }}
         run: pnpm run release:npm:status
