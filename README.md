@@ -19,6 +19,16 @@
 
 在 vscode 插件市场搜索 `tswagger` ，直接安装即可。
 
+## 📚 Monorepo Packages
+
+- `tswagger`：VS Code extension，使用根目录的 `CHANGELOG.md` 作为扩展发布记录。
+- `@tswagger/cli`：面向命令行使用的 npm 包。
+- `@tswagger/core`：面向集成和二次开发的底层能力包，普通用户更推荐优先使用 CLI 或扩展。
+- `@tswagger/types`：`tswagger` 生态的公共 TypeScript 类型定义。
+- `tswagger-webview`：扩展内部使用的私有 workspace，不单独发布。
+
+扩展和 npm 包使用两套独立版本线：扩展继续使用根目录 `CHANGELOG.md`，`@tswagger/cli`、`@tswagger/core` 和 `@tswagger/types` 使用各自包目录下的 changelog。
+
 ## 🔨 开始使用
 
 ### 1. 打开插件
@@ -55,12 +65,12 @@
 `config.json` 是项目级的配置文件，它会在首次生成接口文件时自动生成，无需手动添加。  
 具体配置如下所示：
 
-| 配置项              | 说明                                                       | 类型                     | 默认值          | 版本    |
-| ------------------- | ---------------------------------------------------------- | ------------------------ | --------------- | ------- |
-| `fetchFilePath`     | `fetch` 文件地址，约定必须以 `@` 开头，`@` 表示 `src` 目录 | `string`                 | `@/utils/fetch` |         |
-| `addBasePathPrefix` | 是否为生成的接口路径添加前缀                               | `boolean`                | `true`          |         |
-| `basePathMapping`   | 接口前缀映射，如：`/api-v1` 映射为 `/api`，可配置多个      | `Record<string, string>` | -               | `1.2.0` |
-| `swaggerUrls`       | 当前工程使用的接口文档地址列表，可用于快速选择与同步       | `Array<{ url?: string; remark?: string }>` | - | `2.4.0` |
+| 配置项              | 说明                                                       | 类型                                       | 默认值          | 版本    |
+| ------------------- | ---------------------------------------------------------- | ------------------------------------------ | --------------- | ------- |
+| `fetchFilePath`     | `fetch` 文件地址，约定必须以 `@` 开头，`@` 表示 `src` 目录 | `string`                                   | `@/utils/fetch` |         |
+| `addBasePathPrefix` | 是否为生成的接口路径添加前缀                               | `boolean`                                  | `true`          |         |
+| `basePathMapping`   | 接口前缀映射，如：`/api-v1` 映射为 `/api`，可配置多个      | `Record<string, string>`                   | -               | `1.2.0` |
+| `swaggerUrls`       | 当前工程使用的接口文档地址列表，可用于快速选择与同步       | `Array<{ url?: string; remark?: string }>` | -               | `2.4.0` |
 
 示例：
 

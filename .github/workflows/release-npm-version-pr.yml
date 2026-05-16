@@ -1,0 +1,41 @@
+name: Create Npm Version PR
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.changeset/**'
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  version_pr:
+    name: Create Or Update Npm Version PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Create Or Update Version PR
+        uses: changesets/action@v1
+        with:
+          version: pnpm run release:npm:version
+          commit: 'chore: version npm packages'
+          title: 'chore: version npm packages'
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

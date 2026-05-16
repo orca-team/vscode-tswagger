@@ -1,9 +1,9 @@
-name: Publish Test Pipeline
+name: Release Extension Test
 
 on:
   push:
     tags:
-      - 'v*.*.*-test'
+      - 'extension-v*.*.*-test'
 
 jobs:
   build:
@@ -26,6 +26,7 @@ jobs:
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name + '-' + require('./package.json').version")
           TAG_NAME="${{ github.ref_name }}"
+          node ./scripts/release/verify-tag.js extension "$TAG_NAME"
           RELEASE_TAG="${TAG_NAME%-test}"
           IS_PRERELEASE="false"
           if [[ "$RELEASE_TAG" == *-* ]]; then
@@ -38,21 +39,6 @@ jobs:
           echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
           echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
           echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
-      - name: Verify Version
-        run: |
-          if [[ "${{ env.IS_PRERELEASE }}" == "true" ]]; then
-            EXPECTED_PREFIX="v${{ env.PACKAGE_VERSION }}-"
-            if [[ "${{ env.RELEASE_TAG }}" != "$EXPECTED_PREFIX"* ]]; then
-              echo "::error::Pre-release test tag mismatch. expected_prefix=$EXPECTED_PREFIX actual=${{ github.ref_name }}"
-              exit 1
-            fi
-          else
-            EXPECTED_TAG="v${{ env.PACKAGE_VERSION }}-test"
-            if [[ "$EXPECTED_TAG" != "${{ github.ref_name }}" ]]; then
-              echo "::error::Version Mismatch. expected=$EXPECTED_TAG actual=${{ github.ref_name }}"
-              exit 1
-            fi
-          fi
       - name: Install Dependencies
         run: |
           npm install pnpm -g
@@ -122,7 +108,7 @@ jobs:
           echo "OpenVSX dry-run: skip real publish in test pipeline"
 
   notify_preview:
-    name: Output DingTalk Markdown Preview
+    name: Output Dingtalk Markdown Preview
     runs-on: ubuntu-latest
     needs:
       - build
@@ -141,6 +127,7 @@ jobs:
       - name: Generate Dingtalk Text
         id: dingtalk_text
         env:
+          RELEASE_KIND: extension
           PACKAGE_VERSION: ${{ needs.build.outputs.package_version }}
           CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changes }}
           VSCODE_PUBLISH_STATUS: ${{ needs.publish_vscode_test.result }}
@@ -151,7 +138,7 @@ jobs:
           MARKDOWN_TEXT: ${{ steps.dingtalk_text.outputs.text }}
         run: |
           {
-            echo "## TSwagger Test Notification Preview"
+            echo "## TSwagger Extension Test Notification Preview"
             echo ""
             echo "**Tag**: ${{ github.ref_name }}"
             echo ""

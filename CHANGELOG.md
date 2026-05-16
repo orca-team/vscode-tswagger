@@ -2,7 +2,11 @@
 
 All notable changes to the "tswagger" extension will be documented in this file.
 
+This file is the release record for the VS Code extension only. npm package release notes for `@tswagger/cli`, `@tswagger/core`, and `@tswagger/types` are maintained in their respective package directories.
+
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+
+## [Unreleased]
 
 ## [2.5.0] - 2026-05-12
 

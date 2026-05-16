@@ -1,0 +1,112 @@
+name: Release Npm Packages
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/*/package.json'
+      - 'packages/*/CHANGELOG.md'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish Npm Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+      - name: Build Types
+        run: pnpm --filter @tswagger/types run build
+      - name: Build Core
+        run: pnpm --filter @tswagger/core run build
+      - name: Test Core
+        run: pnpm --filter @tswagger/core run test-compile && pnpm --filter @tswagger/core run test
+      - name: Build CLI
+        run: pnpm --filter @tswagger/cli run build
+      - name: Test CLI
+        run: pnpm --filter @tswagger/cli run test
+      - name: Pack Checks
+        run: |
+          pnpm --filter @tswagger/types run pack:check
+          pnpm --filter @tswagger/core run pack:check
+          pnpm --filter @tswagger/cli run pack:check
+      - name: Publish Changed Packages
+        run: pnpm exec changeset publish
+      - name: Collect Published Package Summary
+        id: publish_summary
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          BASE_SHA="$BEFORE_SHA"
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+            BASE_SHA=$(git rev-parse HEAD^)
+          fi
+          mapfile -t changed_files < <(git diff --name-only "$BASE_SHA" "$CURRENT_SHA" -- packages/*/package.json)
+          packages=""
+          for file in "${changed_files[@]}"; do
+            if [[ -z "$file" ]]; then
+              continue
+            fi
+            name=$(node -p "require('./${file}').name")
+            version=$(node -p "require('./${file}').version")
+            packages+="- ${name}@${version}"$'\n'
+          done
+          if [[ -z "$packages" ]]; then
+            packages="- No package.json version change detected in this push"
+          fi
+          {
+            echo 'published_packages<<EOF'
+            printf '%s\n' "$packages"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      - name: Create Npm Release Tag
+        id: npm_tag
+        run: |
+          tag=$(node ./scripts/release/create-tag.js npm --create)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Push Publish Tags
+        run: git push origin --tags
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.npm_tag.outputs.tag }}
+          name: TSwagger Npm ${{ steps.npm_tag.outputs.tag }}
+          body: |
+            Published npm packages in this batch:
+
+            ${{ steps.publish_summary.outputs.published_packages }}
+
+            Package-level changelogs are updated automatically by Changesets during `pnpm run release:npm:version`.
+      - name: Write Publish Summary
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.publish_summary.outputs.published_packages }}
+          NPM_RELEASE_TAG: ${{ steps.npm_tag.outputs.tag }}
+        run: |
+          {
+            echo "## Npm Publish Summary"
+            echo ""
+            echo "**Batch tag**: $NPM_RELEASE_TAG"
+            echo ""
+            printf '%s\n' "$PUBLISHED_PACKAGES"
+          } >> "$GITHUB_STEP_SUMMARY"

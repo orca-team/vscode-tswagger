@@ -1,12 +1,15 @@
 {
-  "name": "@tswagger/core",
+  "name": "@tswagger/cli",
   "version": "1.0.0-beta.0",
   "private": false,
-  "description": "Low-level tswagger generation primitives for integrations and tooling.",
+  "description": "CLI for generating TypeScript artifacts from Swagger/OpenAPI v2 documents.",
   "license": "MIT",
   "repository": "https://github.com/orca-team/vscode-tswagger.git",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "tswagger": "dist/bin.js"
+  },
   "files": [
     "dist",
     "README.md",
@@ -17,23 +20,24 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "prepack": "pnpm run build",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && node scripts/build.js",
+    "local-test:init": "node scripts/init-local-test.js",
     "pack:check": "pnpm pack --dry-run",
+    "prepack": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "test-compile": "node scripts/test-compile.js",
-    "test": "mocha \"out-test/**/*.test.js\" --ui tdd --timeout 10000"
+    "test": "pnpm run test-compile && mocha \"out-test/**/*.test.js\" --ui tdd --timeout 10000"
   },
   "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "@tswagger/core": "workspace:*",
     "@tswagger/types": "workspace:*",
-    "json-schema-to-typescript": "^12.0.0",
-    "lodash-es": "^4.17.21",
-    "nanoid": "^5.0.7",
+    "bing-translate-api": "^4.0.0",
     "openapi-types": "^12.1.0"
   },
   "devDependencies": {
     "@types/mocha": "^8.0.4",
-    "@types/node": "^12.11.7",
+    "@types/node": "^14.14.0",
     "esbuild": "^0.19.4",
     "glob": "^7.1.6",
     "mocha": "^8.2.1",
