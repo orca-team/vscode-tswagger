@@ -1,6 +1,6 @@
 {
   "name": "@tswagger/core",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0-beta.1",
   "private": false,
   "description": "Low-level tswagger generation primitives for integrations and tooling.",
   "license": "MIT",
