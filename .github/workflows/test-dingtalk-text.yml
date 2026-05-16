@@ -19,9 +19,9 @@ jobs:
       PACKAGE_VERSION: 9.9.9-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
       - name: Load Test Fixture

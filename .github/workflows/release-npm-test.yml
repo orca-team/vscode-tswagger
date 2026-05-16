@@ -18,14 +18,14 @@ jobs:
     permissions:
       contents: read
     env:
-      NPM_VERSION_PR_TITLE: chore: version npm packages
+      NPM_VERSION_PR_TITLE: 'chore: version npm packages'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'

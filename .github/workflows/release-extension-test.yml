@@ -15,9 +15,9 @@ jobs:
       is_prerelease: ${{ steps.package_info.outputs.is_prerelease }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
       - name: Setup Environment
@@ -46,7 +46,7 @@ jobs:
       - name: Package Extension
         run: PRE_RELEASE=${{ env.IS_PRERELEASE }} pnpm run package
       - name: Upload Extension Package
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: extension-package-test
           path: ./${{ env.PACKAGE_NAME }}.vsix
@@ -59,11 +59,11 @@ jobs:
     if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: extension-package-test
           path: .
@@ -92,11 +92,11 @@ jobs:
     if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
       - name: Download Extension Package
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: extension-package-test
           path: .
@@ -117,7 +117,7 @@ jobs:
     if: ${{ always() && needs.build.result == 'success' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - name: Generate Changelog
         id: changelog
         uses: mindsers/changelog-reader-action@v2
