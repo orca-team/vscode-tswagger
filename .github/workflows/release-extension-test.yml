@@ -41,7 +41,7 @@ jobs:
           echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
       - name: Install Dependencies
         run: |
-          npm install pnpm -g
+          npm install pnpm@9 -g
           pnpm install --no-frozen-lockfile
       - name: Package Extension
         run: PRE_RELEASE=${{ env.IS_PRERELEASE }} pnpm run package
