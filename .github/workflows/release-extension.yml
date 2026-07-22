@@ -9,6 +9,11 @@ on:
       - '.changeset/**'
       - 'pnpm-lock.yaml'
   workflow_dispatch:
+    inputs:
+      publish_existing_release:
+        description: 'Build and publish the current package.json version even if Release Please did not create a new release'
+        type: boolean
+        default: false
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -39,7 +44,7 @@ jobs:
     name: Build Extension
     runs-on: ubuntu-latest
     needs: release_pr
-    if: ${{ needs.release_pr.outputs.release_created == 'true' }}
+    if: ${{ needs.release_pr.outputs.release_created == 'true' || (github.event_name == 'workflow_dispatch' && inputs.publish_existing_release) }}
     outputs:
       package_name: ${{ steps.package_info.outputs.package_name }}
       package_version: ${{ steps.package_info.outputs.package_version }}
@@ -162,7 +167,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ needs.build.outputs.release_tag }}
-          name: TSwagger Extension ${{ needs.build.outputs.release_tag }}
+          name: TSwagger Extension v${{ needs.build.outputs.package_version }}
           body: ${{ steps.changelog.outputs.changes }}
           draft: false
           prerelease: ${{ needs.build.outputs.is_prerelease }}

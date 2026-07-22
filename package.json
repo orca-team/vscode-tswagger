@@ -105,7 +105,7 @@
     "webview-watch": "node scripts/webview-dev.js",
     "esbuild-build": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild-watch": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch --define:process.env.NODE_ENV=\\\"development\\\"",
-    "package": "npm run webview-build && npm run esbuild-build -- --minify && node ./scripts/package-extension.js",
+    "package": "pnpm --filter @tswagger/types run build && pnpm --filter @tswagger/core run build && npm run webview-build && npm run esbuild-build -- --minify && node ./scripts/package-extension.js",
     "publish": "vsce publish --no-dependencies",
     "release:tag:extension:test": "node ./scripts/release/create-tag.js extension --suffix test --create",
     "release:npm:status": "changeset status --since=origin/master --verbose",
