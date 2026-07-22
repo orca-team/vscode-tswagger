@@ -22,32 +22,63 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Detect Npm Release Scope
+        id: npm_scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          should_validate="true"
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            should_validate="false"
+            while IFS= read -r file; do
+              if [[ "$file" == .changeset/* || "$file" == packages/* ]]; then
+                should_validate="true"
+                break
+              fi
+            done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          fi
+
+          echo "should_validate=$should_validate" >> "$GITHUB_OUTPUT"
+      - name: Note Skipped Npm Validation
+        if: ${{ steps.npm_scope.outputs.should_validate != 'true' }}
+        run: echo "Skipping npm package release validation because this PR does not touch .changeset/** or packages/**."
       - name: Setup Node
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
       - name: Install pnpm
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: npm install -g pnpm@9
       - name: Install Dependencies
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm install --no-frozen-lockfile
       - name: Validate Changeset Status
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.title != env.NPM_VERSION_PR_TITLE }}
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.title != env.NPM_VERSION_PR_TITLE) }}
         run: pnpm run release:npm:status
       - name: Note Version PR Validation Mode
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.title == env.NPM_VERSION_PR_TITLE }}
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' && github.event_name == 'pull_request' && github.event.pull_request.title == env.NPM_VERSION_PR_TITLE }}
         run: echo "Skipping changeset status because this PR is the maintainer-reviewed npm version PR."
       - name: Build Types
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm --filter @tswagger/types run build
       - name: Build Core
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm --filter @tswagger/core run build
       - name: Test Core
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm --filter @tswagger/core run test-compile && pnpm --filter @tswagger/core run test
       - name: Build CLI
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm --filter @tswagger/cli run build
       - name: Test CLI
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm --filter @tswagger/cli run test
       - name: Pack Checks
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: |
           pnpm --filter @tswagger/types run pack:check
           pnpm --filter @tswagger/core run pack:check
