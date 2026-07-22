@@ -6,6 +6,8 @@ This file is the release record for the VS Code extension only. npm package rele
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
 ## [2.6.0] - 2026-07-22
 
 ### Changed
@@ -17,8 +19,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 
 - Cleaned extension logo assets.
-
-## [Unreleased]
 
 ## [2.5.0] - 2026-05-12
 
