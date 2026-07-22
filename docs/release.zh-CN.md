@@ -13,25 +13,28 @@
 
 ## Extension 发布
 
-extension 继续使用根目录 `CHANGELOG.md` 和 `release-it`。
+extension 使用 Release Please 发布。不再支持通过本地 `pnpm run release` 发布 extension。
 
-`release-it` 会负责：
+Release Please 负责：
 
-- 更新 extension 版本号
-- 消费根 `CHANGELOG.md` 的 `## [Unreleased]`
-- 生成 release commit
+- 更新根 `package.json` 的 extension 版本号
+- 自动写入根 `CHANGELOG.md`
+- 创建由维护者确认的 extension Release PR
 - 创建 `extension-vX.Y.Z` tag
 
-发布前必须先把内容写进根 `CHANGELOG.md` 的 `## [Unreleased]`，否则 `@release-it/keep-a-changelog` 会拒绝执行。
+extension release notes 来自合并到 `master` 的 Conventional Commits。extension 改动建议使用 `feat(extension): ...` 或 `fix(webview): ...`。scope 主要用于 review 可读性，真正的发布线隔离依赖路径过滤和 PR 校验。
 
-典型流程：
+整体链路是：
 
-```bash
-pnpm install
-pnpm test
-pnpm run release
-git push origin master --follow-tags
-```
+1. 在功能分支开发。
+2. 对 extension 用户可见改动使用 Conventional Commit。
+3. 发起 PR 并合并到 `master`。
+4. extension Release PR workflow 会自动创建或更新一张标题为 `chore: release extension <version>` 的 PR。
+5. 维护者 review 生成的根 `CHANGELOG.md`、根 `package.json` 和 `.release-please-manifest.json`。
+6. 合并 extension Release PR。
+7. Release Please 创建 `extension-vX.Y.Z` tag。同一个 workflow 会继续完成打包、发布、更新 GitHub Release 资产，并发送钉钉通知。
+
+extension Release PR workflow 使用 GitHub Actions 默认 token。仓库需要开启 GitHub Actions read/write 权限，让 Release Please 可以更新 release PR、tag 和 GitHub Release。插件发布会在同一个 workflow run 中继续执行，因此不需要额外 PAT 来触发后续 tag workflow。
 
 如果只是验证 extension 测试流水线，可以手动创建测试 tag：
 
@@ -40,7 +43,7 @@ pnpm run release:tag:extension:test
 git push origin --tags
 ```
 
-不要在 `pnpm run release` 之后再手动补打一遍 stable tag，稳定版 tag 已经由 `release-it` 创建。
+正常发布不要手动创建 stable extension tag。稳定版 `extension-vX.Y.Z` tag 由 Release Please 在 extension Release PR 合并后创建。
 
 ## npm 包发布
 
@@ -117,9 +120,15 @@ git push origin master
 
 ## 如何判断走哪条发布线
 
-- 只改 extension：只走 extension 发布。
+- 只改 extension：走 Release Please 创建的 extension Release PR。
 - 只改公开 npm 包：补 changeset，只走 npm 包发布。
-- 同时影响两边：根 `CHANGELOG.md` 和 changeset 都要更新。
+- 同时影响两边：extension release notes 依赖 Conventional Commit，同时也要给受影响的 npm 包补 changeset。
+
+## 发布边界校验
+
+- PR 只要改到 `packages/cli`、`packages/core` 或 `packages/types`，除非它是 npm version PR，否则必须包含 `.changeset/*.md`。
+- extension Release PR 不允许包含 `packages/*/package.json` 或 `packages/*/CHANGELOG.md`。
+- Conventional Commit scope 用来帮助 review 判断意图；真正的隔离由路径过滤和 PR 校验负责。
 
 ## npm 包改动的 Review 要点
 

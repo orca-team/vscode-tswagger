@@ -13,20 +13,23 @@ Do not add a changeset for extension-only work that only affects the VS Code ext
 
 ## Extension Release
 
-Use the root `CHANGELOG.md` and the existing `release-it` flow for extension releases.
+Use Release Please for extension releases. Local extension releases with `pnpm run release` are intentionally not supported.
 
-`release-it` is the source of truth for the extension version bump, changelog update, release commit, and the `extension-vX.Y.Z` tag.
+Release Please is the source of truth for the root `package.json` version bump, root `CHANGELOG.md` update, Release PR, and the `extension-vX.Y.Z` tag.
 
-Before running an extension release, add the release notes to the `## [Unreleased]` section in the root `CHANGELOG.md`. The `@release-it/keep-a-changelog` plugin will refuse to run if that section is empty.
+Extension release notes are generated from Conventional Commits merged into `master`. Use `feat(extension): ...` or `fix(webview): ...` for extension-facing changes. The scope is for review clarity; release isolation is enforced by paths and PR checks.
 
-Typical sequence:
+The intended lifecycle is:
 
-```bash
-pnpm install
-pnpm test
-pnpm run release
-git push origin master --follow-tags
-```
+1. Develop on a feature branch.
+2. Use Conventional Commit messages for extension-facing changes.
+3. Open and merge the feature pull request to `master`.
+4. The extension Release PR workflow creates or updates a PR titled `chore: release extension <version>`.
+5. Review the generated root `CHANGELOG.md`, root `package.json`, and `.release-please-manifest.json` changes.
+6. Merge the extension Release PR.
+7. Release Please creates the `extension-vX.Y.Z` tag. The same workflow then packages, publishes, updates the GitHub Release asset, and sends the DingTalk notification.
+
+The extension Release PR workflow uses the default GitHub Actions token. The repository must allow GitHub Actions read/write permissions so Release Please can update release pull requests, tags, and GitHub Releases. Publishing happens in the same workflow run, so no separate PAT is required to trigger a downstream tag workflow.
 
 Use extension test tags manually when validating the extension release workflow without publishing:
 
@@ -35,7 +38,7 @@ pnpm run release:tag:extension:test
 git push origin --tags
 ```
 
-Do not create a second stable extension tag manually after `pnpm run release`. The stable extension tag is already created by `release-it`.
+Do not create stable extension tags manually for normal releases. Stable `extension-vX.Y.Z` tags are created by Release Please when the extension Release PR is merged.
 
 ## Npm Package Release
 
@@ -120,7 +123,7 @@ Notes:
 
 - Add one for any change that affects `@tswagger/cli`, `@tswagger/core`, or `@tswagger/types`.
 - Do not add one for extension-only work.
-- For shared changes, do both: add a changeset for the npm packages and update the root `CHANGELOG.md` for the extension.
+- For shared changes, do both: add a changeset for the npm packages and use Conventional Commit messages that should appear in the extension release notes.
 
 ### Review Expectations For Npm Package Changes
 
@@ -136,9 +139,15 @@ After the version PR merge commit lands on `master`, the npm release workflow bu
 
 ## Choosing The Release Line
 
-- Extension-only change: release only the extension.
+- Extension-only change: rely on the Release Please extension Release PR.
 - npm package-only change: add a changeset and release only the npm packages.
-- Shared change that affects both: update the root changelog for the extension and add the needed changesets for the affected npm packages.
+- Shared change that affects both: use Conventional Commits for the extension release notes and add the needed changesets for the affected npm packages.
+
+## Release Boundary Checks
+
+- PRs that touch `packages/cli`, `packages/core`, or `packages/types` must include a `.changeset/*.md` file unless the PR is the npm version PR.
+- Extension Release PRs must not include `packages/*/package.json` or `packages/*/CHANGELOG.md`.
+- Conventional Commit scopes help reviewers understand intent, but path filters and PR checks are the enforcement layer.
 
 ## Recovery Notes
 

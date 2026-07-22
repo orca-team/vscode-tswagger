@@ -1,0 +1,48 @@
+name: Validate Release Boundaries
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.changeset/**'
+      - '.github/workflows/validate-release-boundaries.yml'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'release-please-config.json'
+      - '.release-please-manifest.json'
+      - 'CHANGELOG.md'
+      - 'scripts/release/validate-release-boundaries.js'
+
+jobs:
+  validate:
+    name: Validate Release Boundary Rules
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      EXTENSION_RELEASE_PR_TITLE_PREFIX: 'chore: release extension '
+      NPM_VERSION_PR_TITLE: 'chore: version npm packages'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Collect Changed Files
+        id: changed_files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          {
+            echo 'files<<EOF'
+            git diff --name-only "$BASE_SHA" "$HEAD_SHA"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      - name: Validate Boundaries
+        env:
+          CHANGED_FILES: ${{ steps.changed_files.outputs.files }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: node ./scripts/release/validate-release-boundaries.js

@@ -2,17 +2,48 @@ name: Release Extension
 
 on:
   push:
-    tags:
-      - 'extension-v*.*.*'
-      - 'extension-v*.*.*-*'
+    branches:
+      - master
+    paths-ignore:
+      - 'packages/**'
+      - '.changeset/**'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
+  release_pr:
+    name: Create Or Update Extension Release PR
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
   build:
     name: Build Extension
     runs-on: ubuntu-latest
+    needs: release_pr
+    if: ${{ needs.release_pr.outputs.release_created == 'true' }}
     outputs:
       package_name: ${{ steps.package_info.outputs.package_name }}
       package_version: ${{ steps.package_info.outputs.package_version }}
+      release_tag: ${{ steps.package_info.outputs.release_tag }}
       is_prerelease: ${{ steps.package_info.outputs.is_prerelease }}
     steps:
       - name: Checkout
@@ -26,17 +57,19 @@ jobs:
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name + '-' + require('./package.json').version")
-          TAG_NAME="${{ github.ref_name }}"
+          TAG_NAME="extension-v${PACKAGE_VERSION}"
           node ./scripts/release/verify-tag.js extension "$TAG_NAME"
           IS_PRERELEASE="false"
-          if [[ "$TAG_NAME" == *-* ]] && [[ "$TAG_NAME" != *-test ]]; then
+          if [[ "$TAG_NAME" == extension-v*.*.*-* ]]; then
             IS_PRERELEASE="true"
           fi
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$TAG_NAME" >> "$GITHUB_ENV"
           echo "IS_PRERELEASE=$IS_PRERELEASE" >> "$GITHUB_ENV"
           echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
           echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
       - name: Install Dependencies
         run: |
@@ -128,8 +161,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.ref }}
-          name: TSwagger Extension ${{ github.ref_name }}
+          tag_name: ${{ needs.build.outputs.release_tag }}
+          name: TSwagger Extension ${{ needs.build.outputs.release_tag }}
           body: ${{ steps.changelog.outputs.changes }}
           draft: false
           prerelease: ${{ needs.build.outputs.is_prerelease }}
