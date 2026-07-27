@@ -11,10 +11,10 @@ const extensionReleasePrTitlePrefix =
 const isNpmVersionPr = prTitle === npmVersionPrTitle;
 const isExtensionReleasePr = prTitle.startsWith(extensionReleasePrTitlePrefix);
 
-const isPublicPackageFile = (file) => /^packages\/(?:cli|core|types)\//.test(file);
+const isPublicPackageFile = (file) => /^packages\/(?:cli|core|types|mcp)\//.test(file);
 const isChangesetFile = (file) => /^\.changeset\/(?!README\.md$).+\.md$/.test(file);
 const isPackageReleaseArtifact = (file) =>
-  /^packages\/(?:cli|core|types)\/(?:package\.json|CHANGELOG\.md)$/.test(file);
+  /^packages\/(?:cli|core|types|mcp)\/(?:package\.json|CHANGELOG\.md)$/.test(file);
 
 const publicPackageFiles = changedFiles.filter(isPublicPackageFile);
 const changesetFiles = changedFiles.filter(isChangesetFile);

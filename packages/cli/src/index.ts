@@ -41,10 +41,12 @@ export type CliRunResult = {
   outputFiles: string[];
 };
 
-type Artifact = {
+export type Artifact = {
   relativePath: string;
   content: string;
 };
+
+export type ArtifactGenerationOptions = Pick<CliOptions, 'mode' | 'translate' | 'cacheDir'>;
 
 const HTTP_METHODS: HttpMethod[] = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'];
 
@@ -178,7 +180,7 @@ const resolveOutput = (output: string, cwd: string): string => {
   return resolve(cwd, output);
 };
 
-const toApiGroupCollection = (groups: ApiGroupByTag[]): SwaggerPathSchemaV2[] => {
+export const toSwaggerPathCollection = (groups: ApiGroupByTag[]): SwaggerPathSchemaV2[] => {
   return groups.map(({ tag, apiPathList }) => ({
     tag: tag.name,
     apiPathList,
@@ -239,8 +241,8 @@ export const filterApiGroups = (groups: ApiGroupByTag[], options: CliOptions): A
     .filter((group) => group.apiPathList.length > 0);
 };
 
-const loadDocument = async (input: string): Promise<OpenAPIV2.Document> => {
-  const document = await SwaggerParser.parse(input);
+export const loadSwaggerV2Document = async (input: string, cwd: string = process.cwd()): Promise<OpenAPIV2.Document> => {
+  const document = await SwaggerParser.parse(resolveInput(input, cwd));
   if (!('swagger' in document) || document.swagger !== '2.0') {
     throw new Error('Only OpenAPI v2 documents are currently supported by the CLI.');
   }
@@ -362,10 +364,14 @@ export const writeArtifacts = (outputDir: string, artifacts: Artifact[]): string
   return writtenFiles;
 };
 
-export const runCli = async (argv: string[], deps: CliRunDependencies = {}): Promise<CliRunResult> => {
+export const generateArtifactsFromGroups = async (
+  document: OpenAPIV2.Document,
+  groups: ApiGroupByTag[],
+  options: ArtifactGenerationOptions,
+  deps: CliRunDependencies = {},
+): Promise<Artifact[]> => {
   const cwd = deps.cwd ?? process.cwd();
   const logger = deps.logger ?? console;
-  const options = parseArgs(argv);
   const translator = createBingTranslator({
     cacheDir: options.cacheDir,
     cwd,
@@ -378,13 +384,21 @@ export const runCli = async (argv: string[], deps: CliRunDependencies = {}): Pro
     translate: translator.translate,
   });
 
-  const document = await loadDocument(resolveInput(options.input, cwd));
+  return generateArtifacts(document, toSwaggerPathCollection(groups), options.mode);
+};
+
+export const runCli = async (argv: string[], deps: CliRunDependencies = {}): Promise<CliRunResult> => {
+  const cwd = deps.cwd ?? process.cwd();
+  const logger = deps.logger ?? console;
+  const options = parseArgs(argv);
+
+  const document = await loadSwaggerV2Document(options.input, cwd);
   const groups = filterApiGroups(collectApiGroups(document), options);
   if (!groups.length) {
     throw new Error('No API operations matched the current filters.');
   }
 
-  const artifacts = await generateArtifacts(document, toApiGroupCollection(groups), options.mode);
+  const artifacts = await generateArtifactsFromGroups(document, groups, options, deps);
   const outputFiles = writeArtifacts(resolveOutput(options.output, cwd), artifacts);
 
   logger.log(`[tswagger-cli] Generated ${outputFiles.length} files from ${groups.reduce((count, group) => count + group.apiPathList.length, 0)} operations.`);

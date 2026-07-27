@@ -4,6 +4,7 @@
   "initialVersions": {
     "@tswagger/cli": "1.0.0-beta.0",
     "@tswagger/core": "1.0.0-beta.0",
+    "@tswagger/mcp": "1.0.0-beta.0",
     "@tswagger/types": "1.0.0-beta.0",
     "tswagger-webview": "0.0.0"
   },

@@ -1,0 +1,59 @@
+{
+  "name": "@tswagger/mcp",
+  "version": "1.0.0-beta.0",
+  "private": false,
+  "description": "MCP server for inspecting Swagger/OpenAPI v2 documents and generating tswagger TypeScript artifacts.",
+  "keywords": [
+    "tswagger",
+    "mcp",
+    "model-context-protocol",
+    "swagger",
+    "openapi",
+    "typescript",
+    "api-client"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/orca-team/vscode-tswagger.git",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tswagger-mcp": "dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "pnpm run build:deps && rimraf dist && tsc -p tsconfig.build.json",
+    "build:deps": "pnpm --filter @tswagger/types run build && pnpm --filter @tswagger/core run build && pnpm --filter @tswagger/cli run build",
+    "prepack": "pnpm run build",
+    "pack:check": "npm pack --dry-run",
+    "inspect": "pnpm run build && npx -y @modelcontextprotocol/inspector node dist/bin.js",
+    "typecheck": "tsc --noEmit",
+    "test-compile": "node scripts/test-compile.js",
+    "test": "pnpm run test-compile && mocha \"out-test/**/*.test.js\" --ui tdd --timeout 10000"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@tswagger/cli": "workspace:*",
+    "@tswagger/core": "workspace:*",
+    "@tswagger/types": "workspace:*",
+    "openapi-types": "^12.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^18.19.0",
+    "esbuild": "^0.19.4",
+    "glob": "^7.1.6",
+    "mocha": "^8.2.1",
+    "rimraf": "^5.0.5",
+    "typescript": "^6.0.3"
+  }
+}
