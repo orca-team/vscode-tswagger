@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.0.0-beta.2
+
+### Minor Changes
+
+- 362fb49: Add the initial tswagger MCP server package and export CLI helpers for MCP integrations.
+
 ## 1.0.0-beta.1
 
 ### Minor Changes

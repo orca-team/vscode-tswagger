@@ -1,6 +1,6 @@
 {
   "name": "@tswagger/mcp",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0-beta.1",
   "private": false,
   "description": "MCP server for inspecting Swagger/OpenAPI v2 documents and generating tswagger TypeScript artifacts.",
   "keywords": [

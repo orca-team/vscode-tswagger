@@ -9,6 +9,8 @@
     "tswagger-webview": "0.0.0"
   },
   "changesets": [
-    "few-buttons-say"
+    "few-buttons-say",
+    "olive-lights-film",
+    "tall-rivers-tap"
   ]
 }
