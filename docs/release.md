@@ -145,7 +145,8 @@ After the version PR merge commit lands on `master`, the npm release workflow bu
 
 ## Release Boundary Checks
 
-- PRs that touch `packages/cli`, `packages/core`, or `packages/types` must include a `.changeset/*.md` file unless the PR is the npm version PR.
+- PRs that touch `packages/cli`, `packages/core`, `packages/mcp`, or `packages/types` must include a `.changeset/*.md` file unless the PR is the npm version PR from `changeset-release/master`.
+- npm version PR titles may be `chore: version npm packages` or include a prerelease tag suffix such as `chore: version npm packages (beta)`.
 - Extension Release PRs must not include `packages/*/package.json` or `packages/*/CHANGELOG.md`.
 - Conventional Commit scopes help reviewers understand intent, but path filters and PR checks are the enforcement layer.
 

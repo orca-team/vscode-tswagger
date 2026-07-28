@@ -4,11 +4,18 @@ const changedFiles = (process.env.CHANGED_FILES || '')
   .filter(Boolean);
 
 const prTitle = process.env.PR_TITLE || '';
+const prHeadRef = process.env.PR_HEAD_REF || '';
 const npmVersionPrTitle = process.env.NPM_VERSION_PR_TITLE || 'chore: version npm packages';
+const npmVersionPrBranch = process.env.NPM_VERSION_PR_BRANCH || 'changeset-release/master';
 const extensionReleasePrTitlePrefix =
   process.env.EXTENSION_RELEASE_PR_TITLE_PREFIX || 'chore: release extension ';
 
-const isNpmVersionPr = prTitle === npmVersionPrTitle;
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const npmVersionPrTitlePattern = new RegExp(
+  `^${escapeRegExp(npmVersionPrTitle)}(?: \\([^)]+\\))?$`
+);
+const isNpmVersionPr =
+  prHeadRef === npmVersionPrBranch && npmVersionPrTitlePattern.test(prTitle);
 const isExtensionReleasePr = prTitle.startsWith(extensionReleasePrTitlePrefix);
 
 const isPublicPackageFile = (file) => /^packages\/(?:cli|core|types|mcp)\//.test(file);

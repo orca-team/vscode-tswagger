@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: read
     env:
+      NPM_VERSION_PR_BRANCH: 'changeset-release/master'
       NPM_VERSION_PR_TITLE: 'chore: version npm packages'
     steps:
       - name: Checkout
@@ -56,11 +57,35 @@ jobs:
       - name: Install Dependencies
         if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
         run: pnpm install --no-frozen-lockfile
+      - name: Detect Npm Version PR
+        id: version_pr
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}
+        env:
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const titlePattern = new RegExp(
+            `^${escapeRegExp(process.env.NPM_VERSION_PR_TITLE || '')}(?: \\([^)]+\\))?$`
+          );
+          const isNpmVersionPr =
+            process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+            process.env.PR_HEAD_REF === process.env.NPM_VERSION_PR_BRANCH &&
+            titlePattern.test(process.env.PR_TITLE || '');
+
+          fs.appendFileSync(
+            process.env.GITHUB_OUTPUT,
+            `is_npm_version_pr=${isNpmVersionPr ? 'true' : 'false'}\n`
+          );
+          NODE
       - name: Validate Changeset Status
-        if: ${{ steps.npm_scope.outputs.should_validate == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.title != env.NPM_VERSION_PR_TITLE) }}
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' && steps.version_pr.outputs.is_npm_version_pr != 'true' }}
         run: pnpm run release:npm:status
       - name: Note Version PR Validation Mode
-        if: ${{ steps.npm_scope.outputs.should_validate == 'true' && github.event_name == 'pull_request' && github.event.pull_request.title == env.NPM_VERSION_PR_TITLE }}
+        if: ${{ steps.npm_scope.outputs.should_validate == 'true' && steps.version_pr.outputs.is_npm_version_pr == 'true' }}
         run: echo "Skipping changeset status because this PR is the maintainer-reviewed npm version PR."
       - name: Build Types
         if: ${{ steps.npm_scope.outputs.should_validate == 'true' }}

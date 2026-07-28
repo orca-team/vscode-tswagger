@@ -24,6 +24,7 @@ jobs:
       pull-requests: read
     env:
       EXTENSION_RELEASE_PR_TITLE_PREFIX: 'chore: release extension '
+      NPM_VERSION_PR_BRANCH: 'changeset-release/master'
       NPM_VERSION_PR_TITLE: 'chore: version npm packages'
     steps:
       - name: Checkout
@@ -44,5 +45,6 @@ jobs:
       - name: Validate Boundaries
         env:
           CHANGED_FILES: ${{ steps.changed_files.outputs.files }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: node ./scripts/release/validate-release-boundaries.js
