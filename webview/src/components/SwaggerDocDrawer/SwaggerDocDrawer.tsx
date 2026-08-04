@@ -601,7 +601,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
                     extra={
                       <Space
                         size="small"
-                        split={group.id !== UNGROUPED_ID ? <span style={{ color: '#d9d9d9' }}>|</span> : undefined}
+                        split={group.id !== UNGROUPED_ID ? <span style={{ color: token.colorBorderSecondary }}>|</span> : undefined}
                         onClick={(e) => {
                           e.stopPropagation();
                         }}
@@ -611,7 +611,7 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
                           icon={<PlusOutlined />}
                           title="添加文档"
                           onClick={() => handleAddDocToGroup(group.id)}
-                          style={{ color: '#1890ff' }}
+                          style={{ color: token.colorInfo }}
                         />
                         {/* 分组操作 */}
                         {group.id !== UNGROUPED_ID && (
@@ -621,13 +621,13 @@ const SwaggerDocDrawer = (props: SwaggerDocDrawerProps) => {
                               title="编辑分组名称"
                               onClick={() => setEditingGroupId(group.id)}
                               type="text"
-                              style={{ color: '#52c41a' }}
+                              style={{ color: token.colorSuccess }}
                             />
                             <ActionIcon
                               icon={<DeleteOutlined />}
                               title="删除分组"
                               type="text"
-                              style={{ color: '#ff4d4f' }}
+                              style={{ color: token.colorError }}
                               onClick={() => handleDeleteGroup(group.id)}
                             />
                           </>

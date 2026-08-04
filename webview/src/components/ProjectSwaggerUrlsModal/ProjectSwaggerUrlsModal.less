@@ -21,8 +21,8 @@
   gap: 16px;
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid var(--vscode-widget-border, #303031);
-  background: var(--vscode-editorHoverWidget-background, #252526);
+  border: 1px solid var(--tswagger-border);
+  background: var(--tswagger-panel-bg);
 }
 
 .rowMain {
@@ -55,19 +55,19 @@
 
   &:hover,
   &:focus {
-    border-color: var(--vscode-focusBorder, #007fd4);
+    border-color: var(--tswagger-focus-border);
     transform: translateY(-1px);
     outline: none;
   }
 }
 
 .successIcon {
-  color: #52c41a;
+  color: var(--tswagger-success);
   margin-top: 3px;
 }
 
 .mutedIcon {
-  color: #8c8c8c;
+  color: var(--tswagger-muted-fg);
   margin-top: 3px;
 }
 
@@ -75,8 +75,8 @@
   margin-top: 16px;
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid var(--vscode-widget-border, #303031);
-  background: var(--vscode-sideBar-background, #1e1e1e);
+  border: 1px solid var(--tswagger-border);
+  background: var(--tswagger-panel-bg);
 }
 
 .addTitle {

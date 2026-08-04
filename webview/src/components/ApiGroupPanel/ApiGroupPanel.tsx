@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import styles from './ApiGroupPanel.less';
-import { Badge, Checkbox, Collapse, CollapsePanelProps, Empty, Space, Typography, theme } from 'antd';
+import { Badge, Checkbox, Collapse, CollapsePanelProps, Empty, Space, Typography } from 'antd';
 import { ApiGroupByTag, ApiPathType } from '@/utils/types';
 import { useSelections } from 'ahooks';
 import { OpenAPIV2 } from 'openapi-types';
@@ -32,7 +32,6 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
   const { className = '', apiGroupItem, onChange, ...otherProps } = props;
   const { refreshDocFlag, filters } = useContext(WebviewPageContext);
   const { tag, apiPathList } = apiGroupItem;
-  const { token } = theme.useToken();
   const { selected, toggleAll, unSelectAll, allSelected, partiallySelected, isSelected, toggle } = useSelections(apiPathList.map(genSelectKey));
 
   useEffect(() => {
@@ -74,7 +73,11 @@ const ApiGroupPanel: React.FC<ApiGroupPanelProps> = (props) => {
           <Text strong style={{ fontSize: 16 }}>
             {tag.name}
           </Text>
-          <Badge count={apiPathList.length} overflowCount={999} style={{ backgroundColor: token.colorSuccess }} />
+          <Badge
+            count={apiPathList.length}
+            overflowCount={999}
+            style={{ backgroundColor: 'var(--tswagger-badge-bg)', color: 'var(--tswagger-badge-fg)' }}
+          />
         </Space>
       }
     >

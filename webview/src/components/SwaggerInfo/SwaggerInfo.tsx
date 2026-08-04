@@ -1,7 +1,7 @@
 import React from 'react';
 import { OpenAPIV2 } from 'openapi-types';
 import styles from './SwaggerInfo.less';
-import { Badge, Collapse, Descriptions, Tag, theme, Typography } from 'antd';
+import { Badge, Collapse, Descriptions, Tag, Typography } from 'antd';
 import { CaretRightOutlined } from '@ant-design/icons';
 
 export interface SwaggerInfoProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -11,11 +11,9 @@ export interface SwaggerInfoProps extends React.HTMLAttributes<HTMLDivElement> {
 const SwaggerInfo: React.FC<SwaggerInfoProps> = (props) => {
   const { className = '', v2Doc, ...otherProps } = props;
 
-  const { token } = theme.useToken();
-
   return (
     <div className={`${styles.root} ${className}`} {...otherProps}>
-      <Badge.Ribbon text={`OpenAPI ${v2Doc.swagger} 规范`} color={token.colorPrimaryActive}>
+      <Badge.Ribbon text={`OpenAPI ${v2Doc.swagger} 规范`} color="var(--tswagger-badge-bg)">
         <Collapse size="large" expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}>
           <Collapse.Panel key="swaggerOverview" header={`【文档信息】${v2Doc.info.title}`}>
             <Descriptions title="">

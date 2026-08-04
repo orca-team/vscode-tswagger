@@ -1,11 +1,81 @@
+// Semantic theme variables bridging VS Code webview theme tokens.
+//
+// 重要：VS Code 只向 webview 注入主题「显式定义」的颜色（不含注册表默认值），
+// 因此 hex 兜底值不仅在 webview 之外生效，也会在主题未定义对应颜色时生效——
+// 所有兜底必须在亮/暗两种背景下都保证可读。
+:root {
+  --tswagger-bg: var(--vscode-editor-background, #ffffff);
+  --tswagger-fg: var(--vscode-foreground, #1f1f1f);
+  --tswagger-muted-fg: var(--vscode-descriptionForeground, #6a6a6a);
+  --tswagger-panel-bg: var(--vscode-sideBar-background, var(--vscode-editor-background, #ffffff));
+  --tswagger-elevated-bg: var(--vscode-editorWidget-background, var(--vscode-sideBar-background, #ffffff));
+  --tswagger-hover-bg: var(--vscode-list-hoverBackground, var(--vscode-toolbar-hoverBackground, transparent));
+  --tswagger-active-bg: var(--vscode-list-activeSelectionBackground, var(--vscode-button-background, #0e639c));
+  --tswagger-border: var(--vscode-widget-border, var(--vscode-panel-border, #d0d0d0));
+  --tswagger-focus-border: var(--vscode-focusBorder, #0078d4);
+  --tswagger-link: var(--vscode-textLink-foreground, #006ab1);
+  --tswagger-button-bg: var(--vscode-button-background, #0e639c);
+  --tswagger-button-fg: var(--vscode-button-foreground, #ffffff);
+  --tswagger-button-hover-bg: var(--vscode-button-hoverBackground, #1177bb);
+  --tswagger-input-bg: var(--vscode-input-background, var(--tswagger-elevated-bg));
+  --tswagger-input-fg: var(--vscode-input-foreground, var(--tswagger-fg));
+  --tswagger-input-border: var(--vscode-input-border, var(--tswagger-border));
+  // 状态色优先使用编辑器波浪线/图表色（按设计必须在小尺寸下可见）。
+  // 注意：VS Code 只向 webview 注入主题「显式定义」的颜色（注入逻辑里
+  // getColor 不带 useDefault），注册表默认值不会出现；而 errorForeground、
+  // testing.iconPassed、list.warningForeground 这类语义色在部分主题中
+  // 被显式定义为暗色，因此不能直接放进链式兜底——会挤占后面的亮色兜底。
+  --tswagger-success: var(--vscode-charts-green, #2da44e);
+  --tswagger-warning: var(--vscode-editorWarning-foreground, #cca700);
+  --tswagger-error: var(--vscode-editorError-foreground, #f14c4c);
+  --tswagger-info: var(--vscode-editorInfo-foreground, #3794ff);
+  --tswagger-badge-bg: var(--vscode-badge-background, var(--tswagger-focus-border));
+  --tswagger-badge-fg: var(--vscode-badge-foreground, #ffffff);
+
+  // Intentional brand colors, kept in sync with the logo asset.
+  --tswagger-brand-green: #85ea2d;
+  --tswagger-brand-blue: #3178c6;
+}
+
 html,
 body,
 #root {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  background-color: var(--tswagger-bg);
+  color: var(--tswagger-fg);
+  font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: var(--vscode-font-size, 13px);
 }
 
 #root {
   position: relative;
+}
+
+// antd 浮层（下拉/弹窗/抽屉/通知等）默认没有边框、依赖投影分层；
+// 主题已禁用投影（boxShadow: none），改用 VS Code widget 边框与页面分隔，
+// 与编辑器原生 hover/suggest 控件的观感一致。
+.ant-select-dropdown,
+.ant-dropdown-menu,
+.ant-popover .ant-popover-inner,
+.ant-tooltip .ant-tooltip-inner,
+.ant-modal .ant-modal-content,
+.ant-drawer .ant-drawer-content,
+.ant-notification .ant-notification-notice,
+.ant-message .ant-message-notice-content {
+  border: 1px solid var(--tswagger-border);
+}
+
+// Typography 可编辑/复制触发图标：antd 默认使用链接色，在部分主题下
+// 偏暗几乎不可见，统一改用编辑器前景色（重复类名用于提升优先级，
+// 覆盖 antd 运行时注入的同优先级规则）
+.ant-typography .ant-typography-edit.ant-typography-edit,
+.ant-typography .ant-typography-copy.ant-typography-copy {
+  color: var(--tswagger-fg);
+
+  &:hover,
+  &:focus {
+    color: var(--tswagger-link);
+  }
 }

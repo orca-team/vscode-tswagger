@@ -52,7 +52,6 @@ const SettingModal = (props: SettingModalProps) => {
       <div className={styles.container}>
         <Menu
           className={styles.menu}
-          theme="light"
           selectedKeys={[settingKey]}
           items={menuItems}
           onClick={(info) => {

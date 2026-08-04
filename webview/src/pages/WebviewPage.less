@@ -5,8 +5,8 @@
   flex-direction: column;
 
   .header {
-    background: linear-gradient(135deg, var(--vscode-editorHoverWidget-background, #252526) 0%, var(--vscode-editor-background, #1e1e1e) 100%);
-    border-bottom: 1px solid var(--vscode-widget-border, #303031);
+    background: var(--tswagger-panel-bg);
+    border-bottom: 1px solid var(--tswagger-border);
     padding: 0 32px;
     height: 72px;
     display: flex;
@@ -33,16 +33,12 @@
           margin: 0;
           font-size: 22px;
           font-weight: 600;
-          color: var(--vscode-foreground, #cccccc);
-          background: linear-gradient(135deg, #85ea2d 0%, #3178c6 100%);
-          background-clip: text;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: var(--tswagger-fg);
         }
 
         .subtitle {
           font-size: 12px;
-          color: var(--vscode-descriptionForeground, #999999);
+          color: var(--tswagger-muted-fg);
           display: block;
           margin-top: 2px;
         }
@@ -51,14 +47,14 @@
 
     .headerActions {
       .headerButton {
-        color: var(--vscode-foreground, #cccccc);
-        border: 1px solid var(--vscode-widget-border, #303031);
+        color: var(--tswagger-fg);
+        border: 1px solid var(--tswagger-border);
         border-radius: 6px;
         transition: all 0.2s ease;
 
         &:hover {
-          background-color: var(--vscode-button-hoverBackground, #2c2c2c);
-          border-color: var(--vscode-focusBorder, #007acc);
+          background-color: var(--tswagger-hover-bg);
+          border-color: var(--tswagger-focus-border);
         }
       }
     }
@@ -73,44 +69,36 @@
     padding: 16px 32px;
     margin-top: 0;
 
-    .empty {
-      height: 50vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--vscode-editorHoverWidget-background, #252526);
-      border-radius: 12px;
-      border: 1px solid var(--vscode-widget-border, #303031);
+    .emptyDescription {
+      text-align: center;
+      color: var(--tswagger-fg);
 
-      .emptyDescription {
-        text-align: center;
-        color: var(--vscode-foreground, #cccccc);
-
-        .emptyHint {
-          margin-top: 8px;
-          font-size: 12px;
-          color: var(--vscode-descriptionForeground, #999999);
-        }
+      .emptyHint {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--tswagger-muted-fg);
       }
+    }
 
-      :global(.ant-empty-image) {
-        svg {
-          fill: var(--vscode-descriptionForeground, #999999);
-        }
+    // antd Empty 插图颜色取自 colorBgContainer/colorFill 背景系 token，
+    // 在部分主题下近似纯黑；统一改用次级文字色，保证亮/暗主题均可见
+    :global(.ant-empty-image) {
+      path,
+      ellipse {
+        fill: var(--tswagger-muted-fg);
       }
     }
 
     .content {
       padding: 20px 24px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      background: var(--vscode-editorHoverWidget-background, #252526);
-      border: 1px solid var(--vscode-widget-border, #303031);
-      transition: box-shadow 0.2s ease;
+      background: var(--tswagger-panel-bg);
+      border: 1px solid var(--tswagger-border);
+      transition: border-color 0.2s ease;
       flex-shrink: 0;
 
       &:hover {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        border-color: var(--tswagger-focus-border);
       }
 
       .localFileBtn {
@@ -118,12 +106,28 @@
         margin: 12px 0 24px 0;
       }
 
+      // 表单 label 内的行内操作图标：直接使用编辑器前景色保证可见，
+      // 避免 accent/warning 色在小尺寸图标上偏暗看不清。
+      // 注意：类名选择器必须放在 :global 块内，否则会被 CSS Modules 哈希
+      :global {
+        .ant-form-item-label {
+          .ant-btn:not(:disabled) {
+            color: var(--tswagger-fg);
+
+            &:hover,
+            &:focus {
+              color: var(--tswagger-link);
+            }
+          }
+        }
+      }
+
       .actionBar {
         display: flex;
         align-items: center;
         margin-top: 16px;
         padding-top: 16px;
-        border-top: 1px solid var(--vscode-widget-border, #303031);
+        border-top: 1px solid var(--tswagger-border);
 
         &.collapse {
           margin: 0;
@@ -135,11 +139,11 @@
           flex: 1;
 
           .statsText {
-            color: var(--vscode-foreground, #cccccc);
+            color: var(--tswagger-fg);
             font-size: 14px;
 
             strong {
-              color: var(--vscode-focusBorder, #007acc);
+              color: var(--tswagger-focus-border);
               font-weight: 600;
             }
           }
@@ -149,9 +153,9 @@
 
     .swaggerInfo {
       margin-top: 16px;
-      background: var(--vscode-editorHoverWidget-background, #252526);
+      background: var(--tswagger-panel-bg);
       border-radius: 12px;
-      border: 1px solid var(--vscode-widget-border, #303031);
+      border: 1px solid var(--tswagger-border);
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -159,12 +163,12 @@
     .quickActions {
       margin-top: 16px;
       padding: 12px 16px;
-      background: var(--vscode-editorWidget-background, #2d2d30);
+      background: var(--tswagger-elevated-bg);
       border-radius: 8px;
-      border: 1px solid var(--vscode-widget-border, #303031);
+      border: 1px solid var(--tswagger-border);
 
       .quickActionsLabel {
-        color: var(--vscode-foreground, #cccccc);
+        color: var(--tswagger-fg);
         font-size: 13px;
         font-weight: 500;
       }
@@ -179,6 +183,6 @@
   }
 
   :global(.ant-layout) {
-    background-color: var(--vscode-editor-background, #1e1e1e);
+    background-color: var(--tswagger-bg);
   }
 }

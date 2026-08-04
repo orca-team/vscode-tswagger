@@ -1,7 +1,7 @@
 .skeletonContainer {
   .skeletonCard {
-    background: var(--vscode-editorHoverWidget-background, #252526);
-    border: 1px solid var(--vscode-widget-border, #303031);
+    background: var(--tswagger-panel-bg);
+    border: 1px solid var(--tswagger-border);
     border-radius: 12px;
     margin-bottom: 16px;
     padding: 12px;
@@ -9,35 +9,40 @@
     &:last-child {
       margin-bottom: 0;
     }
-
-    :global(.ant-skeleton-element) {
-      .ant-skeleton-input {
-        background: var(--vscode-editorWidget-background, #2d2d30);
-        border-radius: 6px;
-      }
-
-      .ant-skeleton-button {
-        background: var(--vscode-editorWidget-background, #2d2d30);
-        border-radius: 6px;
-      }
-    }
   }
   .skeletonContent {
     margin-top: 12px;
   }
 
-  :global(.ant-skeleton.ant-skeleton-active) {
-    .ant-skeleton-content {
-      .ant-skeleton-title,
-      .ant-skeleton-paragraph > li {
-        background: linear-gradient(
-          90deg,
-          var(--vscode-editorWidget-background, #2d2d30) 25%,
-          var(--vscode-editor-background, #1e1e1e) 37%,
-          var(--vscode-editorWidget-background, #2d2d30) 63%
-        );
-        background-size: 400% 100%;
-        animation: ant-skeleton-loading 1.4s ease infinite;
+  // 注意：类名选择器必须放在 :global 块内，否则会被 CSS Modules 哈希
+  :global {
+    // 骨架条使用列表悬停色：editorWidget 背景在部分主题下与卡片底色一致，
+    // 会导致骨架条“融为一体”不可见
+    .ant-skeleton-element {
+      .ant-skeleton-input {
+        background: var(--tswagger-hover-bg);
+        border-radius: 6px;
+      }
+
+      .ant-skeleton-button {
+        background: var(--tswagger-hover-bg);
+        border-radius: 6px;
+      }
+    }
+
+    .ant-skeleton.ant-skeleton-active {
+      .ant-skeleton-content {
+        .ant-skeleton-title,
+        .ant-skeleton-paragraph > li {
+          background: linear-gradient(
+            90deg,
+            var(--tswagger-hover-bg) 25%,
+            var(--tswagger-active-bg) 37%,
+            var(--tswagger-hover-bg) 63%
+          );
+          background-size: 400% 100%;
+          animation: ant-skeleton-loading 1.4s ease infinite;
+        }
       }
     }
   }

@@ -357,13 +357,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
           </header>
         </Affix>
         <Layout ref={scrollContainerRef} className={styles.layout} style={{ flex: 1, overflow: 'auto' }}>
-          <Content
-            className={styles.content}
-            style={{
-              border: `1px solid var(--vscode-widget-border, #303031)`,
-              backgroundColor: 'var(--vscode-editorHoverWidget-background, #252526)',
-            }}
-          >
+          <Content className={styles.content}>
             <Form form={form} layout="vertical" {...formItemLayout} style={{ overflow: 'hidden', height: expand ? 'unset' : 0 }}>
               <Tabs
                 defaultActiveKey={PARSE_METHOD_DOCS}
@@ -398,7 +392,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                             <ActionIcon
                               icon={<FormOutlined />}
                               title="管理文档地址"
-                              style={{ display: 'inline-block', color: '#fa8c16' }}
+                              style={{ display: 'inline-block' }}
                               onClick={() => {
                                 drawer.show(
                                   <SwaggerDocDrawer
@@ -496,7 +490,7 @@ const WebviewPage: React.FC<WebviewPageProps> = (props) => {
                   icon={<DownOutlined rotate={expand ? 180 : 0} />}
                   onClick={toggleExpand}
                   title={expand ? '收起' : '展开'}
-                  style={{ color: '#8c8c8c' }}
+                  style={{ color: token.colorTextTertiary }}
                 />
               </Space>
             </div>

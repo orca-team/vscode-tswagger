@@ -1,4 +1,40 @@
 .root {
   width: 62px;
   text-align: center;
+  background: transparent;
+
+  &.methodGet {
+    color: var(--tswagger-success);
+    border-color: var(--tswagger-success);
+  }
+
+  &.methodPost {
+    color: var(--tswagger-link);
+    border-color: var(--tswagger-link);
+  }
+
+  &.methodPut {
+    color: var(--tswagger-warning);
+    border-color: var(--tswagger-warning);
+  }
+
+  &.methodDelete {
+    color: var(--tswagger-error);
+    border-color: var(--tswagger-error);
+  }
+
+  &.methodPatch {
+    color: var(--tswagger-info);
+    border-color: var(--tswagger-info);
+  }
+
+  &.methodOptions {
+    color: var(--tswagger-muted-fg);
+    border-color: var(--tswagger-muted-fg);
+  }
+
+  &.methodHead {
+    color: var(--tswagger-muted-fg);
+    border-color: var(--tswagger-muted-fg);
+  }
 }

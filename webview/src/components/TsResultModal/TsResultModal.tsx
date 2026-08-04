@@ -15,6 +15,7 @@ import notification from '@/utils/notification';
 import { OpenAPIV2 } from 'openapi-types';
 import { useGlobalState } from '@/states/globalState';
 import { apiReadServiceMapInfo } from '@/services';
+import useVsCodeThemeKind from '@/hooks/useVsCodeThemeKind';
 
 const { Text } = Typography;
 
@@ -48,6 +49,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
 
   const currentBasePath = V2Docs?.basePath ?? '';
   const { token } = theme.useToken();
+  const monacoTheme = useVsCodeThemeKind();
   const drawer = usePromisifyDrawer();
   const { tswaggerConfig } = useGlobalState();
   const mappedBasePathList = Object.keys(tswaggerConfig.basePathMapping ?? {});
@@ -266,7 +268,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
             <MonacoEditor
               value={editorContent.originalContent}
               height="75vh"
-              theme="vs-dark"
+              theme={monacoTheme}
               language="typescript"
               options={{
                 readOnly: true,
@@ -279,7 +281,7 @@ const TsResultModal: React.FC<TsResultModalProps> = (props) => {
               original={editorContent.originalContent}
               modified={editorContent.modifiedContent}
               height="75vh"
-              theme="vs-dark"
+              theme={monacoTheme}
               language="typescript"
               options={{
                 readOnly: true,

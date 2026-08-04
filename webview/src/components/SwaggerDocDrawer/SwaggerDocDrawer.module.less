@@ -17,9 +17,9 @@
     }
 
     &.dragOver {
-      border: 2px dashed #1890ff;
+      border: 2px dashed var(--tswagger-focus-border);
       border-radius: 6px;
-      background-color: rgba(24, 144, 255, 0.05);
+      background-color: var(--tswagger-hover-bg);
     }
 
     &[draggable='false'] {
@@ -59,7 +59,7 @@
       }
 
       .docCount {
-        color: #8c8c8c;
+        color: var(--tswagger-muted-fg);
         font-size: 12px;
       }
     }
@@ -68,10 +68,10 @@
   .legacyContent {
     .legacyTip {
       padding: 12px;
-      background: #fff7e6;
-      border: 1px solid #ffd591;
+      background: transparent;
+      border: 1px solid var(--tswagger-warning);
       border-radius: 6px;
-      color: #d46b08;
+      color: var(--tswagger-warning);
       margin-bottom: 16px;
     }
 
