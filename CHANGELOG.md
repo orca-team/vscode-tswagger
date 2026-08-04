@@ -6,6 +6,24 @@ This file is the release record for the VS Code extension only. npm package rele
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.7.0](https://github.com/orca-team/vscode-tswagger/compare/extension-v2.6.0...extension-v2.7.0) (2026-08-04)
+
+
+### Added
+
+* **mcp:** Add tswagger MCP server ([#14](https://github.com/orca-team/vscode-tswagger/issues/14)) ([362fb49](https://github.com/orca-team/vscode-tswagger/commit/362fb49694cac5f0b453eca5cf2f772fb3f4d632))
+* **skills:** add tswagger agent skills ([#17](https://github.com/orca-team/vscode-tswagger/issues/17)) ([f726692](https://github.com/orca-team/vscode-tswagger/commit/f726692b47301ace5324b1f7d2fee34223c6ef06))
+
+
+### Fixed
+
+* **ci:** recognize prerelease version PRs ([#18](https://github.com/orca-team/vscode-tswagger/issues/18)) ([47a33f3](https://github.com/orca-team/vscode-tswagger/commit/47a33f35e85f7da85810dcac89fe737a49717e04))
+
+
+### Changed
+
+* **webview:** adapt UI to VS Code theme colors ([#19](https://github.com/orca-team/vscode-tswagger/issues/19)) ([f94bb1d](https://github.com/orca-team/vscode-tswagger/commit/f94bb1d859f8c7bfc396082dab2cedc95398ffb3))
+
 ## [Unreleased]
 
 ## [2.6.0] - 2026-07-22
